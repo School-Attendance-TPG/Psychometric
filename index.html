@@ -221,6 +221,11 @@
     overflow-y: auto;
     z-index: 99;
 }
+
+    .top-nav.admin-mode .lang-toggle {
+    display: none !important;
+}
+
         .admin-sidebar-header { padding: 0 12px 20px; border-bottom: 1px solid var(--glass-border); margin-bottom: 10px; }
         .admin-sidebar-header h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         .admin-sidebar-header p { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
@@ -655,7 +660,7 @@
                     <i class="fas fa-user-shield"></i>
                 </div>
                 <h2 style="font-size:1.8rem; margin-bottom:8px;" data-i18n="admin_login_title">Counselor Portal</h2>
-                <p style="margin-bottom:32px;" data-i18n="admin_login_subtitle">Secure access for authorized counseling staff only</p>
+                <p style="margin-bottom:32px;" data-i18n="admin_login_subtitle">Secure access for authorized counselor access only</p>
                 <div class="glass-card" style="padding:32px; text-align:left;">
                     <form id="adminLoginForm" onsubmit="app.adminLogin(event)">
                         <div class="form-group">
@@ -1209,7 +1214,7 @@
             if (!dashSection?.classList.contains('active')) {
                 this.currentUser = user;
                 this.showSection('adminDashboard');
-                this.showToast('Welcome back, Counselor!', 'success');
+                
             }
         } else {
             // Logged out — clear user
@@ -1222,16 +1227,25 @@
         // NAVIGATION
         // ═══════════════════════════════════════════════════════════════
         showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            const target = document.getElementById(id);
-            if (target) {
-                target.classList.add('active');
-                window.scrollTo(0, 0);
-            }
-            document.querySelectorAll(`[data-nav="${id}"]`).forEach(el => el.classList.add('active'));
-            if (id === 'landing') this.updateHeroStats();
-        },
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+    document.querySelectorAll(`[data-nav="${id}"]`).forEach(el => el.classList.add('active'));
+    
+    // ✅ Admin Dashboard-ல மட்டும் language toggle hide
+    const topNav = document.getElementById('topNav');
+    if (id === 'adminDashboard') {
+        topNav.classList.add('admin-mode');
+    } else {
+        topNav.classList.remove('admin-mode');
+    }
+    
+    if (id === 'landing') this.updateHeroStats();
+},
 
         showAdminPage(page) {
             document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
@@ -1557,7 +1571,7 @@
         btn.disabled = false;
     }
     
-    this.showToast('Logged out successfully. Please sign in again.', 'success');
+    this.showToast('Logged out successfully.', 'success');
 },
 
         // ═══════════════════════════════════════════════════════════════
@@ -2018,7 +2032,7 @@
         async syncFromFirebase() {
             if (!this.firebaseReady || !this.db) return;
             try {
-                this.showToast('Syncing from cloud...', 'info');
+                
                 const { getDocs, collection } = window.fb;
 
                 const stuSnap = await getDocs(collection(this.db, 'students'));
@@ -2051,7 +2065,7 @@
                 this.renderStudentsTable();
                 this.renderAssessmentsTable();
                 this.populateStudentSelects();
-                this.showToast('Cloud sync complete!', 'success');
+                
 
                 // Re-check QR params after real data loaded
                 this.checkUrlParams();
