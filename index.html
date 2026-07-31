@@ -1165,14 +1165,14 @@
         },
 
         setupFirebase() {
-            const check = async () => {
+            const check = () => {
                 if (window.firebaseAuth && window.firebaseDb) {
                     this.auth = window.firebaseAuth;
                     this.db = window.firebaseDb;
                     this.firebaseReady = true;
                     this.setupAuthListener();
-                    // Pull real data from cloud so QR works on any device
-                    await this.syncFromFirebase();
+                    // Pull real data in background (don't block UI)
+                    this.syncFromFirebase().catch(() => {});
                 } else {
                     setTimeout(check, 500);
                 }
@@ -2016,10 +2016,6 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => app.init());
-
     </script>
 </body>
-</html>        
-
-
-
+</html>       
