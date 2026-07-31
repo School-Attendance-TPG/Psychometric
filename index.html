@@ -1136,7 +1136,7 @@
             }
         },
 
-        init() {
+        async init() {
             this.loadSettings();
             this.loadDemoData();
             this.setupNavScroll();
@@ -1146,12 +1146,16 @@
             this.renderAssessmentsTable();
             this.populateStudentSelects();
             this.setLang('en');
-            
+
             // Set today's date for inputs
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('assDate').value = today;
             document.getElementById('reportDateFrom').value = today;
             document.getElementById('reportDateTo').value = today;
+
+            // Check URL params for direct student access (QR scan)
+            // Will re-check after Firebase sync completes
+            this.checkUrlParams();
         },
 
         setupNavScroll() {
@@ -1161,12 +1165,14 @@
         },
 
         setupFirebase() {
-            const check = () => {
+            const check = async () => {
                 if (window.firebaseAuth && window.firebaseDb) {
                     this.auth = window.firebaseAuth;
                     this.db = window.firebaseDb;
                     this.firebaseReady = true;
                     this.setupAuthListener();
+                    // Pull real data from cloud so QR works on any device
+                    await this.syncFromFirebase();
                 } else {
                     setTimeout(check, 500);
                 }
@@ -1601,11 +1607,13 @@
             this.populateStudentSelects();
             this.closeStudentModal();
             this.updateHeroStats();
+            const finalStudent = id ? this.students.find(s => s.id === id) : this.students[this.students.length - 1];
+            this.saveStudentToFirebase(finalStudent);
         },
         editStudent(id) { this.openStudentModal(id); },
         deleteStudent(id) { this.deleteTarget = { type: 'student', id }; document.getElementById('deleteModal').classList.add('show'); },
         closeDeleteModal() { document.getElementById('deleteModal').classList.remove('show'); this.deleteTarget = { type: null, id: null }; },
-        confirmDelete() {
+        async confirmDelete() {
             if (!this.deleteTarget.id) return;
             if (this.deleteTarget.type === 'student') {
                 this.students = this.students.filter(s => s.id !== this.deleteTarget.id);
@@ -1613,11 +1621,13 @@
                 this.saveStudents(); this.saveAssessments();
                 this.renderStudentsTable(); this.renderAssessmentsTable();
                 this.showToast('Student deleted', 'info');
+                await this.deleteStudentFromFirebase(this.deleteTarget.id);
             } else if (this.deleteTarget.type === 'assessment') {
                 this.assessments = this.assessments.filter(a => a.id !== this.deleteTarget.id);
                 this.saveAssessments();
                 this.renderAssessmentsTable();
                 this.showToast('Assessment deleted', 'info');
+                await this.deleteAssessmentFromFirebase(this.deleteTarget.id);
             }
             this.closeDeleteModal();
             this.updateHeroStats();
@@ -1763,6 +1773,8 @@
             this.renderAssessmentsTable();
             this.closeAssessmentModal();
             this.updateHeroStats();
+            const finalAssessment = editId ? this.assessments.find(a => a.id === editId) : this.assessments[this.assessments.length - 1];
+            this.saveAssessmentToFirebase(finalAssessment);
         },
         editAssessment(id) { this.openAssessmentModal(id); },
         deleteAssessment(id) { this.deleteTarget = { type: 'assessment', id }; document.getElementById('deleteModal').classList.add('show'); },
@@ -1919,10 +1931,95 @@
             toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${msg}`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // FIREBASE CLOUD SYNC (Multi-device QR support)
+        // ═══════════════════════════════════════════════════════════════
+        async syncFromFirebase() {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                this.showToast('Syncing from cloud...', 'info');
+                const { getDocs, collection } = window.fb;
+
+                const stuSnap = await getDocs(collection(this.db, 'students'));
+                const fbStudents = [];
+                stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
+
+                const assSnap = await getDocs(collection(this.db, 'assessments'));
+                const fbAssessments = [];
+                assSnap.forEach(d => fbAssessments.push({...d.data(), id: d.id}));
+
+                // If cloud has data, use it (cloud wins over local)
+                if (fbStudents.length > 0) {
+                    this.students = fbStudents;
+                    this.saveStudents();
+                }
+                if (fbAssessments.length > 0) {
+                    this.assessments = fbAssessments;
+                    this.saveAssessments();
+                }
+
+                // If cloud is empty but local has data, push local up
+                if (fbStudents.length === 0 && this.students.length > 0) {
+                    for (const s of this.students) await this.saveStudentToFirebase(s);
+                }
+                if (fbAssessments.length === 0 && this.assessments.length > 0) {
+                    for (const a of this.assessments) await this.saveAssessmentToFirebase(a);
+                }
+
+                this.updateHeroStats();
+                this.renderStudentsTable();
+                this.renderAssessmentsTable();
+                this.populateStudentSelects();
+                this.showToast('Cloud sync complete!', 'success');
+
+                // Re-check QR params after real data loaded
+                this.checkUrlParams();
+            } catch(e) {
+                console.error('Firebase sync error', e);
+                this.showToast('Cloud sync failed, using local data', 'error');
+            }
+        },
+
+        async saveStudentToFirebase(student) {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { doc, setDoc } = window.fb;
+                await setDoc(doc(this.db, 'students', student.id), student);
+            } catch(e) { console.error('Firebase save student failed', e); }
+        },
+
+        async saveAssessmentToFirebase(assessment) {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { doc, setDoc } = window.fb;
+                await setDoc(doc(this.db, 'assessments', assessment.id), assessment);
+            } catch(e) { console.error('Firebase save assessment failed', e); }
+        },
+
+        async deleteStudentFromFirebase(id) {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { doc, deleteDoc } = window.fb;
+                await deleteDoc(doc(this.db, 'students', id));
+            } catch(e) { console.error('Firebase delete student failed', e); }
+        },
+
+        async deleteAssessmentFromFirebase(id) {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { doc, deleteDoc } = window.fb;
+                await deleteDoc(doc(this.db, 'assessments', id));
+            } catch(e) { console.error('Firebase delete assessment failed', e); }
         }
     };
 
     document.addEventListener('DOMContentLoaded', () => app.init());
+
     </script>
 </body>
-</html>
+</html>        
+
+
+
