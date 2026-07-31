@@ -682,10 +682,16 @@
                 <button class="admin-nav-item" onclick="app.showAdminPage('reports')" data-admin-nav="reports"><i class="fas fa-file-alt"></i> Reports</button>
                 <button class="admin-nav-item" onclick="app.showAdminPage('settings')" data-admin-nav="settings"><i class="fas fa-cog"></i> Settings</button>
                 <div class="admin-sidebar-footer">
-                    <div style="margin-bottom:8px;"><i class="fas fa-shield-alt" style="color:var(--malaysia-yellow)"></i></div>
-                    <div>Secured by Firebase</div>
-                    <div style="margin-top:4px; font-size:0.7rem;">v3.0 Premium</div>
-                </div>
+    <button class="admin-nav-item" onclick="app.logout()" id="adminLogoutBtn" style="color:var(--danger); margin-bottom:8px; border:1px solid rgba(239,68,68,0.15);">
+        <i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> 
+        <span>Logout</span>
+    </button>
+    <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); text-align:center;">
+        <div style="margin-bottom:4px;"><i class="fas fa-shield-alt" style="color:var(--malaysia-yellow); font-size:0.8rem;"></i></div>
+        <div style="font-size:0.7rem;">Secured by Firebase</div>
+        <div style="font-size:0.65rem; color:var(--text-muted);">v3.0 Premium</div>
+    </div>
+</div>
             </aside>
             <main class="admin-main">
                 <!-- DASH -->
@@ -1489,15 +1495,57 @@
     }
 },
 
-        logout() {
-            if (this.firebaseReady && this.auth) {
-                const { signOut } = window.fb;
-                signOut(this.auth);
-            }
-            this.currentUser = null;
-            this.showSection('landing');
-            this.showToast('Logged out successfully', 'info');
-        },
+        async logout() {
+    const btn = document.getElementById('adminLogoutBtn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        btn.disabled = true;
+    }
+    
+    // ✅ Firebase-லிருந்து proper-ஆ sign out
+    if (this.firebaseReady && this.auth) {
+        try {
+            const { signOut } = window.fb;
+            await signOut(this.auth);
+        } catch (err) {
+            console.error('Firebase logout error:', err);
+        }
+    }
+    
+    // ✅ Session clear
+    this.currentUser = null;
+    
+    // ✅ Admin UI reset (next login-க்கு dashboard-லே start ஆகணும்)
+    document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+    document.getElementById('adminPage-dash').classList.add('active');
+    document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector('.admin-nav-item[data-admin-nav="dash"]')?.classList.add('active');
+    
+    // ✅ Mobile sidebar open-ஆ இருந்தா close பண்ணு
+    document.getElementById('adminSidebar')?.classList.remove('open');
+    
+    // ✅ Login form clear பண்ணு (security-க்கு)
+    const emailField = document.getElementById('adminEmail');
+    const passField = document.getElementById('adminPassword');
+    const loginBtn = document.getElementById('adminLoginBtn');
+    if (emailField) emailField.value = '';
+    if (passField) passField.value = '';
+    if (loginBtn) {
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+        loginBtn.disabled = false;
+    }
+    
+    // ✅ Login page-க்கு redirect (landing-க்கு இல்ல)
+    this.showSection('adminLogin');
+    
+    // ✅ Logout button-அ reset பண்ணி வை
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> <span>Logout</span>';
+        btn.disabled = false;
+    }
+    
+    this.showToast('Logged out successfully. Please sign in again.', 'success');
+},
 
         // ═══════════════════════════════════════════════════════════════
         // ADMIN DASHBOARD
