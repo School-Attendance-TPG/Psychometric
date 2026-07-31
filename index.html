@@ -1114,6 +1114,28 @@
             document.getElementById('adminSidebar').classList.toggle('open');
         },
 
+        checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const studentId = params.get('student');
+            const icNumber = params.get('ic');
+
+            if (studentId) {
+                const student = this.students.find(s => s.id === studentId);
+                if (student) {
+                    this.showResults(student);
+                    return;
+                }
+            }
+
+            if (icNumber) {
+                const cleanIc = icNumber.replace(/[-\s]/g, '');
+                const student = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
+                if (student) {
+                    this.showResults(student);
+                }
+            }
+        },
+
         init() {
             this.loadSettings();
             this.loadDemoData();
