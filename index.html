@@ -1181,16 +1181,23 @@
         },
 
         setupAuthListener() {
-            if (!this.firebaseReady) return;
-            const { onAuthStateChanged } = window.fb;
-            onAuthStateChanged(this.auth, (user) => {
-                if (user) {
-                    this.currentUser = user;
-                    this.showSection('adminDashboard');
-                    this.showToast('Welcome back, Counselor!', 'success');
-                }
-            });
-        },
+    if (!this.firebaseReady) return;
+    const { onAuthStateChanged } = window.fb;
+    onAuthStateChanged(this.auth, (user) => {
+        if (user) {
+            // Only redirect if not already on dashboard
+            const dashSection = document.getElementById('adminDashboard');
+            if (!dashSection?.classList.contains('active')) {
+                this.currentUser = user;
+                this.showSection('adminDashboard');
+                this.showToast('Welcome back, Counselor!', 'success');
+            }
+        } else {
+            // Logged out — clear user
+            this.currentUser = null;
+        }
+    });
+},
 
         // ═══════════════════════════════════════════════════════════════
         // NAVIGATION
@@ -1444,34 +1451,43 @@
         // ADMIN AUTH
         // ═══════════════════════════════════════════════════════════════
         async adminLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            const btn = document.getElementById('adminLoginBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
-            btn.disabled = true;
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+    const btn = document.getElementById('adminLoginBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+    btn.disabled = true;
+    
+    if (this.firebaseReady) {
+        try {
+            const { signInWithEmailAndPassword } = window.fb;
+            const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
             
-            if (this.firebaseReady) {
-                try {
-                    const { signInWithEmailAndPassword } = window.fb;
-                    await signInWithEmailAndPassword(this.auth, email, password);
-                    // Auth listener will handle redirect
-                } catch (err) {
-                    this.showToast('Login failed: ' + err.message, 'error');
-                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
-                    btn.disabled = false;
-                }
-            } else {
-                // Demo mode fallback
-                setTimeout(() => {
-                    this.currentUser = { email, name: 'Subashini Sivalingam' };
-                    this.showSection('adminDashboard');
-                    this.showToast('Demo mode: Logged in as Counselor', 'info');
-                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
-                    btn.disabled = false;
-                }, 800);
-            }
-        },
+            // ✅ FIX: Direct redirect — don't wait for listener alone
+            this.currentUser = userCredential.user;
+            this.showSection('adminDashboard');
+            this.showToast('Welcome back, Counselor!', 'success');
+            
+            // Reset button state
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            btn.disabled = false;
+            
+        } catch (err) {
+            this.showToast('Login failed: ' + err.message, 'error');
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            btn.disabled = false;
+        }
+    } else {
+        // Demo mode fallback
+        setTimeout(() => {
+            this.currentUser = { email, name: 'Subashini Sivalingam' };
+            this.showSection('adminDashboard');
+            this.showToast('Demo mode: Logged in as Counselor', 'info');
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            btn.disabled = false;
+        }, 800);
+    }
+},
 
         logout() {
             if (this.firebaseReady && this.auth) {
@@ -1885,16 +1901,18 @@
         // SETTINGS & BACKUP
         // ═══════════════════════════════════════════════════════════════
         saveSettings() {
-            this.settings.counselorName = document.getElementById('settingCounselorName').value;
-            this.settings.counselorQual = document.getElementById('settingCounselorQual').value;
-            this.settings.schoolName = document.getElementById('settingSchoolName').value;
-            this.settings.email = document.getElementById('settingEmail').value;
-            this.settings.thresholds.normal = parseInt(document.getElementById('threshNormal').value);
-            this.settings.thresholds.mild = parseInt(document.getElementById('threshMild').value);
-            this.settings.thresholds.moderate = parseInt(document.getElementById('threshModerate').value);
-            this.saveSettings();
-            this.showToast('Settings saved!', 'success');
-        },
+    this.settings.counselorName = document.getElementById('settingCounselorName').value;
+    this.settings.counselorQual = document.getElementById('settingCounselorQual').value;
+    this.settings.schoolName = document.getElementById('settingSchoolName').value;
+    this.settings.email = document.getElementById('settingEmail').value;
+    this.settings.thresholds.normal = parseInt(document.getElementById('threshNormal').value);
+    this.settings.thresholds.mild = parseInt(document.getElementById('threshMild').value);
+    this.settings.thresholds.moderate = parseInt(document.getElementById('threshModerate').value);
+    
+    // ✅ FIX: Call localStorage save, NOT recursive this.saveSettings()
+    localStorage.setItem('manasu_settings', JSON.stringify(this.settings));
+    this.showToast('Settings saved!', 'success');
+},
         backupData() {
             const data = { students: this.students, assessments: this.assessments, settings: this.settings, exportedAt: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
