@@ -202,7 +202,7 @@
         .recommendation-box h4 { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: var(--healing-teal); }
         .recommendation-box p { color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
         .counselor-signature { display: flex; align-items: center; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--glass-border); }
-        .counselor-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--malaysia-blue), var(--malaysia-red)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; }
+        .counselor-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--malaysia-blue), var(--malaysia-red)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; object-fit: cover; }
         .counselor-details h5 { font-size: 1rem; margin-bottom: 2px; }
         .counselor-details span { font-size: 0.8rem; color: var(--text-muted); }
 
@@ -636,7 +636,7 @@
                         <h4><i class="fas fa-clipboard-list"></i> <span data-i18n="counselor_notes">Counselor Recommendations</span></h4>
                         <p id="counselorNotes">-</p>
                         <div class="counselor-signature">
-                            <div class="counselor-avatar">S</div>
+                            <img class="counselor-avatar" src="counselor.jpg" alt="Counselor" onerror="this.outerHTML='<div class=\'counselor-avatar\'>S</div>'">
                             <div class="counselor-details">
                                 <h5>Subashini Sivalingam, B.Sc Psychology</h5>
                                 <span>Guidance & Counseling Teacher, SJKT TPG</span>
@@ -1472,12 +1472,17 @@
             this.showToast('PDF downloaded!', 'success');
         },
 
-        shareWhatsApp() {
+                shareWhatsApp() {
             const student = this.currentResultStudent;
             const ass = this.currentResultAssessment;
             if (!student || !ass) return;
-            const text = `MANASU Psychosomatic Report for ${student.name}%0AClass: ${student.class}%0AOverall Score: ${ass.overallScore}/10%0ASeverity: ${ass.severity}%0A%0AView full report at: [Portal Link]`;
-            window.open(`https://wa.me/?text=${text}`, '_blank');
+            
+            // ✅ Direct link with MyKid IC number
+            const portalUrl = `${window.location.origin}${window.location.pathname}?ic=${student.icNumber}`;
+            
+            const text = `MANASU Psychosomatic Report for ${student.name}\nClass: ${student.class}\nOverall Score: ${ass.overallScore}/10\nSeverity: ${ass.severity}\n\nView full report at: ${portalUrl}`;
+            
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         },
 
         // ═══════════════════════════════════════════════════════════════
