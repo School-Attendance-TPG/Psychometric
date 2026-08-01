@@ -18,7 +18,7 @@
     <link rel="manifest" href="manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -141,7 +141,7 @@
         .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 100px 20px 60px; position: relative; }
         .hero-content { max-width: 900px; text-align: center; }
         .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: rgba(13,148,136,0.08); border: 1px solid rgba(13,148,136,0.20); border-radius: 50px; color: var(--healing-teal); font-size: 0.85rem; font-weight: 600; margin-bottom: 30px; animation: fadeInUp 0.8s ease 0.2s both; }
-        .hero h2 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: 1.1; margin-bottom: 24px; animation: fadeInUp 0.8s ease 0.4s both; }
+        .hero h2 { font-family: 'Playfair Display', 'Catamaran', 'Noto Sans Tamil', sans-serif; font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: 1.4; margin-bottom: 24px; font-weight: 700; animation: fadeInUp 0.8s ease 0.4s both; }
         .hero p { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 40px; line-height: 1.7; animation: fadeInUp 0.8s ease 0.6s both; }
         .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.8s both; }
         .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 600px; margin: 60px auto 0; animation: fadeInUp 0.8s ease 1s both; }
@@ -573,7 +573,7 @@
                     <div class="glass-card" style="padding:32px;">
                         <div class="ic-input-wrap">
                             <i class="fas fa-id-card"></i>
-                            <input type="text" class="input-premium" id="parentIcInput" placeholder="e.g. 200901041234" maxlength="14" autocomplete="off">
+                            <input type="text" class="input-premium" id="parentIcInput" placeholder="e.g. 200901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchByIC()">
                         </div>
                         <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="app.searchByIC()">
                             <i class="fas fa-search"></i> <span data-i18n="btn_view_results">View Results</span>
@@ -1076,7 +1076,7 @@
             },
             ta: {
                 badge_secure: 'பாதுகாப்பானது & ரகசியமானது',
-                hero_title: 'இளம் மனங்களை புரிந்துகொள்ளுதல்,<br>மற்றும் மதிப்பீடுகள்',
+                hero_title: 'இளம் மனங்களைப் புரிந்துகொள்ளுதலும்,<br>மதிப்பீடு செய்தலும்',
                 hero_subtitle: 'SJKT தெலுக் பங்லிமா காராங் மாணவர்களுக்கான மனநல ஆரோக்கிய போர்டல். பெற்றோர் MyKid எண்ணைப் பயன்படுத்தி தங்கள் குழந்தைகளின் மனநல மதிப்பீட்டு முடிவுகளைப் பார்க்கலாம்.',
                 btn_check_results: 'முடிவுகளைப் பார்',
                 btn_counselor_login: 'ஆலோசகர் உள்நுழைவு',
