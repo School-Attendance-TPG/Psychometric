@@ -2017,39 +2017,47 @@
         generateReport() {
             this.showToast('Report generated! (Demo: check console)', 'info');
         },
-        exportReportExcel() {
+                exportReportExcel() {
             const data = this.assessments.map(a => {
                 const s = this.students.find(st => st.id === a.studentId);
                 return {
-                    Date: a.date, Student: s ? s.name : 'Unknown', Class: s ? s.class : '',
-                    'Overall Score': a.overallScore, Severity: a.severity, Status: a.status,
-                    Emotional: a.domains.emotional, Behavioral: a.domains.behavioral,
-                    Social: a.domains.social, Academic: a.domains.academic,
-                    Physical: a.domains.physical, Coping: a.domains.coping,
-                    Notes: a.notes || ''
+                    'Date': a.date,
+                    'Student Name': s ? s.name : 'Unknown',
+                    'Class': s ? s.class : '',
+                    'Overall Score': a.overallScore,
+                    'Severity': a.severity,
+                    'Status': a.status,
+                    'Emotional': a.domains.emotional,
+                    'Behavioral': a.domains.behavioral,
+                    'Social': a.domains.social,
+                    'Academic': a.domains.academic,
+                    'Physical': a.domains.physical,
+                    'Coping': a.domains.coping,
+                    'Counselor Notes': a.notes || ''
                 };
             });
+            
             if (typeof XLSX !== 'undefined') {
                 const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Assessments');
                 XLSX.writeFile(wb, `MANASU_Assessments_${new Date().toISOString().split('T')[0]}.xlsx`);
+                this.showToast('Excel exported!', 'success');
             } else {
-                // CSV fallback
-                const headers = Object.keys(data[0] || {});
-                const csv = [headers.join(','), ...data.map(row => headers.map(h => `"${(row[h]||'')}"`).join(','))].join('\\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `MANASU_Report_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+                this.downloadCSV(`MANASU_Assessments_${new Date().toISOString().split('T')[0]}.csv`, data, ['Class']);
+                this.showToast('CSV exported!', 'success');
             }
-            this.showToast('Report exported!', 'success');
         },
-        exportStudents() {
-            const data = this.students.map(s => ({ Name: s.name, MyKid: s.icNumber, Class: s.class, Age: s.age, 'Parent Name': s.parentName, 'Parent Phone': s.parentPhone }));
-            const csv = [Object.keys(data[0]).join(','), ...data.map(row => Object.values(row).map(v => `"${v||''}"`).join(','))].join('\\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `MANASU_Students_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+                               exportStudents() {
+            const data = this.students.map(s => ({
+                'Student Name': s.name,
+                'MyKid Number': s.icNumber,
+                'Class': s.class,
+                'Age': s.age ?? '',
+                'Parent Name': s.parentName || '',
+                'Parent Phone': s.parentPhone || ''
+            }));
+            this.downloadCSV(`MANASU_Students_${new Date().toISOString().split('T')[0]}.csv`, data, ['MyKid Number', 'Class']);
             this.showToast('Students exported!', 'success');
         },
         generateQR() {
@@ -2134,6 +2142,56 @@
             toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${msg}`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
+        },
+
+
+                 showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icons = { success: 'check-circle', error: 'times-circle', info: 'info-circle' };
+            toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // UNIVERSAL CSV EXPORT HELPER
+        // ═══════════════════════════════════════════════════════════════
+        downloadCSV(filename, rows, textColumns = []) {
+            if (!rows || rows.length === 0) {
+                this.showToast('No data to export!', 'error');
+                return;
+            }
+            
+            const headers = Object.keys(rows[0]);
+            
+            const escape = (str, header) => {
+                let val = String(str ?? '').replace(/"/g, '""');
+                if (textColumns.includes(header) && val.length > 0) {
+                    val = "'" + val;
+                }
+                if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                    return `"${val}"`;
+                }
+                return val;
+            };
+            
+            const csvLines = [
+                headers.join(','),
+                ...rows.map(row => headers.map(h => escape(row[h], h)).join(','))
+            ];
+            
+            const csvContent = '\uFEFF' + csvLines.join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
         },
 
         // ═══════════════════════════════════════════════════════════════
