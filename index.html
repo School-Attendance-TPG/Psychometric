@@ -562,6 +562,14 @@
             .admin-stat-card { padding: 14px; }
             .admin-stat-value { font-size: 1.4rem; }
         }
+
+        .qr-dropdown-item { padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(0,0,0,0.04); transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
+.qr-dropdown-item:hover { background:rgba(13,148,136,0.06); }
+.qr-dropdown-item:last-child { border-bottom:none; }
+.qr-dropdown-item .stu-name { font-weight:600; color:var(--text-primary); font-size:0.9rem; }
+.qr-dropdown-item .stu-meta { font-size:0.75rem; color:var(--text-muted); }
+.qr-dropdown-empty { padding:16px; text-align:center; color:var(--text-muted); font-size:0.85rem; }
+        
     </style>
 <base target="_blank">
 </head>
@@ -896,8 +904,13 @@
                         <h4 style="margin-bottom:16px;">QR Code Generator</h4>
                         <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Generate a QR code that parents can scan to directly access their child's latest result.</p>
                         <div class="form-grid">
-                            <div class="form-group"><label>Select Student</label><select class="input-premium" id="qrStudentSelect"></select></div>
-                        </div>
+    <div class="form-group" style="position:relative;">
+        <label>Search Student (Name or MyKid)</label>
+        <input type="text" class="input-premium" id="qrSearchInput" placeholder="Type name or MyKid number..." autocomplete="off" oninput="app.filterQRStudents()" onfocus="app.showQRDropdown()">
+        <input type="hidden" id="qrStudentId">
+        <div id="qrDropdown" class="qr-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--glass-border); border-radius:12px; max-height:200px; overflow-y:auto; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.1); margin-top:4px;"></div>
+    </div>
+</div>
                         <button class="btn btn-primary" style="margin-top:12px;" onclick="app.generateQR()"><i class="fas fa-qrcode"></i> Generate QR Code</button>
                         <div id="qrResult" style="margin-top:20px;"></div>
                     </div>
@@ -982,6 +995,14 @@
                     <div class="form-group"><label>Student *</label><select id="assStudent" class="input-premium" required onchange="app.onStudentSelect()"><option value="">Select Student</option></select></div>
                     <div class="form-group"><label>Assessment Date *</label><input type="date" id="assDate" class="input-premium" required></div>
                 </div>
+
+                <div style="margin:20px 0; padding:20px; background:linear-gradient(135deg, rgba(13,148,136,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(13,148,136,0.15); border-radius:16px; text-align:center;" id="liveScorePreview">
+    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">Live Preview</div>
+    <div style="font-size:2.5rem; font-weight:800; color:var(--healing-teal);" id="liveOverallScore">5.0</div>
+    <div style="margin-top:8px;" id="liveSeverityBadge"><span class="severity-badge sev-mild">Mild Concern</span></div>
+</div>
+
+
                 <div style="margin:24px 0 16px; padding-bottom:12px; border-bottom:1px solid var(--glass-border);">
                     <h4 style="font-size:1rem;"><i class="fas fa-brain" style="margin-right:8px; color:var(--healing-teal)"></i>Domain Scoring (1–10)</h4>
                     <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">1 = Severe Concern, 10 = Excellent</p>
@@ -1273,6 +1294,16 @@
             document.getElementById('reportDateFrom').value = today;
             document.getElementById('reportDateTo').value = today;
 
+             // Close QR dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const qrWrap = document.querySelector('.form-group:has(#qrSearchInput)');
+                if (qrWrap && !qrWrap.contains(e.target)) {
+                    const dd = document.getElementById('qrDropdown');
+                    if (dd) dd.style.display = 'none';
+                }
+            });
+
+
             // Check URL params for direct student access (QR scan)
             // Will re-check after Firebase sync completes
             this.checkUrlParams();
@@ -1444,9 +1475,26 @@
         saveStudents() { localStorage.setItem('manasu_students', JSON.stringify(this.students)); },
         saveAssessments() { localStorage.setItem('manasu_assessments', JSON.stringify(this.assessments)); },
         saveSettings() { localStorage.setItem('manasu_settings', JSON.stringify(this.settings)); },
-        loadSettings() {
+                loadSettings() {
             const s = localStorage.getItem('manasu_settings');
             if (s) this.settings = JSON.parse(s);
+            
+            // ✅ Populate settings input fields from loaded data
+            const nameEl = document.getElementById('settingCounselorName');
+            const qualEl = document.getElementById('settingCounselorQual');
+            const schoolEl = document.getElementById('settingSchoolName');
+            const emailEl = document.getElementById('settingEmail');
+            const normEl = document.getElementById('threshNormal');
+            const mildEl = document.getElementById('threshMild');
+            const modEl = document.getElementById('threshModerate');
+            
+            if (nameEl) nameEl.value = this.settings.counselorName;
+            if (qualEl) qualEl.value = this.settings.counselorQual;
+            if (schoolEl) schoolEl.value = this.settings.schoolName;
+            if (emailEl) emailEl.value = this.settings.email;
+            if (normEl) normEl.value = this.settings.thresholds.normal;
+            if (mildEl) mildEl.value = this.settings.thresholds.mild;
+            if (modEl) modEl.value = this.settings.thresholds.moderate;
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -1854,15 +1902,62 @@
             this.updateHeroStats();
         },
 
-        populateStudentSelects() {
+                populateStudentSelects() {
             const sel = document.getElementById('assStudent');
-            const qrSel = document.getElementById('qrStudentSelect');
             if (sel) {
                 sel.innerHTML = '<option value="">Select Student</option>' + this.students.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
             }
-            if (qrSel) {
-                qrSel.innerHTML = '<option value="">Select Student</option>' + this.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        },
+
+                populateStudentSelects() {
+            const sel = document.getElementById('assStudent');
+            if (sel) {
+                sel.innerHTML = '<option value="">Select Student</option>' + this.students.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
             }
+        },
+
+        filterQRStudents() {
+            const query = document.getElementById('qrSearchInput')?.value.toLowerCase().trim() || '';
+            const dropdown = document.getElementById('qrDropdown');
+            if (!dropdown) return;
+            
+            if (!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+            
+            const filtered = this.students.filter(s => 
+                s.name.toLowerCase().includes(query) || 
+                s.icNumber.includes(query)
+            );
+            
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="qr-dropdown-empty">No students found</div>';
+            } else {
+                dropdown.innerHTML = filtered.map(s => `
+                    <div class="qr-dropdown-item" onclick="app.selectQRStudent('${s.id}', '${s.name.replace(/'/g, "\\'")}', '${s.icNumber}')">
+                        <div>
+                            <div class="stu-name">${s.name}</div>
+                            <div class="stu-meta">MyKid: ${s.icNumber} • ${s.class}</div>
+                        </div>
+                        <i class="fas fa-check-circle" style="color:var(--healing-teal); opacity:0;"></i>
+                    </div>
+                `).join('');
+            }
+            dropdown.style.display = 'block';
+        },
+
+        showQRDropdown() {
+            const input = document.getElementById('qrSearchInput');
+            if (input && input.value.trim().length > 0) {
+                this.filterQRStudents();
+            }
+        },
+
+        selectQRStudent(id, name, ic) {
+            document.getElementById('qrSearchInput').value = `${name} (${ic})`;
+            document.getElementById('qrStudentId').value = id;
+            document.getElementById('qrDropdown').style.display = 'none';
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -1911,6 +2006,8 @@
                 document.getElementById('score'+d).value = 5;
                 this.updateSliderVal(d, 5);
             });
+
+            this.calculateLivePreview();
             document.getElementById('assDate').value = new Date().toISOString().split('T')[0];
             
             if (id) {
@@ -1932,7 +2029,7 @@
             document.getElementById('assessmentModal').classList.add('show');
         },
         closeAssessmentModal() { document.getElementById('assessmentModal').classList.remove('show'); },
-        updateSliderVal(domain, val) {
+                updateSliderVal(domain, val) {
             const el = document.getElementById('val'+domain);
             if (!el) return;
             el.textContent = val;
@@ -1941,6 +2038,33 @@
             else if (v >= 6) { el.style.background = 'rgba(0,184,148,0.15)'; el.style.color = 'var(--healing-teal)'; }
             else if (v >= 4) { el.style.background = 'rgba(253,203,110,0.15)'; el.style.color = 'var(--warning)'; }
             else { el.style.background = 'rgba(255,107,107,0.15)'; el.style.color = 'var(--danger)'; }
+            
+            // ✅ Live overall score calculation
+            this.calculateLivePreview();
+        },
+
+        calculateLivePreview() {
+            const domains = ['Emotional', 'Behavioral', 'Social', 'Academic', 'Physical', 'Coping'];
+            let total = 0;
+            domains.forEach(d => {
+                const el = document.getElementById('score' + d);
+                if (el) total += parseInt(el.value);
+            });
+            const overall = (total / domains.length).toFixed(1);
+            
+            const scoreEl = document.getElementById('liveOverallScore');
+            const badgeEl = document.getElementById('liveSeverityBadge');
+            if (!scoreEl || !badgeEl) return;
+            
+            scoreEl.textContent = overall;
+            scoreEl.style.color = this.getScoreColor(parseFloat(overall));
+            
+            let sev = 'normal';
+            if (overall < this.settings.thresholds.moderate) sev = 'severe';
+            else if (overall < this.settings.thresholds.mild) sev = 'moderate';
+            else if (overall < this.settings.thresholds.normal) sev = 'mild';
+            
+            badgeEl.innerHTML = this.getSeverityBadge(sev);
         },
         onStudentSelect() {
             // Could auto-fill age/class if needed
@@ -2080,34 +2204,223 @@
             this.downloadCSV(`MANASU_Students_${new Date().toISOString().split('T')[0]}.csv`, data, ['MyKid Number', 'Class']);
             this.showToast('Students exported!', 'success');
         },
-        generateQR() {
-            const studentId = document.getElementById('qrStudentSelect').value;
+                        generateQR() {
+            const studentId = document.getElementById('qrStudentId').value;
             if (!studentId) { this.showToast('Select a student first', 'error'); return; }
             const s = this.students.find(st => st.id === studentId);
+
+            
+            this.currentQRStudent = s;
             const container = document.getElementById('qrResult');
-            container.innerHTML = '<div style="text-align:center; padding:20px;"><div class="skeleton" style="width:200px; height:200px; margin:0 auto;"></div></div>';
+            
+            // Generate QR in hidden container first
+            container.innerHTML = '<div id="qrCodeBox" style="display:none;"></div>';
+            const url = `${window.location.origin}${window.location.pathname}?student=${studentId}`;
+            new QRCode(document.getElementById('qrCodeBox'), { 
+                text: url, 
+                width: 300, 
+                height: 300, 
+                colorDark: '#0f172a', 
+                colorLight: '#ffffff', 
+                correctLevel: QRCode.CorrectLevel.H 
+            });
+            
+            // Draw premium ID card after QR renders
             setTimeout(() => {
-                container.innerHTML = `
-                    <div style="text-align:center;">
-                        <div class="qr-box" id="qrCodeBox"></div>
-                        <p style="margin-top:12px; font-weight:600;">${s ? s.name : ''}</p>
-                        <p style="font-size:0.8rem; color:var(--text-muted);">Scan to view latest assessment</p>
-                        <button class="btn btn-sm btn-outline" style="margin-top:12px;" onclick="app.downloadQR()">Download QR</button>
-                    </div>
-                `;
-                // Generate URL for this student's results
-                const url = `${window.location.origin}${window.location.pathname}?student=${studentId}`;
-                new QRCode(document.getElementById('qrCodeBox'), { text: url, width: 180, height: 180, colorDark: '#000080', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
-            }, 500);
+                this.drawIDCard(s, container);
+            }, 300);
         },
-        downloadQR() {
-            const canvas = document.querySelector('#qrCodeBox canvas');
-            if (canvas) {
-                const link = document.createElement('a');
-                link.download = 'MANASU_QR.png';
-                link.href = canvas.toDataURL();
-                link.click();
+
+        drawIDCard(student, container) {
+            const qrCanvas = document.querySelector('#qrCodeBox canvas');
+            if (!qrCanvas) return;
+            
+            // Create ID card canvas (portrait 2:3 ratio)
+            const c = document.createElement('canvas');
+            c.width = 600;
+            c.height = 900;
+            const ctx = c.getContext('2d');
+            
+            // Helper: rounded rectangle
+            const roundRect = (x, y, w, h, r) => {
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.lineTo(x + w - r, y);
+                ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                ctx.lineTo(x + w, y + h - r);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                ctx.lineTo(x + r, y + h);
+                ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                ctx.lineTo(x, y + r);
+                ctx.quadraticCurveTo(x, y, x + r, y);
+                ctx.closePath();
+            };
+            
+            // 1. Background gradient
+            const bgGrad = ctx.createLinearGradient(0, 0, 600, 900);
+            bgGrad.addColorStop(0, '#f0f4f8');
+            bgGrad.addColorStop(0.5, '#e0f2fe');
+            bgGrad.addColorStop(1, '#f0fdf4');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, 600, 900);
+            
+            // 2. Decorative orbs (matching site theme)
+            ctx.beginPath();
+            ctx.arc(80, 120, 100, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(13,148,136,0.08)';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(520, 780, 130, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(37,99,235,0.06)';
+            ctx.fill();
+            
+            // 3. Glass card background
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 50;
+            ctx.shadowOffsetY = 15;
+            ctx.fillStyle = 'rgba(255,255,255,0.98)';
+            roundRect(40, 40, 520, 820, 28);
+            ctx.fill();
+            ctx.restore();
+            
+            // 4. Top accent bar (teal gradient)
+            const barGrad = ctx.createLinearGradient(40, 40, 560, 40);
+            barGrad.addColorStop(0, '#0d9488');
+            barGrad.addColorStop(1, '#2563eb');
+            ctx.fillStyle = barGrad;
+            roundRect(40, 40, 520, 90, 28);
+            ctx.fill();
+            // Clip top corners only for bar
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(40, 100, 520, 760);
+            
+            // Redraw card outline
+            ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+            ctx.lineWidth = 1;
+            roundRect(40, 40, 520, 820, 28);
+            ctx.stroke();
+            
+            // 5. Top bar content
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px Poppins, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('MANASU', 300, 88);
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = '500 13px Poppins, sans-serif';
+            ctx.fillText('Psychosomatic Wellness Portal', 300, 112);
+            
+            // 6. Brain icon circle (logo)
+            ctx.beginPath();
+            ctx.arc(300, 195, 32, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(13,148,136,0.1)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(13,148,136,0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#0d9488';
+            ctx.font = 'bold 22px Poppins, sans-serif';
+            ctx.fillText('🧠', 300, 204); // Emoji brain (works in canvas)
+            
+            // 7. Divider line
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(100, 245);
+            ctx.lineTo(500, 245);
+            ctx.stroke();
+            
+            // 8. QR Code circle background
+            ctx.beginPath();
+            ctx.arc(300, 460, 175, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(13,148,136,0.04)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(13,148,136,0.12)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 9. Draw QR code (large, centered)
+            ctx.drawImage(qrCanvas, 150, 310, 300, 300);
+            
+            // 10. Scan label
+            ctx.fillStyle = '#0d9488';
+            ctx.font = '700 14px Poppins, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SCAN TO VIEW RESULT', 300, 670);
+            
+            // 11. Student info card
+            ctx.fillStyle = 'rgba(13,148,136,0.06)';
+            roundRect(80, 700, 440, 130, 16);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(13,148,136,0.1)';
+            ctx.lineWidth = 1;
+            roundRect(80, 700, 440, 130, 16);
+            ctx.stroke();
+            
+            // Student Name
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 26px Poppins, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(student.name, 110, 745);
+            
+            // MyKid
+            ctx.fillStyle = '#475569';
+            ctx.font = '500 17px Poppins, sans-serif';
+            ctx.fillText(`MyKid: ${student.icNumber}`, 110, 778);
+            
+            // Class badge
+            ctx.fillStyle = '#0d9488';
+            ctx.font = '700 17px Poppins, sans-serif';
+            ctx.fillText(`Class: ${student.class}`, 110, 810);
+            
+            // 12. Footer
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 12px Poppins, sans-serif';
+            ctx.fillText('SJKT Telok Panglima Garang', 300, 865);
+            
+            // Display in page
+            container.innerHTML = '';
+            c.style.maxWidth = '380px';
+            c.style.width = '100%';
+            c.style.height = 'auto';
+            c.style.borderRadius = '24px';
+            c.style.boxShadow = '0 25px 80px rgba(0,0,0,0.15)';
+            c.id = 'idCardCanvas';
+            container.appendChild(c);
+            
+            // Download button
+            const btnWrap = document.createElement('div');
+            btnWrap.style.textAlign = 'center';
+            btnWrap.style.marginTop = '24px';
+            btnWrap.innerHTML = `
+                <button class="btn btn-primary" onclick="app.downloadIDCard()" style="margin-right:10px;">
+                    <i class="fas fa-download"></i> Download ID Card
+                </button>
+                <button class="btn btn-outline" onclick="document.getElementById('qrResult').innerHTML=''">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            `;
+            container.appendChild(btnWrap);
+        }, 
+        
+                downloadIDCard() {
+            const canvas = document.getElementById('idCardCanvas');
+            if (!canvas) {
+                this.showToast('Generate card first!', 'error');
+                return;
             }
+            const studentName = this.currentQRStudent?.name || 'Student';
+            const link = document.createElement('a');
+            link.download = `MANASU_IDCard_${studentName.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            this.showToast('ID Card downloaded!', 'success');
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -2299,11 +2612,12 @@
     document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 
-    
-<script>
+ <script>
+
 // ═══════════════════════════════════════════════════════════════
 // PWA SERVICE WORKER — Required for native install
 // ═══════════════════════════════════════════════════════════════
+
 
 if ('serviceWorker' in navigator) {
     const swCode = `
