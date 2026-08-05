@@ -2486,6 +2486,22 @@
             this.showToast('Premium ID Card generated!', 'success');
         },
 
+                downloadIDCard() {
+            const canvas = document.getElementById('idCardCanvas');
+            if (!canvas) {
+                this.showToast('Generate card first!', 'error');
+                return;
+            }
+            const studentName = this.currentQRStudent?.name || 'Student';
+            const link = document.createElement('a');
+            link.download = `MANASU_IDCard_${studentName.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.showToast('ID Card downloaded!', 'success');
+        },
+
         // Helper for rounded rectangles with optional individual corners
         roundRect(ctx, x, y, w, h, r) {
             if (typeof r === 'number') r = [r, r, r, r];
