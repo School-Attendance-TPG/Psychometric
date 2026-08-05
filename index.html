@@ -2231,196 +2231,275 @@
             }, 300);
         },
 
-        drawIDCard(student, container) {
+                drawIDCard(student, container) {
             const qrCanvas = document.querySelector('#qrCodeBox canvas');
             if (!qrCanvas) return;
             
-            // Create ID card canvas (portrait 2:3 ratio)
-            const c = document.createElement('canvas');
-            c.width = 600;
-            c.height = 900;
-            const ctx = c.getContext('2d');
+                                    // Load logo image
+            const logoImg = new Image();
+            logoImg.src = 'school-logo.png'; // ✅ School logo (same folder, no CORS needed)
             
-            // Helper: rounded rectangle
-            const roundRect = (x, y, w, h, r) => {
-                ctx.beginPath();
-                ctx.moveTo(x + r, y);
-                ctx.lineTo(x + w - r, y);
-                ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-                ctx.lineTo(x + w, y + h - r);
-                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-                ctx.lineTo(x + r, y + h);
-                ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-                ctx.lineTo(x, y + r);
-                ctx.quadraticCurveTo(x, y, x + r, y);
-                ctx.closePath();
+            logoImg.onload = () => {
+                this.renderPremiumCard(student, container, qrCanvas, logoImg);
             };
             
-            // 1. Background gradient
-            const bgGrad = ctx.createLinearGradient(0, 0, 600, 900);
-            bgGrad.addColorStop(0, '#f0f4f8');
-            bgGrad.addColorStop(0.5, '#e0f2fe');
+            logoImg.onerror = () => {
+                // If logo fails to load, render without it
+                this.renderPremiumCard(student, container, qrCanvas, null);
+            };
+        },
+
+        renderPremiumCard(student, container, qrCanvas, logoImg) {
+            // Create ID card canvas (portrait ratio)
+            const c = document.createElement('canvas');
+            c.width = 700;
+            c.height = 1000;
+            const ctx = c.getContext('2d');
+            
+            // ═══════════════════════════════════════════════════════════════
+            // PREMIUM ID CARD DESIGN
+            // ═══════════════════════════════════════════════════════════════
+            
+            // 1. Elegant background with subtle pattern
+            const bgGrad = ctx.createLinearGradient(0, 0, 700, 1000);
+            bgGrad.addColorStop(0, '#ffffff');
+            bgGrad.addColorStop(0.4, '#f8fafc');
             bgGrad.addColorStop(1, '#f0fdf4');
             ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, 600, 900);
+            ctx.fillRect(0, 0, 700, 1000);
             
-            // 2. Decorative orbs (matching site theme)
-            ctx.beginPath();
-            ctx.arc(80, 120, 100, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(13,148,136,0.08)';
-            ctx.fill();
+            // Subtle dot pattern
+            ctx.fillStyle = 'rgba(13,148,136,0.03)';
+            for (let i = 0; i < 700; i += 24) {
+                for (let j = 0; j < 1000; j += 24) {
+                    ctx.beginPath();
+                    ctx.arc(i, j, 1.5, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
             
-            ctx.beginPath();
-            ctx.arc(520, 780, 130, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(37,99,235,0.06)';
-            ctx.fill();
-            
-            // 3. Glass card background
+            // 2. Main card body with shadow
             ctx.save();
-            ctx.shadowColor = 'rgba(0,0,0,0.1)';
-            ctx.shadowBlur = 50;
-            ctx.shadowOffsetY = 15;
-            ctx.fillStyle = 'rgba(255,255,255,0.98)';
-            roundRect(40, 40, 520, 820, 28);
+            ctx.shadowColor = 'rgba(0,0,0,0.12)';
+            ctx.shadowBlur = 60;
+            ctx.shadowOffsetY = 20;
+            ctx.fillStyle = '#ffffff';
+            this.roundRect(ctx, 50, 50, 600, 900, 32);
             ctx.fill();
             ctx.restore();
             
-            // 4. Top accent bar (teal gradient)
-            const barGrad = ctx.createLinearGradient(40, 40, 560, 40);
-            barGrad.addColorStop(0, '#0d9488');
-            barGrad.addColorStop(1, '#2563eb');
-            ctx.fillStyle = barGrad;
-            roundRect(40, 40, 520, 90, 28);
+            // 3. Top teal header bar
+            const headerGrad = ctx.createLinearGradient(50, 50, 650, 50);
+            headerGrad.addColorStop(0, '#0d9488');
+            headerGrad.addColorStop(0.5, '#14b8a6');
+            headerGrad.addColorStop(1, '#2563eb');
+            ctx.fillStyle = headerGrad;
+            this.roundRect(ctx, 50, 50, 600, 160, [32, 32, 0, 0]);
             ctx.fill();
-            // Clip top corners only for bar
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(40, 100, 520, 760);
             
-            // Redraw card outline
-            ctx.strokeStyle = 'rgba(0,0,0,0.04)';
-            ctx.lineWidth = 1;
-            roundRect(40, 40, 520, 820, 28);
+            // 4. Logo placement (circular, centered in header)
+            const logoSize = 80;
+            const logoY = 130;
+            const logoX = 130;
+            
+            // White circle background for logo
+            ctx.beginPath();
+            ctx.arc(logoX, logoY, 50, 0, Math.PI*2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.shadowColor = 'rgba(0,0,0,0.15)';
+            ctx.shadowBlur = 15;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            
+            // Draw logo if loaded
+            if (logoImg) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(logoX, logoY, 46, 0, Math.PI*2);
+                ctx.clip();
+                ctx.drawImage(logoImg, logoX - 46, logoY - 46, 92, 92);
+                ctx.restore();
+            } else {
+                // Fallback brain emoji
+                ctx.fillStyle = '#0d9488';
+                ctx.font = 'bold 36px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('🧠', logoX, logoY + 12);
+            }
+            
+            // 5. MANASU Title (right of logo)
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Playfair Display", serif';
+            ctx.fillText('MANASU', 195, 115);
+            
+            ctx.font = '500 15px Poppins, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('Psychosomatic Wellness Portal', 195, 142);
+            
+            // 6. School name badge
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            this.roundRect(ctx, 195, 158, 380, 32, 16);
+            ctx.fill();
+            
+            ctx.font = '600 13px Poppins, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'left';
+            ctx.fillText('SJKT Telok Panglima Garang', 210, 179);
+            
+            // 7. Gold accent line
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(80, 240);
+            ctx.lineTo(620, 240);
             ctx.stroke();
             
-            // 5. Top bar content
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 30px Poppins, sans-serif';
+            // 8. "STUDENT ACCESS CARD" label
             ctx.textAlign = 'center';
-            ctx.fillText('MANASU', 300, 88);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '700 13px Poppins, sans-serif';
+            ctx.letterSpacing = '4px';
+            ctx.fillText('STUDENT ACCESS CARD', 350, 275);
+            ctx.letterSpacing = '0';
             
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            ctx.font = '500 13px Poppins, sans-serif';
-            ctx.fillText('Psychosomatic Wellness Portal', 300, 112);
-            
-            // 6. Brain icon circle (logo)
+            // 9. QR Code container (elegant circle)
             ctx.beginPath();
-            ctx.arc(300, 195, 32, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(13,148,136,0.1)';
+            ctx.arc(350, 530, 195, 0, Math.PI*2);
+            ctx.fillStyle = '#ffffff';
             ctx.fill();
-            ctx.strokeStyle = 'rgba(13,148,136,0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            ctx.fillStyle = '#0d9488';
-            ctx.font = 'bold 22px Poppins, sans-serif';
-            ctx.fillText('🧠', 300, 204); // Emoji brain (works in canvas)
-            
-            // 7. Divider line
-            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(100, 245);
-            ctx.lineTo(500, 245);
-            ctx.stroke();
-            
-            // 8. QR Code circle background
-            ctx.beginPath();
-            ctx.arc(300, 460, 175, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(13,148,136,0.04)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(13,148,136,0.12)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([8, 6]);
+            ctx.strokeStyle = 'rgba(13,148,136,0.15)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([12, 8]);
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // 9. Draw QR code (large, centered)
-            ctx.drawImage(qrCanvas, 150, 310, 300, 300);
-            
-            // 10. Scan label
-            ctx.fillStyle = '#0d9488';
-            ctx.font = '700 14px Poppins, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('SCAN TO VIEW RESULT', 300, 670);
-            
-            // 11. Student info card
-            ctx.fillStyle = 'rgba(13,148,136,0.06)';
-            roundRect(80, 700, 440, 130, 16);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(13,148,136,0.1)';
-            ctx.lineWidth = 1;
-            roundRect(80, 700, 440, 130, 16);
+            // Inner subtle ring
+            ctx.beginPath();
+            ctx.arc(350, 530, 175, 0, Math.PI*2);
+            ctx.strokeStyle = 'rgba(37,99,235,0.08)';
+            ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Student Name
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 26px Poppins, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText(student.name, 110, 745);
+            // 10. Draw QR code (large)
+            ctx.drawImage(qrCanvas, 200, 380, 300, 300);
             
-            // MyKid
-            ctx.fillStyle = '#475569';
-            ctx.font = '500 17px Poppins, sans-serif';
-            ctx.fillText(`MyKid: ${student.icNumber}`, 110, 778);
-            
-            // Class badge
-            ctx.fillStyle = '#0d9488';
-            ctx.font = '700 17px Poppins, sans-serif';
-            ctx.fillText(`Class: ${student.class}`, 110, 810);
-            
-            // 12. Footer
+            // 11. Scan instruction
             ctx.textAlign = 'center';
+            ctx.fillStyle = '#0d9488';
+            ctx.font = '700 16px Poppins, sans-serif';
+            ctx.fillText('SCAN TO VIEW RESULT', 350, 760);
+            
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 12px Poppins, sans-serif';
-            ctx.fillText('SJKT Telok Panglima Garang', 300, 865);
+            ctx.fillText('Point your camera at the QR code', 350, 782);
             
-            // Display in page
+                       // ═══════════════════════════════════════════════════════════════
+            // 12. STUDENT DETAILS — Compact & Clean Layout
+            // ═══════════════════════════════════════════════════════════════
+            
+            // Glass card background (taller to fit all content)
+            ctx.fillStyle = 'rgba(13,148,136,0.04)';
+            this.roundRect(ctx, 90, 795, 520, 155, 20);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(13,148,136,0.12)';
+            ctx.lineWidth = 1.5;
+            this.roundRect(ctx, 90, 795, 520, 155, 20);
+            ctx.stroke();
+            
+            // Avatar icon
+            ctx.beginPath();
+            ctx.arc(140, 825, 22, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(13,148,136,0.1)';
+            ctx.fill();
+            ctx.fillStyle = '#0d9488';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('👤', 140, 832);
+            
+            // Student Name (full width, no truncate)
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 24px Poppins, sans-serif';
+            ctx.fillText(student.name, 180, 828);
+            
+            // Class badge (below name, compact)
+            ctx.font = '700 13px Poppins, sans-serif';
+            const classText = `Class ${student.class}`;
+            const classWidth = ctx.measureText(classText).width + 28;
+            ctx.fillStyle = '#0d9488';
+            this.roundRect(ctx, 180, 845, classWidth, 28, 14);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.fillText(classText, 180 + classWidth/2, 864);
+            
+            // MyKid label
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 13px Poppins, sans-serif';
+            ctx.fillText('MyKid Number', 180, 895);
+            
+            // MyKid number (monospace, clear)
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '700 18px "Courier New", monospace';
+            ctx.fillText(student.icNumber, 180, 918);
+            
+            // ═══════════════════════════════════════════════════════════════
+            // 13. FOOTER — Below card, no overlap
+            // ═══════════════════════════════════════════════════════════════
+            ctx.fillStyle = '#f8fafc';
+            this.roundRect(ctx, 50, 965, 600, 36, [0, 0, 32, 32]);
+            ctx.fill();
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 11px Poppins, sans-serif';
+            ctx.fillText('© MANASU Portal • Secure & Confidential • SJKT TPG', 350, 988);
+            
+            // Display
             container.innerHTML = '';
-            c.style.maxWidth = '380px';
+            c.style.maxWidth = '420px';
             c.style.width = '100%';
             c.style.height = 'auto';
-            c.style.borderRadius = '24px';
-            c.style.boxShadow = '0 25px 80px rgba(0,0,0,0.15)';
+            c.style.borderRadius = '32px';
+            c.style.boxShadow = '0 30px 100px rgba(0,0,0,0.18)';
             c.id = 'idCardCanvas';
             container.appendChild(c);
             
-            // Download button
+            // Buttons
             const btnWrap = document.createElement('div');
             btnWrap.style.textAlign = 'center';
-            btnWrap.style.marginTop = '24px';
+            btnWrap.style.marginTop = '28px';
             btnWrap.innerHTML = `
-                <button class="btn btn-primary" onclick="app.downloadIDCard()" style="margin-right:10px;">
-                    <i class="fas fa-download"></i> Download ID Card
+                <button class="btn btn-primary" onclick="app.downloadIDCard()" style="margin-right:12px;">
+                    <i class="fas fa-download"></i> Download Card
                 </button>
                 <button class="btn btn-outline" onclick="document.getElementById('qrResult').innerHTML=''">
                     <i class="fas fa-times"></i> Close
                 </button>
             `;
             container.appendChild(btnWrap);
-        }, 
-        
-                downloadIDCard() {
-            const canvas = document.getElementById('idCardCanvas');
-            if (!canvas) {
-                this.showToast('Generate card first!', 'error');
-                return;
-            }
-            const studentName = this.currentQRStudent?.name || 'Student';
-            const link = document.createElement('a');
-            link.download = `MANASU_IDCard_${studentName.replace(/\s+/g, '_')}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            this.showToast('ID Card downloaded!', 'success');
+            
+            this.showToast('Premium ID Card generated!', 'success');
+        },
+
+        // Helper for rounded rectangles with optional individual corners
+        roundRect(ctx, x, y, w, h, r) {
+            if (typeof r === 'number') r = [r, r, r, r];
+            ctx.beginPath();
+            ctx.moveTo(x + r[0], y);
+            ctx.lineTo(x + w - r[1], y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+            ctx.lineTo(x + w, y + h - r[2]);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+            ctx.lineTo(x + r[3], y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+            ctx.lineTo(x, y + r[0]);
+            ctx.quadraticCurveTo(x, y, x + r[0], y);
+            ctx.closePath();
         },
 
         // ═══════════════════════════════════════════════════════════════
