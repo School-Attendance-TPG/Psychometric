@@ -107,7 +107,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
         .font-tamil { font-family: 'Noto Sans Tamil', sans-serif; }
         .font-display { font-family: 'Playfair Display', serif; }
-        .text-gradient { background: linear-gradient(135deg, #0f172a 0%, var(--healing-teal) 50%, var(--malaysia-blue) 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; }
+        .text-gradient { background: linear-gradient(135deg, #0f172a 0%, var(--healing-teal) 50%, var(--malaysia-blue) 100%); background-size: 200% auto; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; }
         @keyframes shine { to { background-position: 200% center; } }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 28px; border: none; border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
@@ -287,7 +287,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .score-slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .score-slider-header label { font-weight: 600; font-size: 0.95rem; }
         .score-value { padding: 4px 12px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; min-width: 36px; text-align: center; }
-        .score-slider input[type="range"] { width: 100%; -webkit-appearance: none; height: 8px; border-radius: 10px; background: rgba(0,0,0,0.05); outline: none; }
+        .score-slider input[type="range"] { width: 100%; -webkit-appearance: none; appearance: none; -moz-appearance: none; height: 8px; border-radius: 10px; background: rgba(0,0,0,0.05); outline: none; }
         .score-slider input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--healing-teal); cursor: pointer; box-shadow: 0 0 10px rgba(13,148,136,0.30); transition: all 0.3s; }
         .score-slider input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 20px rgba(13,148,136,0.40); }
 
@@ -1010,32 +1010,44 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
                 <div style="margin:24px 0 16px; padding-bottom:12px; border-bottom:1px solid var(--glass-border);">
                     <h4 style="font-size:1rem;"><i class="fas fa-brain" style="margin-right:8px; color:var(--healing-teal)"></i>Domain Scoring (1–10)</h4>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">1 = Severe Concern, 10 = Excellent</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;" data-i18n="score_label">1 = Emerging, 10 = Exceptional</p>
                 </div>
                 <div class="form-grid">
-                    <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-heart" style="margin-right:8px; color:#ff6b6b;"></i>Emotional Regulation</label><span class="score-value" id="valEmotional" style="background:rgba(255,107,107,0.15); color:var(--danger);">5</span></div>
-                        <input type="range" id="scoreEmotional" min="1" max="10" value="5" oninput="app.updateSliderVal('Emotional', this.value)">
+                                        <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-comments" style="margin-right:8px; color:#e74c3c;"></i><span data-i18n="domain_verbal_linguistic">Verbal-Linguistic</span></label><span class="score-value" id="valVerbalLinguistic" style="background:rgba(231,76,60,0.15); color:#e74c3c;">5</span></div>
+                        <input type="range" id="scoreVerbalLinguistic" min="1" max="10" value="5" oninput="app.updateSliderVal('VerbalLinguistic', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-running" style="margin-right:8px; color:#fdcb6e;"></i>Behavioral Patterns</label><span class="score-value" id="valBehavioral" style="background:rgba(253,203,110,0.15); color:var(--warning);">5</span></div>
-                        <input type="range" id="scoreBehavioral" min="1" max="10" value="5" oninput="app.updateSliderVal('Behavioral', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-calculator" style="margin-right:8px; color:#3498db;"></i><span data-i18n="domain_logical_mathematical">Logical-Mathematical</span></label><span class="score-value" id="valLogicalMathematical" style="background:rgba(52,152,219,0.15); color:#3498db;">5</span></div>
+                        <input type="range" id="scoreLogicalMathematical" min="1" max="10" value="5" oninput="app.updateSliderVal('LogicalMathematical', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-users" style="margin-right:8px; color:#74b9ff;"></i>Social Interaction</label><span class="score-value" id="valSocial" style="background:rgba(116,185,255,0.15); color:var(--info);">5</span></div>
-                        <input type="range" id="scoreSocial" min="1" max="10" value="5" oninput="app.updateSliderVal('Social', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-eye" style="margin-right:8px; color:#9b59b6;"></i><span data-i18n="domain_visual_spatial">Visual-Spatial</span></label><span class="score-value" id="valVisualSpatial" style="background:rgba(155,89,182,0.15); color:#9b59b6;">5</span></div>
+                        <input type="range" id="scoreVisualSpatial" min="1" max="10" value="5" oninput="app.updateSliderVal('VisualSpatial', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-book" style="margin-right:8px; color:#a29bfe;"></i>Academic Stress</label><span class="score-value" id="valAcademic" style="background:rgba(162,155,254,0.15); color:var(--lavender);">5</span></div>
-                        <input type="range" id="scoreAcademic" min="1" max="10" value="5" oninput="app.updateSliderVal('Academic', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-music" style="margin-right:8px; color:#e91e63;"></i><span data-i18n="domain_musical">Musical</span></label><span class="score-value" id="valMusical" style="background:rgba(233,30,99,0.15); color:#e91e63;">5</span></div>
+                        <input type="range" id="scoreMusical" min="1" max="10" value="5" oninput="app.updateSliderVal('Musical', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-heartbeat" style="margin-right:8px; color:#e17055;"></i>Physical Manifestations</label><span class="score-value" id="valPhysical" style="background:rgba(225,112,85,0.15); color:var(--coral-warning);">5</span></div>
-                        <input type="range" id="scorePhysical" min="1" max="10" value="5" oninput="app.updateSliderVal('Physical', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-running" style="margin-right:8px; color:#f39c12;"></i><span data-i18n="domain_bodily_kinesthetic">Bodily-Kinesthetic</span></label><span class="score-value" id="valBodilyKinesthetic" style="background:rgba(243,156,18,0.15); color:#f39c12;">5</span></div>
+                        <input type="range" id="scoreBodilyKinesthetic" min="1" max="10" value="5" oninput="app.updateSliderVal('BodilyKinesthetic', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-shield-alt" style="margin-right:8px; color:#00b894;"></i>Coping Mechanisms</label><span class="score-value" id="valCoping" style="background:rgba(0,184,148,0.15); color:var(--healing-teal);">5</span></div>
-                        <input type="range" id="scoreCoping" min="1" max="10" value="5" oninput="app.updateSliderVal('Coping', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-users" style="margin-right:8px; color:#2ecc71;"></i><span data-i18n="domain_interpersonal">Interpersonal</span></label><span class="score-value" id="valInterpersonal" style="background:rgba(46,204,113,0.15); color:#2ecc71;">5</span></div>
+                        <input type="range" id="scoreInterpersonal" min="1" max="10" value="5" oninput="app.updateSliderVal('Interpersonal', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-user" style="margin-right:8px; color:#1abc9c;"></i><span data-i18n="domain_intrapersonal">Intrapersonal</span></label><span class="score-value" id="valIntrapersonal" style="background:rgba(26,188,156,0.15); color:#1abc9c;">5</span></div>
+                        <input type="range" id="scoreIntrapersonal" min="1" max="10" value="5" oninput="app.updateSliderVal('Intrapersonal', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-leaf" style="margin-right:8px; color:#27ae60;"></i><span data-i18n="domain_naturalist">Naturalist</span></label><span class="score-value" id="valNaturalist" style="background:rgba(39,174,96,0.15); color:#27ae60;">5</span></div>
+                        <input type="range" id="scoreNaturalist" min="1" max="10" value="5" oninput="app.updateSliderVal('Naturalist', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-star" style="margin-right:8px; color:#f1c40f;"></i><span data-i18n="domain_existential">Existential</span></label><span class="score-value" id="valExistential" style="background:rgba(241,196,15,0.15); color:#f1c40f;">5</span></div>
+                        <input type="range" id="scoreExistential" min="1" max="10" value="5" oninput="app.updateSliderVal('Existential', this.value)">
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:20px;">
@@ -1158,13 +1170,16 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         auth: null,
 
         // Domain definitions with icons and descriptions
-        domains: {
-            emotional: { icon: 'fa-heart', color: '#ff6b6b', name: 'Emotional Regulation', desc: 'Ability to manage emotions, mood stability, anxiety and depression indicators' },
-            behavioral: { icon: 'fa-running', color: '#fdcb6e', name: 'Behavioral Patterns', desc: 'Conduct, attention levels, aggression, withdrawal, and impulse control' },
-            social: { icon: 'fa-users', color: '#74b9ff', name: 'Social Interaction', desc: 'Peer relationships, family bonding, communication skills, and social confidence' },
-            academic: { icon: 'fa-book', color: '#a29bfe', name: 'Academic Stress', desc: 'Study pressure, exam anxiety, performance worry, and learning engagement' },
-            physical: { icon: 'fa-heartbeat', color: '#e17055', name: 'Physical Manifestations', desc: 'Psychosomatic symptoms: headaches, stomach aches, sleep issues, fatigue' },
-            coping: { icon: 'fa-shield-alt', color: '#00b894', name: 'Coping Mechanisms', desc: 'Resilience, problem-solving, emotional expression, and adaptive strategies' }
+                domains: {
+            verbalLinguistic: { icon: 'fa-comments', color: '#e74c3c', i18nName: 'domain_verbal_linguistic', i18nDesc: 'desc_verbal_linguistic' },
+            logicalMathematical: { icon: 'fa-calculator', color: '#3498db', i18nName: 'domain_logical_mathematical', i18nDesc: 'desc_logical_mathematical' },
+            visualSpatial: { icon: 'fa-eye', color: '#9b59b6', i18nName: 'domain_visual_spatial', i18nDesc: 'desc_visual_spatial' },
+            musical: { icon: 'fa-music', color: '#e91e63', i18nName: 'domain_musical', i18nDesc: 'desc_musical' },
+            bodilyKinesthetic: { icon: 'fa-running', color: '#f39c12', i18nName: 'domain_bodily_kinesthetic', i18nDesc: 'desc_bodily_kinesthetic' },
+            interpersonal: { icon: 'fa-users', color: '#2ecc71', i18nName: 'domain_interpersonal', i18nDesc: 'desc_interpersonal' },
+            intrapersonal: { icon: 'fa-user', color: '#1abc9c', i18nName: 'domain_intrapersonal', i18nDesc: 'desc_intrapersonal' },
+            naturalist: { icon: 'fa-leaf', color: '#27ae60', i18nName: 'domain_naturalist', i18nDesc: 'desc_naturalist' },
+            existential: { icon: 'fa-star', color: '#f1c40f', i18nName: 'domain_existential', i18nDesc: 'desc_existential' }
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -1193,7 +1208,34 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                 admin_login_subtitle: 'Secure access for authorized counseling staff only',
                 label_email: 'Email Address',
                 label_password: 'Password',
-                btn_sign_in: 'Sign In Securely'
+                                btn_sign_in: 'Sign In Securely',
+                domain_verbal_linguistic: 'Verbal-Linguistic',
+                desc_verbal_linguistic: 'Ability to use words effectively, both written and spoken; language learning and storytelling skills.',
+                domain_logical_mathematical: 'Logical-Mathematical',
+                desc_logical_mathematical: 'Capacity for logical thinking, reasoning, and working with numbers and abstract patterns.',
+                domain_visual_spatial: 'Visual-Spatial',
+                desc_visual_spatial: 'Ability to visualize and manipulate objects and spaces in the mind; artistic and design aptitude.',
+                domain_musical: 'Musical',
+                desc_musical: 'Sensitivity to rhythm, pitch, melody, and tone; ability to produce and appreciate music.',
+                domain_bodily_kinesthetic: 'Bodily-Kinesthetic',
+                desc_bodily_kinesthetic: 'Skill in using the body to express ideas and feelings, and to manipulate objects physically.',
+                domain_interpersonal: 'Interpersonal',
+                desc_interpersonal: 'Ability to understand and interact effectively with others; reading emotions and social cues.',
+                domain_intrapersonal: 'Intrapersonal',
+                desc_intrapersonal: 'Self-awareness and understanding of one\'s own emotions, goals, motivations, and inner life.',
+                domain_naturalist: 'Naturalist',
+                desc_naturalist: 'Sensitivity to the natural world; ability to identify and classify flora, fauna, and natural patterns.',
+                domain_existential: 'Existential',
+                desc_existential: 'Capacity to ponder deep questions about human existence, meaning, purpose, and the cosmos.',
+                badge_normal: 'Exceptional',
+                badge_mild: 'Proficient',
+                badge_moderate: 'Developing',
+                badge_severe: 'Needs Support',
+                label_exceptional: 'Exceptional',
+                label_proficient: 'Proficient',
+                label_developing: 'Developing',
+                label_needs_support: 'Needs Support',
+                score_label: '1 = Emerging, 10 = Exceptional'
             },
             ta: {
                 badge_secure: 'பாதுகாப்பானது & ரகசியமானது',
@@ -1217,7 +1259,34 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                 admin_login_subtitle: 'அங்கீகரிக்கப்பட்ட ஆலோசகர்கள் மட்டுமே அணுக முடியும்',
                 label_email: 'மின்னஞ்சல் முகவரி',
                 label_password: 'கடவுச்சொல்',
-                btn_sign_in: 'பாதுகாப்பாக உள்நுழைக'
+                                btn_sign_in: 'பாதுகாப்பாக உள்நுழைக',
+                domain_verbal_linguistic: 'மொழியியல் திறன்',
+                desc_verbal_linguistic: 'சொற்களை எழுத்து மற்றும் வாய்மொழியாக திறமையாகப் பயன்படுத்தும் திறன்; மொழி கற்றல் மற்றும் கதைசொல்லல்.',
+                domain_logical_mathematical: 'தர்க்க-கணிதத் திறன்',
+                desc_logical_mathematical: 'தர்க்க யோசனை, காரணம் காணுதல், எண்கள் மற்றும் சுருக்கமான முறைகளுடன் வேலை செய்யும் திறன்.',
+                domain_visual_spatial: 'காட்சி-இடவெளித் திறன்',
+                desc_visual_spatial: 'பொருட்களையும் இடங்களையும் மனதில் காட்சிப்படுத்தி கையாளும் திறன்; கலை மற்றும் வடிவமைப்பு திறன்.',
+                domain_musical: 'இசைத் திறன்',
+                desc_musical: 'தாளம், சுருதி, இசை மற்றும் ஒலியின் மீது உணர்திறன்; இசையை உருவாக்கவும் பாராட்டவும் திறன்.',
+                domain_bodily_kinesthetic: 'உடல் இயக்கத் திறன்',
+                desc_bodily_kinesthetic: 'உடலைப் பயன்படுத்தி எண்ணங்களையும் உணர்வுகளையும் வெளிப்படுத்தும் திறன்; உடல் இயக்க திறன்.',
+                domain_interpersonal: 'மனிதர்களுக்கிடையேயான தொடர்புத் திறன்',
+                desc_interpersonal: 'மற்றவர்களைப் புரிந்துகொண்டு திறமையாக தொடர்புகொள்ளும் திறன்; சமூக உணர்வுகளைப் படித்தல்.',
+                domain_intrapersonal: 'சுய விழிப்புணர்வுத் திறன்',
+                desc_intrapersonal: 'சுய விழிப்புணர்வு; சொந்த உணர்வுகள், இலக்குகள், தூண்டுதல்கள் மற்றும் உள்ளார்ந்த வாழ்க்கையைப் புரிந்துகொள்ளுதல்.',
+                domain_naturalist: 'இயற்கை சார்ந்த திறன்',
+                desc_naturalist: 'இயற்கை உலகின் மீது உணர்திறன்; தாவரங்கள், விலங்குகள் மற்றும் இயற்கை முறைகளை அடையாளம் காணும் திறன்.',
+                domain_existential: 'தத்துவ / வாழ்வியல் திறன்',
+                desc_existential: 'மனித இருப்பு, பொருள், நோக்கம் மற்றும் பிரபஞ்சம் பற்றிய ஆழமான கேள்விகளைச் சிந்திக்கும் திறன்.',
+                badge_normal: 'அசாதாரணம்',
+                badge_mild: 'திறமையான',
+                badge_moderate: 'வளர்ச்சி பெறுகிறது',
+                badge_severe: 'ஆதரவு தேவை',
+                label_exceptional: 'அசாதாரணம்',
+                label_proficient: 'திறமையான',
+                label_developing: 'வளர்ச்சி பெறுகிறது',
+                label_needs_support: 'ஆதரவு தேவை',
+                score_label: '1 = வளர்ச்சியில், 10 = அசாதாரணம்'
             },
             ms: {
                 badge_secure: 'Selamat & Sulit',
@@ -1241,7 +1310,34 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                 admin_login_subtitle: 'Akses selamat untuk kakitangan kaunseling yang dibenarkan sahaja',
                 label_email: 'Alamat Emel',
                 label_password: 'Kata Laluan',
-                btn_sign_in: 'Log Masuk dengan Selamat'
+                                btn_sign_in: 'Log Masuk dengan Selamat',
+                domain_verbal_linguistic: 'Verbal Linguistik',
+                desc_verbal_linguistic: 'Kebolehan menggunakan perkataan dengan berkesan, secara bertulis dan lisan; kemahiran pembelajaran bahasa dan penceritaan.',
+                domain_logical_mathematical: 'Logik Matematik',
+                desc_logical_mathematical: 'Kapasiti untuk berfikir secara logik, menaakul, dan bekerja dengan nombor dan corak abstrak.',
+                domain_visual_spatial: 'Visual Ruang',
+                desc_visual_spatial: 'Kebolehan menggambarkan dan memanipulasi objek dan ruang dalam minda; bakat seni dan reka bentuk.',
+                domain_musical: 'Muzik',
+                desc_musical: 'Sensitiviti terhadap irama, nada, melodi, dan ton; kebolehan menghasilkan dan menghargai muzik.',
+                domain_bodily_kinesthetic: 'Kinestetik',
+                desc_bodily_kinesthetic: 'Kemahiran menggunakan badan untuk menyatakan idea dan perasaan, dan memanipulasi objek secara fizikal.',
+                domain_interpersonal: 'Interpersonal',
+                desc_interpersonal: 'Kebolehan memahami dan berinteraksi secara berkesan dengan orang lain; membaca emosi dan isyarat sosial.',
+                domain_intrapersonal: 'Intrapersonal',
+                desc_intrapersonal: 'Kesedaran diri dan pemahaman tentang emosi, matlamat, motivasi, dan kehidupan dalaman sendiri.',
+                domain_naturalist: 'Naturalis',
+                desc_naturalist: 'Sensitiviti terhadap alam semula jadi; kebolehan mengenal pasti dan mengklasifikasikan flora, fauna, dan corak semula jadi.',
+                domain_existential: 'Eksistensial',
+                desc_existential: 'Kapasiti untuk memikirkan soalan mendalam tentang kewujudan manusia, makna, tujuan, dan kosmos.',
+                badge_normal: 'Luar Biasa',
+                badge_mild: 'Mahir',
+                badge_moderate: 'Sedang Berkembang',
+                badge_severe: 'Memerlukan Sokongan',
+                label_exceptional: 'Luar Biasa',
+                label_proficient: 'Mahir',
+                label_developing: 'Sedang Berkembang',
+                label_needs_support: 'Memerlukan Sokongan',
+                score_label: '1 = Bakal Muncul, 10 = Luar Biasa'
             }
         },
 
@@ -1450,26 +1546,26 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             }
             
             if (this.assessments.length === 0) {
-                this.assessments = [
+                         this.assessments = [
                     {
                         id: 'ASS_1', studentId: 'STU_1', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 7, behavioral: 6, social: 8, academic: 5, physical: 6, coping: 7 },
-                        overallScore: 6.5, severity: 'mild', status: 'active',
-                        notes: 'Arun shows mild anxiety during mathematics exams. Recommended breathing exercises and weekly check-ins. Parents advised to maintain consistent study schedule and reduce screen time before bed.',
+                        domains: { verbalLinguistic: 8, logicalMathematical: 7, visualSpatial: 6, musical: 5, bodilyKinesthetic: 7, interpersonal: 8, intrapersonal: 6, naturalist: 7, existential: 5 },
+                        overallScore: 6.6, severity: 'mild', status: 'active',
+                        notes: 'Arun demonstrates strong verbal-linguistic and interpersonal skills. Developing areas include musical and existential intelligence. Recommended group discussions and nature-based learning activities.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     },
                     {
                         id: 'ASS_2', studentId: 'STU_2', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 8, behavioral: 9, social: 7, academic: 8, physical: 8, coping: 8 },
-                        overallScore: 8.0, severity: 'normal', status: 'resolved',
-                        notes: 'Priya is doing excellently. Previous social withdrawal concerns have resolved after group counseling sessions. Continue encouraging peer interaction.',
+                        domains: { verbalLinguistic: 9, logicalMathematical: 8, visualSpatial: 8, musical: 9, bodilyKinesthetic: 7, interpersonal: 8, intrapersonal: 9, naturalist: 8, existential: 8 },
+                        overallScore: 8.2, severity: 'normal', status: 'resolved',
+                        notes: 'Priya shows exceptional aptitude across all intelligences, particularly in musical and intrapersonal domains. Continue providing diverse learning opportunities and creative outlets.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     },
                     {
                         id: 'ASS_3', studentId: 'STU_3', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 4, behavioral: 5, social: 6, academic: 4, physical: 3, coping: 5 },
-                        overallScore: 4.5, severity: 'moderate', status: 'active',
-                        notes: 'Kavin presents with frequent psychosomatic complaints (stomach aches, headaches) especially on school days. Possible separation anxiety. Recommend gradual exposure therapy and parent counseling session.',
+                        domains: { verbalLinguistic: 4, logicalMathematical: 5, visualSpatial: 6, musical: 3, bodilyKinesthetic: 7, interpersonal: 5, intrapersonal: 4, naturalist: 6, existential: 3 },
+                        overallScore: 4.8, severity: 'moderate', status: 'active',
+                        notes: 'Kavin shows strength in bodily-kinesthetic and visual-spatial intelligence. Needs support in musical, existential, and verbal-linguistic areas. Recommend hands-on learning and confidence-building language exercises.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     }
                 ];
@@ -1574,7 +1670,7 @@ showCloudResults(student, assessments) {
         barsHtml += `
             <div style="margin-bottom:14px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                    <span style="color:var(--text-secondary)"><i class="fas ${d.icon}" style="margin-right:6px; color:${d.color}"></i>${d.name}</span>
+                                        <span style="color:var(--text-secondary)"><i class="fas ${d.icon}" style="margin-right:6px; color:${d.color}"></i>${this.i18n[this.currentLang][d.i18nName] || d.i18nName}</span>
                     <span style="font-weight:700; color:${color}">${val}/10</span>
                 </div>
                 <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -1591,9 +1687,9 @@ showCloudResults(student, assessments) {
         detailsHtml += `
             <div class="domain-item">
                 <div class="domain-header">
-                    <div class="domain-name">
+                                        <div class="domain-name">
                         <div class="domain-icon" style="background:${d.color}20; color:${d.color};"><i class="fas ${d.icon}"></i></div>
-                        ${d.name}
+                        ${this.i18n[this.currentLang][d.i18nName] || d.i18nName}
                     </div>
                     <div class="domain-score ${this.getScoreClass(val)}">${val}</div>
                 </div>
@@ -1687,7 +1783,7 @@ showCloudResults(student, assessments) {
                             <div class="domain-score ${this.getScoreClass(val)}">${val}</div>
                         </div>
                         <div class="progress-track"><div class="progress-fill" style="width:${val*10}%; background:${color};"></div></div>
-                        <div class="domain-note">${d.desc} — <strong style="color:${color}">${level}</strong></div>
+                                            <div class="domain-note">${this.i18n[this.currentLang][d.i18nDesc] || d.i18nDesc} — <strong style="color:${color}">${level}</strong></div>
                     </div>
                 `;
             });
@@ -1729,15 +1825,16 @@ showCloudResults(student, assessments) {
             if (score >= this.settings.thresholds.moderate) return 'score-moderate';
             return 'score-severe';
         },
-        getScoreLabel(score) {
-            if (score >= this.settings.thresholds.normal) return 'Excellent';
-            if (score >= this.settings.thresholds.mild) return 'Good';
-            if (score >= this.settings.thresholds.moderate) return 'Moderate Concern';
-            return 'Requires Immediate Attention';
+                getScoreLabel(score) {
+            if (score >= this.settings.thresholds.normal) return this.i18n[this.currentLang].label_exceptional || 'Exceptional';
+            if (score >= this.settings.thresholds.mild) return this.i18n[this.currentLang].label_proficient || 'Proficient';
+            if (score >= this.settings.thresholds.moderate) return this.i18n[this.currentLang].label_developing || 'Developing';
+            return this.i18n[this.currentLang].label_needs_support || 'Needs Support';
         },
-        getSeverityBadge(sev) {
-            const map = { normal: ['sev-normal', 'Normal'], mild: ['sev-mild', 'Mild Concern'], moderate: ['sev-moderate', 'Moderate Concern'], severe: ['sev-severe', 'Severe Concern'] };
-            const [cls, text] = map[sev] || map.normal;
+                       getSeverityBadge(sev) {
+            const map = { normal: ['sev-normal', 'badge_normal'], mild: ['sev-mild', 'badge_mild'], moderate: ['sev-moderate', 'badge_moderate'], severe: ['sev-severe', 'badge_severe'] };
+            const [cls, key] = map[sev] || map.normal;
+            const text = this.i18n[this.currentLang][key] || key;
             return `<span class="severity-badge ${cls}"><i class="fas fa-circle" style="font-size:0.5rem;"></i> ${text}</span>`;
         },
         formatDate(dateStr) {
@@ -2157,7 +2254,7 @@ showCloudResults(student, assessments) {
         },
 
         calculateLivePreview() {
-            const domains = ['Emotional', 'Behavioral', 'Social', 'Academic', 'Physical', 'Coping'];
+                        const domains = ['VerbalLinguistic', 'LogicalMathematical', 'VisualSpatial', 'Musical', 'BodilyKinesthetic', 'Interpersonal', 'Intrapersonal', 'Naturalist', 'Existential'];
             let total = 0;
             domains.forEach(d => {
                 const el = document.getElementById('score' + d);
@@ -2188,13 +2285,16 @@ showCloudResults(student, assessments) {
             const studentId = document.getElementById('assStudent').value;
             if (!studentId) { this.showToast('Please select a student', 'error'); return; }
             
-            const domains = {
-                emotional: parseInt(document.getElementById('scoreEmotional').value),
-                behavioral: parseInt(document.getElementById('scoreBehavioral').value),
-                social: parseInt(document.getElementById('scoreSocial').value),
-                academic: parseInt(document.getElementById('scoreAcademic').value),
-                physical: parseInt(document.getElementById('scorePhysical').value),
-                coping: parseInt(document.getElementById('scoreCoping').value)
+                        const domains = {
+                verbalLinguistic: parseInt(document.getElementById('scoreVerbalLinguistic').value),
+                logicalMathematical: parseInt(document.getElementById('scoreLogicalMathematical').value),
+                visualSpatial: parseInt(document.getElementById('scoreVisualSpatial').value),
+                musical: parseInt(document.getElementById('scoreMusical').value),
+                bodilyKinesthetic: parseInt(document.getElementById('scoreBodilyKinesthetic').value),
+                interpersonal: parseInt(document.getElementById('scoreInterpersonal').value),
+                intrapersonal: parseInt(document.getElementById('scoreIntrapersonal').value),
+                naturalist: parseInt(document.getElementById('scoreNaturalist').value),
+                existential: parseInt(document.getElementById('scoreExistential').value)
             };
             const values = Object.values(domains);
             const overall = values.reduce((a,b) => a+b, 0) / values.length;
@@ -2243,7 +2343,7 @@ showCloudResults(student, assessments) {
             let domainHtml = '';
             Object.entries(a.domains).forEach(([key, val]) => {
                 const d = this.domains[key];
-                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${d.icon}" style="color:${d.color}; margin-right:8px;"></i>${d.name}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${d.icon}" style="color:${d.color}; margin-right:8px;"></i>${this.i18n[this.currentLang][d.i18nName] || d.i18nName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${s ? s.name : 'Unknown'}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
@@ -2284,12 +2384,15 @@ showCloudResults(student, assessments) {
                     'Overall Score': a.overallScore,
                     'Severity': a.severity,
                     'Status': a.status,
-                    'Emotional': a.domains.emotional,
-                    'Behavioral': a.domains.behavioral,
-                    'Social': a.domains.social,
-                    'Academic': a.domains.academic,
-                    'Physical': a.domains.physical,
-                    'Coping': a.domains.coping,
+                            'Verbal-Linguistic': a.domains.verbalLinguistic,
+                            'Logical-Mathematical': a.domains.logicalMathematical,
+                            'Visual-Spatial': a.domains.visualSpatial,
+                            'Musical': a.domains.musical,
+                            'Bodily-Kinesthetic': a.domains.bodilyKinesthetic,
+                            'Interpersonal': a.domains.interpersonal,
+                            'Intrapersonal': a.domains.intrapersonal,
+                            'Naturalist': a.domains.naturalist,
+                            'Existential': a.domains.existential,
                     'Counselor Notes': a.notes || ''
                 };
             });
