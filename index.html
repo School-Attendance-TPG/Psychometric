@@ -1601,7 +1601,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         // ═══════════════════════════════════════════════════════════════
         // PARENT PORTAL
         // ═══════════════════════════════════════════════════════════════
-        async searchByIC() {
+                async searchByIC() {
     const icInput = document.getElementById('parentIcInput');
     const ic = icInput.value.trim();
     
@@ -1616,25 +1616,44 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     btn.disabled = true;
     
     try {
-        const getResult = window.firebaseFunctions.httpsCallable('getStudentResult');
-        const result = await getResult({ mykid: ic });
-        
-        if (!result.data.found) {
-            this.showToast('No student found with this MyKid number', 'error');
+        // Try Firebase Cloud Function first
+        if (this.firebaseReady && window.firebaseFunctions) {
+            const getResult = window.firebaseFunctions.httpsCallable('getStudentResult');
+            const result = await getResult({ mykid: ic });
+            
+            if (!result.data.found) {
+                this.showToast('No student found with this MyKid number', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            this.currentResultStudent = result.data.student;
+            this.currentResultAssessment = result.data.assessments[0];
+            this.showCloudResults(result.data.student, result.data.assessments);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
             return;
         }
-        
-        this.currentResultStudent = result.data.student;
-        this.currentResultAssessment = result.data.assessments[0];
-        this.showCloudResults(result.data.student, result.data.assessments);
-        
     } catch (err) {
-        console.error('Cloud function error:', err);
-        this.showToast('Unable to fetch results. Please try again.', 'error');
-    } finally {
+        console.log('Cloud function failed, falling back to local search...');
+    }
+    
+    // LOCAL FALLBACK — Search in localStorage / memory
+    const cleanIc = ic.replace(/[-\s]/g, '');
+    const student = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
+    
+    if (!student) {
+        this.showToast('No student found with this MyKid number', 'error');
         btn.innerHTML = originalText;
         btn.disabled = false;
+        return;
     }
+    
+    this.showResults(student);
+    
+    btn.innerHTML = originalText;
+    btn.disabled = false;
 },
 
 showCloudResults(student, assessments) {
@@ -2211,8 +2230,8 @@ showCloudResults(student, assessments) {
             document.getElementById('assessmentForm')?.reset();
             document.getElementById('assEditId').value = '';
             document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychosomatic Assessment';
-            // Reset sliders
-            ['Emotional','Behavioral','Social','Academic','Physical','Coping'].forEach(d => {
+                        // Reset sliders
+            ['VerbalLinguistic','LogicalMathematical','VisualSpatial','Musical','BodilyKinesthetic','Interpersonal','Intrapersonal','Naturalist','Existential'].forEach(d => {
                 document.getElementById('score'+d).value = 5;
                 this.updateSliderVal(d, 5);
             });
@@ -2229,8 +2248,19 @@ showCloudResults(student, assessments) {
                     document.getElementById('assNotes').value = a.notes || '';
                     document.getElementById('assFollowUp').value = a.followUpDate || '';
                     document.getElementById('assStatus').value = a.status || 'active';
+                                        const keyMap = {
+                        verbalLinguistic: 'VerbalLinguistic',
+                        logicalMathematical: 'LogicalMathematical',
+                        visualSpatial: 'VisualSpatial',
+                        musical: 'Musical',
+                        bodilyKinesthetic: 'BodilyKinesthetic',
+                        interpersonal: 'Interpersonal',
+                        intrapersonal: 'Intrapersonal',
+                        naturalist: 'Naturalist',
+                        existential: 'Existential'
+                    };
                     Object.entries(a.domains).forEach(([key, val]) => {
-                        const cap = key.charAt(0).toUpperCase() + key.slice(1);
+                        const cap = keyMap[key] || (key.charAt(0).toUpperCase() + key.slice(1));
                         const el = document.getElementById('score'+cap);
                         if (el) { el.value = val; this.updateSliderVal(cap, val); }
                     });
@@ -2336,23 +2366,40 @@ showCloudResults(student, assessments) {
         },
         editAssessment(id) { this.openAssessmentModal(id); },
         deleteAssessment(id) { this.deleteTarget = { type: 'assessment', id }; document.getElementById('deleteModal').classList.add('show'); },
-        viewAssessment(id) {
+                viewAssessment(id) {
             const a = this.assessments.find(as => as.id === id);
             const s = this.students.find(st => st.id === a?.studentId);
             if (!a) return;
             let domainHtml = '';
+            
+            // Backward compatibility map for old 6-domain assessments
+            const legacyMap = {
+                emotional: { icon: 'fa-heart', color: '#ff6b6b', i18nName: 'domain_verbal_linguistic' },
+                behavioral: { icon: 'fa-running', color: '#fdcb6e', i18nName: 'domain_bodily_kinesthetic' },
+                social: { icon: 'fa-users', color: '#74b9ff', i18nName: 'domain_interpersonal' },
+                academic: { icon: 'fa-book', color: '#a29bfe', i18nName: 'domain_logical_mathematical' },
+                physical: { icon: 'fa-heartbeat', color: '#e17055', i18nName: 'domain_naturalist' },
+                coping: { icon: 'fa-shield-alt', color: '#00b894', i18nName: 'domain_intrapersonal' }
+            };
+            
             Object.entries(a.domains).forEach(([key, val]) => {
-                const d = this.domains[key];
-                                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${d.icon}" style="color:${d.color}; margin-right:8px;"></i>${this.i18n[this.currentLang][d.i18nName] || d.i18nName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                let d = this.domains[key] || legacyMap[key];
+                
+                const domainName = d ? (this.i18n[this.currentLang][d.i18nName] || d.i18nName || key) : key;
+                const domainIcon = d ? d.icon : 'fa-circle';
+                const domainColor = d ? d.color : '#94a3b8';
+                
+                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.04); border-radius:10px; border:1px solid var(--glass-border);"><span style="color:var(--text-primary);"><i class="fas ${domainIcon}" style="color:${domainColor}; margin-right:8px;"></i>${domainName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
+            
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${s ? s.name : 'Unknown'}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
                 <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:rgba(0,0,0,0.2); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">
                         <div style="font-size:2.5rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
                         <div style="font-size:0.8rem; color:var(--text-muted);">Overall Score</div>
                     </div>
-                    <div style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.2); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">
                         <div style="margin-bottom:8px;">${this.getSeverityBadge(a.severity)}</div>
                         <div style="font-size:0.85rem; color:var(--text-muted);">Status: <span style="color:var(--text-primary); font-weight:600;">${a.status}</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ${a.counselorName}</div>
@@ -2360,12 +2407,13 @@ showCloudResults(student, assessments) {
                 </div>
                 <h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>Domain Scores</h5>
                 ${domainHtml}
-                <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">
+                <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(13,148,136,0.06), rgba(37,99,235,0.06)); border:1px solid rgba(13,148,136,0.15); border-radius:16px;">
                     <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Notes & Recommendations</h5>
                     <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${a.notes ? a.notes.replace(/\n/g, '<br>') : 'No notes recorded.'}</p>
                 </div>
             `;
             document.getElementById('viewAssessmentModal').classList.add('show');
+        
         },
 
         // ═══════════════════════════════════════════════════════════════
