@@ -1520,8 +1520,18 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     btn.disabled = true;
     
     try {
-        const getResult = window.firebaseFunctions.httpsCallable('getStudentResult');
-        const result = await getResult({ mykid: ic });
+    // Defensive: different SDK setups expose httpsCallable differently
+    let getResult;
+    if (window.fb && typeof window.fb.httpsCallable === 'function') {
+        getResult = window.fb.httpsCallable(window.firebaseFunctions, 'getStudentResult');
+    } else if (window.firebaseFunctions && typeof window.firebaseFunctions.httpsCallable === 'function') {
+        // older style
+        getResult = window.firebaseFunctions.httpsCallable('getStudentResult');
+    } else {
+        throw new Error('Cloud Functions not initialized');
+    }
+
+    const result = await getResult({ mykid: ic.replace(/[-\s]/g, '').toUpperCase() });
         
         if (!result.data.found) {
             this.showToast('No student found with this MyKid number', 'error');
@@ -1534,7 +1544,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         
     } catch (err) {
         console.error('Cloud function error:', err);
-        this.showToast('Unable to fetch results. Please try again.', 'error');
+        const code = err?.code || err?.status || 'error';
+        const msg = err?.message || String(err);
+        this.showToast(`Unable to fetch results: ${code} — ${msg}`, 'error');
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
