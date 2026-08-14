@@ -1380,24 +1380,35 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         }
     });
 
-    // ✅ RESTORE LAST SECTION AFTER REFRESH
+        // ✅ RESTORE LAST SECTION AFTER REFRESH
     const lastSection = localStorage.getItem('manasu_lastSection');
     const lastAdminPage = localStorage.getItem('manasu_lastAdminPage');
+    const lastSearchedIC = localStorage.getItem('manasu_lastSearchedIC');
     
-    // Small delay to let everything render first
     setTimeout(() => {
-        // If user was on admin dashboard, restore it
-        if (lastSection === 'adminDashboard' && this.currentUser) {
-            this.showSection('adminDashboard');
-            if (lastAdminPage) {
-                this.showAdminPage(lastAdminPage);
+        // If parent was viewing results, auto-search again
+        if (lastSection === 'resultsView' && lastSearchedIC) {
+            document.getElementById('parentIcInput').value = lastSearchedIC;
+            this.searchByIC();
+            return;
+        }
+        
+        // If admin was on dashboard
+        if (lastSection === 'adminDashboard') {
+            if (this.currentUser) {
+                this.showSection('adminDashboard');
+                if (lastAdminPage) this.showAdminPage(lastAdminPage);
+            } else {
+                this.showSection('adminLogin');
             }
-        } 
-        // If user was on any other page (and not requiring auth), restore it
-        else if (lastSection && lastSection !== 'adminDashboard') {
+            return;
+        }
+        
+        // Any other page
+        if (lastSection) {
             this.showSection(lastSection);
         }
-    }, 100);
+    }, 300);
 
     this.checkUrlParams();
 },
@@ -1429,15 +1440,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     const { onAuthStateChanged } = window.fb;
     onAuthStateChanged(this.auth, (user) => {
         if (user) {
-            // Only redirect if not already on dashboard
-            const dashSection = document.getElementById('adminDashboard');
-            if (!dashSection?.classList.contains('active')) {
-                this.currentUser = user;
-                this.showSection('adminDashboard');
-                
-            }
+            this.currentUser = user;
+            // ✅ Don't auto-redirect anywhere — let init() handle page restore
         } else {
-            // Logged out — clear user
             this.currentUser = null;
         }
     });
@@ -1714,55 +1719,60 @@ showCloudResults(student, assessments) {
     }, 100);
     
     const ringValue = document.getElementById('ringValue');
-    ringValue.textContent = latest.overallScore.toFixed(1);
-    ringValue.style.color = this.getScoreColor(latest.overallScore);
+    ringValue.textContent = latest.overallScore ? latest.overallScore.toFixed(1) : '-';
+    ringValue.style.color = this.getScoreColor(latest.overallScore || 0);
     document.getElementById('ringLabel').textContent = '/ 10';
-    document.getElementById('severityBadgeArea').innerHTML = this.getSeverityBadge(latest.severity);
+    document.getElementById('severityBadgeArea').innerHTML = this.getSeverityBadge(latest.severity || 'normal');
     
+    // ✅ FIX: Use getDomainInfo() for BOTH loops
     let barsHtml = '';
-            Object.entries(latest.domains).forEach(([key, val]) => {
-        const pct = val * 10;
-        const color = this.getScoreColor(val);
-        const d = this.getDomainInfo(key);
-        const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
-        const dIcon = d ? d.icon : 'fa-question-circle';
-        const dColor = d ? d.color : '#94a3b8';
-        barsHtml += `
-            <div style="margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                    <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
-                    <span style="font-weight:700; color:${color}">${val}/10</span>
-                </div>
-                <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
-            </div>
-        `;
-    });
-    document.getElementById('domainBars').innerHTML = barsHtml;
-    
-        let detailsHtml = '';
+    if (latest.domains) {
         Object.entries(latest.domains).forEach(([key, val]) => {
-        const d = this.getDomainInfo(key);
-        const color = this.getScoreColor(val);
-        const level = this.getScoreLabel(val);
-        const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
-        const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
-        const dIcon = d ? d.icon : 'fa-question-circle';
-        const dColor = d ? d.color : '#94a3b8';
-        detailsHtml += `
-            <div class="domain-item">
-                <div class="domain-header">
-                    <div class="domain-name">
-                        <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
-                        ${dName}
+            const pct = val * 10;
+            const color = this.getScoreColor(val);
+            const d = this.getDomainInfo(key);
+            const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+            const dIcon = d ? d.icon : 'fa-question-circle';
+            const dColor = d ? d.color : '#94a3b8';
+            barsHtml += `
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
+                        <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                        <span style="font-weight:700; color:${color}">${val}/10</span>
                     </div>
-                    <div class="domain-score ${this.getScoreClass(val)}">${val}</div>
+                    <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
                 </div>
-                <div class="progress-track"><div class="progress-fill" style="width:${val*10}%; background:${color};"></div></div>
-                <div class="domain-note">${dDesc} — <strong style="color:${color}">${level}</strong></div>
-            </div>
-        `;
-    });
-    document.getElementById('domainDetails').innerHTML = detailsHtml;
+            `;
+        });
+    }
+    document.getElementById('domainBars').innerHTML = barsHtml || '<p style="color:var(--text-muted); text-align:center;">No domain data</p>';
+    
+    let detailsHtml = '';
+    if (latest.domains) {
+        Object.entries(latest.domains).forEach(([key, val]) => {
+            const d = this.getDomainInfo(key);
+            const color = this.getScoreColor(val);
+            const level = this.getScoreLabel(val);
+            const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+            const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
+            const dIcon = d ? d.icon : 'fa-question-circle';
+            const dColor = d ? d.color : '#94a3b8';
+            detailsHtml += `
+                <div class="domain-item">
+                    <div class="domain-header">
+                        <div class="domain-name">
+                            <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
+                            ${dName}
+                        </div>
+                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
+                    </div>
+                    <div class="domain-desc">${dDesc}</div>
+                    <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('domainDetails').innerHTML = detailsHtml || '<p style="color:var(--text-muted); text-align:center;">No detailed data</p>';
     
     document.getElementById('counselorNotes').innerHTML = latest.notes 
         ? latest.notes.replace(/\n/g, '<br>') 
@@ -1770,18 +1780,24 @@ showCloudResults(student, assessments) {
     
     let timelineHtml = '';
     assessments.forEach((a, idx) => {
-        const sev = this.getSeverityBadge(a.severity);
+        const sev = this.getSeverityBadge(a.severity || 'normal');
         timelineHtml += `
             <div class="timeline-item">
                 <div class="timeline-date">${this.formatDate(a.date)}</div>
                 <div class="timeline-content">
-                    <h5>Assessment #${assessments.length - idx} — Score: ${a.overallScore.toFixed(1)}/10</h5>
+                    <h5>Assessment #${assessments.length - idx} — Score: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10</h5>
                     <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
                 </div>
             </div>
         `;
     });
     document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
+    
+       this.currentResultStudent = student;
+    this.currentResultAssessment = latest;
+    
+    // ✅ Save IC so refresh works
+    localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
     
     this.showSection('resultsView');
 },
@@ -1879,10 +1895,14 @@ showCloudResults(student, assessments) {
             });
             document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
             
-            this.currentResultStudent = student;
-            this.currentResultAssessment = latest;
-            this.showSection('resultsView');
-        },
+               this.currentResultStudent = student;
+    this.currentResultAssessment = latest;
+    
+    // ✅ Save IC so refresh works
+    localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
+    
+    this.showSection('resultsView');
+},
 
         getDomainInfo(key) {
             const normalized = key.toLowerCase().replace(/[-\s]/g, '');
@@ -2048,6 +2068,11 @@ localStorage.removeItem('manasu_lastAdminPage');
         loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
         loginBtn.disabled = false;
     }
+
+        // Clear saved navigation state
+    localStorage.removeItem('manasu_lastSection');
+    localStorage.removeItem('manasu_lastAdminPage');
+    localStorage.removeItem('manasu_lastSearchedIC');
     
     // ✅ Login page-க்கு redirect (landing-க்கு இல்ல)
     this.showSection('adminLogin');
