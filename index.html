@@ -192,6 +192,21 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .progress-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 2s infinite; }
         @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
         .domain-note { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+        .domain-desc { 
+    font-size: 0.85rem; 
+    color: var(--text-secondary); 
+    line-height: 1.6; 
+    margin-bottom: 10px; 
+}
+.domain-level { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px; 
+    padding: 6px 14px; 
+    border-radius: 50px; 
+    font-size: 0.8rem; 
+    font-weight: 600; 
+}
 
         .overall-ring { width: 200px; height: 200px; margin: 0 auto; position: relative; }
         .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
@@ -995,47 +1010,55 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         <div class="modal modal-lg">
             <div class="modal-header"><h3 class="modal-title" id="assModalTitle">New Psychosomatic Assessment</h3><button class="modal-close" onclick="app.closeAssessmentModal()">&times;</button></div>
             <form onsubmit="app.saveAssessment(event)">
-                <input type="hidden" id="assEditId">
-                <div class="form-grid">
-                    <div class="form-group"><label>Student *</label><select id="assStudent" class="input-premium" required onchange="app.onStudentSelect()"><option value="">Select Student</option></select></div>
-                    <div class="form-group"><label>Assessment Date *</label><input type="date" id="assDate" class="input-premium" required></div>
+                                <input type="hidden" id="assEditId">
+                <div class="form-grid" style="margin-bottom:20px;">
+                    <div class="form-group">
+                        <label>Student *</label>
+                        <select id="assStudent" class="input-premium" required>
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assessment Date *</label>
+                        <input type="date" id="assDate" class="input-premium" required>
+                    </div>
                 </div>
-
-                <div style="margin:20px 0; padding:20px; background:linear-gradient(135deg, rgba(13,148,136,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(13,148,136,0.15); border-radius:16px; text-align:center;" id="liveScorePreview">
-    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">Live Preview</div>
-    <div style="font-size:2.5rem; font-weight:800; color:var(--healing-teal);" id="liveOverallScore">5.0</div>
-    <div style="margin-top:8px;" id="liveSeverityBadge"><span class="severity-badge sev-mild">Mild Concern</span></div>
-</div>
-
-
-                <div style="margin:24px 0 16px; padding-bottom:12px; border-bottom:1px solid var(--glass-border);">
-                    <h4 style="font-size:1rem;"><i class="fas fa-brain" style="margin-right:8px; color:var(--healing-teal)"></i>Domain Scoring (1–10)</h4>
-                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">1 = Severe Concern, 10 = Excellent</p>
-                </div>
-                <div class="form-grid">
+                        <div class="form-grid">
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-heart" style="margin-right:8px; color:#ff6b6b;"></i>Emotional Regulation</label><span class="score-value" id="valEmotional" style="background:rgba(255,107,107,0.15); color:var(--danger);">5</span></div>
-                        <input type="range" id="scoreEmotional" min="1" max="10" value="5" oninput="app.updateSliderVal('Emotional', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-book" style="margin-right:8px; color:#e74c3c;"></i>Verbal-Linguistic</label><span class="score-value" id="valVerbal" style="background:rgba(231,76,60,0.15); color:#e74c3c;">5</span></div>
+                        <input type="range" id="scoreVerbal" min="1" max="10" value="5" oninput="app.updateSliderVal('Verbal', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-running" style="margin-right:8px; color:#fdcb6e;"></i>Behavioral Patterns</label><span class="score-value" id="valBehavioral" style="background:rgba(253,203,110,0.15); color:var(--warning);">5</span></div>
-                        <input type="range" id="scoreBehavioral" min="1" max="10" value="5" oninput="app.updateSliderVal('Behavioral', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-calculator" style="margin-right:8px; color:#3498db;"></i>Logical-Mathematical</label><span class="score-value" id="valLogical" style="background:rgba(52,152,219,0.15); color:#3498db;">5</span></div>
+                        <input type="range" id="scoreLogical" min="1" max="10" value="5" oninput="app.updateSliderVal('Logical', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-users" style="margin-right:8px; color:#74b9ff;"></i>Social Interaction</label><span class="score-value" id="valSocial" style="background:rgba(116,185,255,0.15); color:var(--info);">5</span></div>
-                        <input type="range" id="scoreSocial" min="1" max="10" value="5" oninput="app.updateSliderVal('Social', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-images" style="margin-right:8px; color:#9b59b6;"></i>Visual-Spatial</label><span class="score-value" id="valVisual" style="background:rgba(155,89,182,0.15); color:#9b59b6;">5</span></div>
+                        <input type="range" id="scoreVisual" min="1" max="10" value="5" oninput="app.updateSliderVal('Visual', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-book" style="margin-right:8px; color:#a29bfe;"></i>Academic Stress</label><span class="score-value" id="valAcademic" style="background:rgba(162,155,254,0.15); color:var(--lavender);">5</span></div>
-                        <input type="range" id="scoreAcademic" min="1" max="10" value="5" oninput="app.updateSliderVal('Academic', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-music" style="margin-right:8px; color:#f39c12;"></i>Musical</label><span class="score-value" id="valMusical" style="background:rgba(243,156,18,0.15); color:#f39c12;">5</span></div>
+                        <input type="range" id="scoreMusical" min="1" max="10" value="5" oninput="app.updateSliderVal('Musical', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-heartbeat" style="margin-right:8px; color:#e17055;"></i>Physical Manifestations</label><span class="score-value" id="valPhysical" style="background:rgba(225,112,85,0.15); color:var(--coral-warning);">5</span></div>
-                        <input type="range" id="scorePhysical" min="1" max="10" value="5" oninput="app.updateSliderVal('Physical', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-running" style="margin-right:8px; color:#e67e22;"></i>Bodily-Kinesthetic</label><span class="score-value" id="valKinesthetic" style="background:rgba(230,126,34,0.15); color:#e67e22;">5</span></div>
+                        <input type="range" id="scoreKinesthetic" min="1" max="10" value="5" oninput="app.updateSliderVal('Kinesthetic', this.value)">
                     </div>
                     <div class="score-slider">
-                        <div class="score-slider-header"><label><i class="fas fa-shield-alt" style="margin-right:8px; color:#00b894;"></i>Coping Mechanisms</label><span class="score-value" id="valCoping" style="background:rgba(0,184,148,0.15); color:var(--healing-teal);">5</span></div>
-                        <input type="range" id="scoreCoping" min="1" max="10" value="5" oninput="app.updateSliderVal('Coping', this.value)">
+                        <div class="score-slider-header"><label><i class="fas fa-users" style="margin-right:8px; color:#00b894;"></i>Interpersonal</label><span class="score-value" id="valInterpersonal" style="background:rgba(0,184,148,0.15); color:#00b894;">5</span></div>
+                        <input type="range" id="scoreInterpersonal" min="1" max="10" value="5" oninput="app.updateSliderVal('Interpersonal', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-user" style="margin-right:8px; color:#10b981;"></i>Intrapersonal</label><span class="score-value" id="valIntrapersonal" style="background:rgba(16,185,129,0.15); color:#10b981;">5</span></div>
+                        <input type="range" id="scoreIntrapersonal" min="1" max="10" value="5" oninput="app.updateSliderVal('Intrapersonal', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-leaf" style="margin-right:8px; color:#27ae60;"></i>Naturalist</label><span class="score-value" id="valNaturalist" style="background:rgba(39,174,96,0.15); color:#27ae60;">5</span></div>
+                        <input type="range" id="scoreNaturalist" min="1" max="10" value="5" oninput="app.updateSliderVal('Naturalist', this.value)">
+                    </div>
+                    <div class="score-slider">
+                        <div class="score-slider-header"><label><i class="fas fa-lightbulb" style="margin-right:8px; color:#8b5cf6;"></i>Existential</label><span class="score-value" id="valExistential" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">5</span></div>
+                        <input type="range" id="scoreExistential" min="1" max="10" value="5" oninput="app.updateSliderVal('Existential', this.value)">
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:20px;">
@@ -1158,15 +1181,63 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         auth: null,
 
         // Domain definitions with icons and descriptions
-        domains: {
-            emotional: { icon: 'fa-heart', color: '#ff6b6b', name: 'Emotional Regulation', desc: 'Ability to manage emotions, mood stability, anxiety and depression indicators' },
-            behavioral: { icon: 'fa-running', color: '#fdcb6e', name: 'Behavioral Patterns', desc: 'Conduct, attention levels, aggression, withdrawal, and impulse control' },
-            social: { icon: 'fa-users', color: '#74b9ff', name: 'Social Interaction', desc: 'Peer relationships, family bonding, communication skills, and social confidence' },
-            academic: { icon: 'fa-book', color: '#a29bfe', name: 'Academic Stress', desc: 'Study pressure, exam anxiety, performance worry, and learning engagement' },
-            physical: { icon: 'fa-heartbeat', color: '#e17055', name: 'Physical Manifestations', desc: 'Psychosomatic symptoms: headaches, stomach aches, sleep issues, fatigue' },
-            coping: { icon: 'fa-shield-alt', color: '#00b894', name: 'Coping Mechanisms', desc: 'Resilience, problem-solving, emotional expression, and adaptive strategies' }
+                
+                domains: {
+            verbal: { 
+                icon: 'fa-book', 
+                color: '#e74c3c', 
+                name: { en: 'Verbal-Linguistic', ta: 'மொழியியல் திறன்', ms: 'Verbal Linguistik' }, 
+                desc: { en: 'Ability to use language effectively for communication, reading, writing, and storytelling', ta: 'தொடர்புக்கும் வாசிப்புக்கும் எழுத்துக்கும் கதைசொல்லலுக்கும் மொழியை திறம்பட பயன்படுத்தும் திறன்', ms: 'Keupayaan menggunakan bahasa dengan berkesan untuk komunikasi, membaca, menulis dan bercerita' } 
+            },
+            logical: { 
+                icon: 'fa-calculator', 
+                color: '#3498db', 
+                name: { en: 'Logical-Mathematical', ta: 'தர்க்க-கணிதத் திறன்', ms: 'Logik Matematik' }, 
+                desc: { en: 'Capacity for logical reasoning, abstract thinking, and mathematical problem-solving', ta: 'தர்க்கபூர்வமான சிந்தனை, சுருக்க சிந்தனை மற்றும் கணித பிரச்சனை தீர்க்கும் திறன்', ms: 'Keupayaan penaakulan logik, pemikiran abstrak dan penyelesaian masalah matematik' } 
+            },
+            visual: { 
+                icon: 'fa-images', 
+                color: '#9b59b6', 
+                name: { en: 'Visual-Spatial', ta: 'காட்சி-இடவெளித் திறன்', ms: 'Visual Ruang' }, 
+                desc: { en: 'Ability to visualize, manipulate mental images, and navigate spatial environments', ta: 'மனதில் காட்சிகளை உருவாக்கி, இடவெளி சூழல்களை சரியாக புரிந்துகொள்ளும் திறன்', ms: 'Keupayaan untuk memvisualisasikan, memanipulasi imej mental dan menavigasi persekitaran ruang' } 
+            },
+            musical: { 
+                icon: 'fa-music', 
+                color: '#f39c12', 
+                name: { en: 'Musical', ta: 'இசைத் திறன்', ms: 'Muzik' }, 
+                desc: { en: 'Sensitivity to rhythm, pitch, melody, and appreciation of musical patterns', ta: 'தாளம், சுருதி, இசை மற்றும் இசை பாணிகளை புரிந்துகொள்ளும் திறன்', ms: 'Kepekaan terhadap irama, pic, melodi dan penghargaan corak muzik' } 
+            },
+            kinesthetic: { 
+                icon: 'fa-running', 
+                color: '#e67e22', 
+                name: { en: 'Bodily-Kinesthetic', ta: 'உடல் இயக்கத் திறன்', ms: 'Kinestetik' }, 
+                desc: { en: 'Skill in using the body for expression, coordination, and physical activity', ta: 'உடலை கட்டுப்படுத்தி, ஒருங்கிணைத்து, இயக்கி வெளிப்படுத்தும் திறன்', ms: 'Kemahiran menggunakan badan untuk ekspresi, koordinasi dan aktiviti fizikal' } 
+            },
+            interpersonal: { 
+                icon: 'fa-users', 
+                color: '#00b894', 
+                name: { en: 'Interpersonal', ta: 'மனிதர்களுக்கிடையேயான தொடர்புத் திறன்', ms: 'Interpersonal' }, 
+                desc: { en: 'Ability to understand and interact effectively with others', ta: 'மற்றவர்களை புரிந்துகொண்டு திறம்பட தொடர்புகொள்ளும் திறன்', ms: 'Keupayaan memahami dan berinteraksi dengan berkesan dengan orang lain' } 
+            },
+            intrapersonal: { 
+                icon: 'fa-user', 
+                color: '#10b981', 
+                name: { en: 'Intrapersonal', ta: 'சுய விழிப்புணர்வுத் திறன்', ms: 'Intrapersonal' }, 
+                desc: { en: 'Self-awareness, understanding personal emotions, and introspective capacity', ta: 'சுய விழிப்புணர்வு, சொந்த உணர்வுகளை புரிந்துகொள்ளுதல் மற்றும் ஆழ்ந்த சிந்தனை திறன்', ms: 'Kesedaran kendiri, memahami emosi peribadi dan kapasiti introspektif' } 
+            },
+            naturalist: { 
+                icon: 'fa-leaf', 
+                color: '#27ae60', 
+                name: { en: 'Naturalist', ta: 'இயற்கை சார்ந்த திறன்', ms: 'Naturalis' }, 
+                desc: { en: 'Ability to recognize and classify flora, fauna, and natural phenomena', ta: 'தாவரங்கள், விலங்குகள் மற்றும் இயற்கை நிகழ்வுகளை அடையாளம் கண்டு வகைப்படுத்தும் திறன்', ms: 'Keupayaan mengenal pasti dan mengklasifikasikan flora, fauna dan fenomena semula jadi' } 
+            },
+            existential: { 
+                icon: 'fa-lightbulb', 
+                color: '#8b5cf6', 
+                name: { en: 'Existential', ta: 'தத்துவ / வாழ்வியல் திறன்', ms: 'Eksistensial' }, 
+                desc: { en: 'Capacity to contemplate deep questions about human existence and meaning', ta: 'மனித இருப்பு, பொருள் மற்றும் ஆழ்ந்த தத்துவ கேள்விகளை சிந்திக்கும் திறன்', ms: 'Keupayaan mempertimbangkan soalan mendalam tentang kewujudan dan makna manusia' } 
+            }
         },
-
         // ═══════════════════════════════════════════════════════════════
         // LOCALIZATION
         // ═══════════════════════════════════════════════════════════════
@@ -1282,37 +1353,54 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         },
 
         async init() {
-            this.loadSettings();
-            this.loadDemoData();
-            this.setupNavScroll();
-            this.setupFirebase();
-            this.setupInstallPrompt();
-            this.updateHeroStats();
-            this.renderStudentsTable();
-            this.renderAssessmentsTable();
-            this.populateStudentSelects();
-            this.setLang('en');
+    this.loadSettings();
+    this.loadDemoData();
+    this.setupNavScroll();
+    this.setupFirebase();
+    this.setupInstallPrompt();
+    this.updateHeroStats();
+    this.renderStudentsTable();
+    this.renderAssessmentsTable();
+    this.populateStudentSelects();
+    this.setLang('en');
 
-            // Set today's date for inputs
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('assDate').value = today;
-            document.getElementById('reportDateFrom').value = today;
-            document.getElementById('reportDateTo').value = today;
+    // Set today's date for inputs
+    const today = new Date().toISOString().split('T')[0];
+    const assDateEl = document.getElementById('assDate');
+    if (assDateEl) assDateEl.value = today;
+    document.getElementById('reportDateFrom').value = today;
+    document.getElementById('reportDateTo').value = today;
 
-             // Close QR dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                const qrWrap = document.querySelector('.form-group:has(#qrSearchInput)');
-                if (qrWrap && !qrWrap.contains(e.target)) {
-                    const dd = document.getElementById('qrDropdown');
-                    if (dd) dd.style.display = 'none';
-                }
-            });
+    // Close QR dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const qrWrap = document.querySelector('.form-group:has(#qrSearchInput)');
+        if (qrWrap && !qrWrap.contains(e.target)) {
+            const dd = document.getElementById('qrDropdown');
+            if (dd) dd.style.display = 'none';
+        }
+    });
 
+    // ✅ RESTORE LAST SECTION AFTER REFRESH
+    const lastSection = localStorage.getItem('manasu_lastSection');
+    const lastAdminPage = localStorage.getItem('manasu_lastAdminPage');
+    
+    // Small delay to let everything render first
+    setTimeout(() => {
+        // If user was on admin dashboard, restore it
+        if (lastSection === 'adminDashboard' && this.currentUser) {
+            this.showSection('adminDashboard');
+            if (lastAdminPage) {
+                this.showAdminPage(lastAdminPage);
+            }
+        } 
+        // If user was on any other page (and not requiring auth), restore it
+        else if (lastSection && lastSection !== 'adminDashboard') {
+            this.showSection(lastSection);
+        }
+    }, 100);
 
-            // Check URL params for direct student access (QR scan)
-            // Will re-check after Firebase sync completes
-            this.checkUrlParams();
-        },
+    this.checkUrlParams();
+},
 
         setupNavScroll() {
             window.addEventListener('scroll', () => {
@@ -1378,6 +1466,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         // NAVIGATION
         // ═══════════════════════════════════════════════════════════════
         showSection(id) {
+    // ✅ Save current section to localStorage
+    localStorage.setItem('manasu_lastSection', id);
+    
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
     const target = document.getElementById(id);
@@ -1409,7 +1500,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 },
 
         showAdminPage(page) {
-            document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+    // ✅ Save current admin page to localStorage
+    localStorage.setItem('manasu_lastAdminPage', page);
+    
+    document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
             const target = document.getElementById('adminPage-' + page);
             if (target) target.classList.add('active');
@@ -1453,21 +1547,21 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                 this.assessments = [
                     {
                         id: 'ASS_1', studentId: 'STU_1', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 7, behavioral: 6, social: 8, academic: 5, physical: 6, coping: 7 },
+                        domains: { verbal: 7, logical: 6, visual: 8, musical: 5, kinesthetic: 6, interpersonal: 7, intrapersonal: 6, naturalist: 7, existential: 6 },
                         overallScore: 6.5, severity: 'mild', status: 'active',
                         notes: 'Arun shows mild anxiety during mathematics exams. Recommended breathing exercises and weekly check-ins. Parents advised to maintain consistent study schedule and reduce screen time before bed.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     },
                     {
                         id: 'ASS_2', studentId: 'STU_2', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 8, behavioral: 9, social: 7, academic: 8, physical: 8, coping: 8 },
+                        domains: { verbal: 8, logical: 9, visual: 7, musical: 8, kinesthetic: 8, interpersonal: 7, intrapersonal: 8, naturalist: 8, existential: 8 },
                         overallScore: 8.0, severity: 'normal', status: 'resolved',
                         notes: 'Priya is doing excellently. Previous social withdrawal concerns have resolved after group counseling sessions. Continue encouraging peer interaction.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     },
                     {
                         id: 'ASS_3', studentId: 'STU_3', date: new Date().toISOString().split('T')[0],
-                        domains: { emotional: 4, behavioral: 5, social: 6, academic: 4, physical: 3, coping: 5 },
+                        domains: { verbal: 4, logical: 5, visual: 6, musical: 4, kinesthetic: 3, interpersonal: 6, intrapersonal: 5, naturalist: 4, existential: 5 },
                         overallScore: 4.5, severity: 'moderate', status: 'active',
                         notes: 'Kavin presents with frequent psychosomatic complaints (stomach aches, headaches) especially on school days. Possible separation anxiety. Recommend gradual exposure therapy and parent counseling session.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
@@ -1519,34 +1613,81 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
     btn.disabled = true;
     
+    const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
+    
     try {
-    // Defensive: different SDK setups expose httpsCallable differently
-    let getResult;
-    if (window.fb && typeof window.fb.httpsCallable === 'function') {
-        getResult = window.fb.httpsCallable(window.firebaseFunctions, 'getStudentResult');
-    } else if (window.firebaseFunctions && typeof window.firebaseFunctions.httpsCallable === 'function') {
-        // older style
-        getResult = window.firebaseFunctions.httpsCallable('getStudentResult');
-    } else {
-        throw new Error('Cloud Functions not initialized');
-    }
-
-    const result = await getResult({ mykid: ic.replace(/[-\s]/g, '').toUpperCase() });
+        // ═══════════════════════════════════════════════════════
+        // STEP 1: Local data-ல search பண்ணு (fastest)
+        // ═══════════════════════════════════════════════════════
+        const localStudent = this.students.find(s => 
+            s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === cleanIc
+        );
         
-        if (!result.data.found) {
-            this.showToast('No student found with this MyKid number', 'error');
+        if (localStudent) {
+            this.showResults(localStudent);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
             return;
         }
         
-        this.currentResultStudent = result.data.student;
-        this.currentResultAssessment = result.data.assessments[0];
-        this.showCloudResults(result.data.student, result.data.assessments);
+        // ═══════════════════════════════════════════════════════
+        // STEP 2: Firestore-ல direct-ஆ query பண்ணு
+        // ═══════════════════════════════════════════════════════
+        if (this.firebaseReady && this.db) {
+            const { collection, query, where, getDocs } = window.fb;
+            
+            // Students collection-ல search
+            const stuQuery = query(
+                collection(this.db, 'students'), 
+                where('icNumber', '==', cleanIc)
+            );
+            const stuSnap = await getDocs(stuQuery);
+            
+            if (!stuSnap.empty) {
+                const studentData = stuSnap.docs[0].data();
+                studentData.id = stuSnap.docs[0].id;
+                
+                // Local-ல add பண்ணி வை (next time fast-ஆ load ஆகும்)
+                if (!this.students.find(s => s.id === studentData.id)) {
+                    this.students.push(studentData);
+                    this.saveStudents();
+                }
+                
+                // Assessments-அ Firestore-லிருந்து fetch பண்ணு
+                const assQuery = query(
+                    collection(this.db, 'assessments'),
+                    where('studentId', '==', studentData.id)
+                );
+                const assSnap = await getDocs(assQuery);
+                
+                const assessments = [];
+                assSnap.forEach(doc => {
+                    assessments.push({...doc.data(), id: doc.id});
+                });
+                
+                // Local-ல store பண்ணு
+                assessments.forEach(a => {
+                    if (!this.assessments.find(existing => existing.id === a.id)) {
+                        this.assessments.push(a);
+                    }
+                });
+                this.saveAssessments();
+                
+                this.showResults(studentData);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════
+        // STEP 3: Not found anywhere
+        // ═══════════════════════════════════════════════════════
+        this.showToast('No student found with this MyKid number', 'error');
         
     } catch (err) {
-        console.error('Cloud function error:', err);
-        const code = err?.code || err?.status || 'error';
-        const msg = err?.message || String(err);
-        this.showToast(`Unable to fetch results: ${code} — ${msg}`, 'error');
+        console.error('Search error:', err);
+        this.showToast('Unable to fetch results. Please try again.', 'error');
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -1579,14 +1720,17 @@ showCloudResults(student, assessments) {
     document.getElementById('severityBadgeArea').innerHTML = this.getSeverityBadge(latest.severity);
     
     let barsHtml = '';
-    Object.entries(latest.domains).forEach(([key, val]) => {
+            Object.entries(latest.domains).forEach(([key, val]) => {
         const pct = val * 10;
         const color = this.getScoreColor(val);
-        const d = this.domains[key];
+        const d = this.getDomainInfo(key);
+        const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+        const dIcon = d ? d.icon : 'fa-question-circle';
+        const dColor = d ? d.color : '#94a3b8';
         barsHtml += `
             <div style="margin-bottom:14px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                    <span style="color:var(--text-secondary)"><i class="fas ${d.icon}" style="margin-right:6px; color:${d.color}"></i>${d.name}</span>
+                    <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                     <span style="font-weight:700; color:${color}">${val}/10</span>
                 </div>
                 <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -1595,22 +1739,26 @@ showCloudResults(student, assessments) {
     });
     document.getElementById('domainBars').innerHTML = barsHtml;
     
-    let detailsHtml = '';
-    Object.entries(latest.domains).forEach(([key, val]) => {
-        const d = this.domains[key];
+        let detailsHtml = '';
+        Object.entries(latest.domains).forEach(([key, val]) => {
+        const d = this.getDomainInfo(key);
         const color = this.getScoreColor(val);
         const level = this.getScoreLabel(val);
+        const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+        const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
+        const dIcon = d ? d.icon : 'fa-question-circle';
+        const dColor = d ? d.color : '#94a3b8';
         detailsHtml += `
             <div class="domain-item">
                 <div class="domain-header">
                     <div class="domain-name">
-                        <div class="domain-icon" style="background:${d.color}20; color:${d.color};"><i class="fas ${d.icon}"></i></div>
-                        ${d.name}
+                        <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
+                        ${dName}
                     </div>
                     <div class="domain-score ${this.getScoreClass(val)}">${val}</div>
                 </div>
                 <div class="progress-track"><div class="progress-fill" style="width:${val*10}%; background:${color};"></div></div>
-                <div class="domain-note">${d.desc} — <strong style="color:${color}">${level}</strong></div>
+                <div class="domain-note">${dDesc} — <strong style="color:${color}">${level}</strong></div>
             </div>
         `;
     });
@@ -1667,14 +1815,17 @@ showCloudResults(student, assessments) {
             
             // Domain bars
             let barsHtml = '';
-            Object.entries(latest.domains).forEach(([key, val]) => {
+                                   Object.entries(latest.domains).forEach(([key, val]) => {
                 const pct = val * 10;
                 const color = this.getScoreColor(val);
-                const d = this.domains[key];
+                const d = this.getDomainInfo(key);
+                const dName = d && typeof d.name === 'object' ? (d.name[this.currentLang] || d.name.en) : (d ? d.name : key);
+                const dIcon = d ? d.icon : 'fa-question-circle';
+                const dColor = d ? d.color : '#94a3b8';
                 barsHtml += `
                     <div style="margin-bottom:14px;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                            <span style="color:var(--text-secondary)"><i class="fas ${d.icon}" style="margin-right:6px; color:${d.color}"></i>${d.name}</span>
+                            <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                             <span style="font-weight:700; color:${color}">${val}/10</span>
                         </div>
                         <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -1685,25 +1836,29 @@ showCloudResults(student, assessments) {
             
             // Domain details cards
             let detailsHtml = '';
-            Object.entries(latest.domains).forEach(([key, val]) => {
-                const d = this.domains[key];
+                                    Object.entries(latest.domains).forEach(([key, val]) => {
+                const d = this.getDomainInfo(key);
                 const color = this.getScoreColor(val);
                 const level = this.getScoreLabel(val);
+                const dName = d && typeof d.name === 'object' ? (d.name[this.currentLang] || d.name.en) : (d ? d.name : key);
+                const dDesc = d && typeof d.desc === 'object' ? (d.desc[this.currentLang] || d.desc.en) : (d ? d.desc : '');
+                const dIcon = d ? d.icon : 'fa-question-circle';
+                const dColor = d ? d.color : '#94a3b8';
                 detailsHtml += `
                     <div class="domain-item">
                         <div class="domain-header">
                             <div class="domain-name">
-                                <div class="domain-icon" style="background:${d.color}20; color:${d.color};"><i class="fas ${d.icon}"></i></div>
-                                ${d.name}
+                                <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
+                                ${dName}
                             </div>
-                            <div class="domain-score ${this.getScoreClass(val)}">${val}</div>
+                            <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
                         </div>
-                        <div class="progress-track"><div class="progress-fill" style="width:${val*10}%; background:${color};"></div></div>
-                        <div class="domain-note">${d.desc} — <strong style="color:${color}">${level}</strong></div>
+                        <div class="domain-desc">${dDesc}</div>
+                        <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
                     </div>
                 `;
             });
-            document.getElementById('domainDetails').innerHTML = detailsHtml;
+        document.getElementById('domainDetails').innerHTML = detailsHtml;
             
             // Counselor notes
             document.getElementById('counselorNotes').innerHTML = latest.notes ? latest.notes.replace(/\n/g, '<br>') : 'No specific recommendations recorded.';
@@ -1729,24 +1884,49 @@ showCloudResults(student, assessments) {
             this.showSection('resultsView');
         },
 
+        getDomainInfo(key) {
+            const normalized = key.toLowerCase().replace(/[-\s]/g, '');
+            const map = {
+                'verbal': 'verbal', 'verballinguistic': 'verbal',
+                'logical': 'logical', 'logicalmathematical': 'logical',
+                'visual': 'visual', 'visualspatial': 'visual',
+                'musical': 'musical',
+                'kinesthetic': 'kinesthetic', 'bodilykinesthetic': 'kinesthetic',
+                'interpersonal': 'interpersonal',
+                'intrapersonal': 'intrapersonal',
+                'naturalist': 'naturalist',
+                'existential': 'existential'
+            };
+            const mapped = map[normalized] || key;
+            return this.domains[mapped] || { 
+                icon: 'fa-brain', 
+                color: '#0d9488', 
+                name: { en: key, ta: key, ms: key },
+                desc: { en: '', ta: '', ms: '' }
+            };
+        },
+
         getScoreColor(score) {
-            if (score >= this.settings.thresholds.normal) return 'var(--success)';
-            if (score >= this.settings.thresholds.mild) return 'var(--healing-teal)';
-            if (score >= this.settings.thresholds.moderate) return 'var(--warning)';
-            return 'var(--danger)';
-        },
-        getScoreClass(score) {
-            if (score >= this.settings.thresholds.normal) return 'score-excellent';
-            if (score >= this.settings.thresholds.mild) return 'score-good';
-            if (score >= this.settings.thresholds.moderate) return 'score-moderate';
-            return 'score-severe';
-        },
-        getScoreLabel(score) {
-            if (score >= this.settings.thresholds.normal) return 'Excellent';
-            if (score >= this.settings.thresholds.mild) return 'Good';
-            if (score >= this.settings.thresholds.moderate) return 'Moderate Concern';
-            return 'Requires Immediate Attention';
-        },
+        const n = 7, m = 5, mod = 3;
+        if (score >= n) return 'var(--success)';
+        if (score >= m) return 'var(--healing-teal)';
+        if (score >= mod) return 'var(--warning)';
+        return 'var(--danger)';
+    },
+    getScoreClass(score) {
+        const n = 7, m = 5, mod = 3;
+        if (score >= n) return 'score-excellent';
+        if (score >= m) return 'score-good';
+        if (score >= mod) return 'score-moderate';
+        return 'score-severe';
+    },
+    getScoreLabel(score) {
+        const n = 7, m = 5, mod = 3;
+        if (score >= n) return 'Excellent';
+        if (score >= m) return 'Good';
+        if (score >= mod) return 'Moderate Concern';
+        return 'Requires Immediate Attention';
+    },
         getSeverityBadge(sev) {
             const map = { normal: ['sev-normal', 'Normal'], mild: ['sev-mild', 'Mild Concern'], moderate: ['sev-moderate', 'Moderate Concern'], severe: ['sev-severe', 'Severe Concern'] };
             const [cls, text] = map[sev] || map.normal;
@@ -1831,6 +2011,10 @@ showCloudResults(student, assessments) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
         btn.disabled = true;
     }
+
+    // Clear saved sections on logout
+localStorage.removeItem('manasu_lastSection');
+localStorage.removeItem('manasu_lastAdminPage');
     
     // ✅ Firebase-லிருந்து proper-ஆ sign out
     if (this.firebaseReady && this.auth) {
@@ -2127,13 +2311,14 @@ showCloudResults(student, assessments) {
             document.getElementById('assEditId').value = '';
             document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychosomatic Assessment';
             // Reset sliders
-            ['Emotional','Behavioral','Social','Academic','Physical','Coping'].forEach(d => {
+                       ['Verbal','Logical','Visual','Musical','Kinesthetic','Interpersonal','Intrapersonal','Naturalist','Existential'].forEach(d => {
                 document.getElementById('score'+d).value = 5;
                 this.updateSliderVal(d, 5);
             });
 
             this.calculateLivePreview();
-            document.getElementById('assDate').value = new Date().toISOString().split('T')[0];
+            const assDateEl = document.getElementById('assDate');
+            if (assDateEl) assDateEl.value = new Date().toISOString().split('T')[0];
             
             if (id) {
                 const a = this.assessments.find(as => as.id === id);
@@ -2168,14 +2353,15 @@ showCloudResults(student, assessments) {
             this.calculateLivePreview();
         },
 
-        calculateLivePreview() {
-            const domains = ['Emotional', 'Behavioral', 'Social', 'Academic', 'Physical', 'Coping'];
+                calculateLivePreview() {
+            const domains = ['Verbal', 'Logical', 'Visual', 'Musical', 'Kinesthetic', 'Interpersonal', 'Intrapersonal', 'Naturalist', 'Existential'];
             let total = 0;
+            let count = 0;
             domains.forEach(d => {
                 const el = document.getElementById('score' + d);
-                if (el) total += parseInt(el.value);
+                if (el) { total += parseInt(el.value); count++; }
             });
-            const overall = (total / domains.length).toFixed(1);
+            const overall = count > 0 ? (total / count).toFixed(1) : '0.0';
             
             const scoreEl = document.getElementById('liveOverallScore');
             const badgeEl = document.getElementById('liveSeverityBadge');
@@ -2200,13 +2386,16 @@ showCloudResults(student, assessments) {
             const studentId = document.getElementById('assStudent').value;
             if (!studentId) { this.showToast('Please select a student', 'error'); return; }
             
-            const domains = {
-                emotional: parseInt(document.getElementById('scoreEmotional').value),
-                behavioral: parseInt(document.getElementById('scoreBehavioral').value),
-                social: parseInt(document.getElementById('scoreSocial').value),
-                academic: parseInt(document.getElementById('scoreAcademic').value),
-                physical: parseInt(document.getElementById('scorePhysical').value),
-                coping: parseInt(document.getElementById('scoreCoping').value)
+                        const domains = {
+                verbal: parseInt(document.getElementById('scoreVerbal').value) || 5,
+                logical: parseInt(document.getElementById('scoreLogical').value) || 5,
+                visual: parseInt(document.getElementById('scoreVisual').value) || 5,
+                musical: parseInt(document.getElementById('scoreMusical').value) || 5,
+                kinesthetic: parseInt(document.getElementById('scoreKinesthetic').value) || 5,
+                interpersonal: parseInt(document.getElementById('scoreInterpersonal').value) || 5,
+                intrapersonal: parseInt(document.getElementById('scoreIntrapersonal').value) || 5,
+                naturalist: parseInt(document.getElementById('scoreNaturalist').value) || 5,
+                existential: parseInt(document.getElementById('scoreExistential').value) || 5
             };
             const values = Object.values(domains);
             const overall = values.reduce((a,b) => a+b, 0) / values.length;
@@ -2217,7 +2406,7 @@ showCloudResults(student, assessments) {
             
             const data = {
                 studentId,
-                date: document.getElementById('assDate').value,
+                date: document.getElementById('assDate')?.value || new Date().toISOString().split('T')[0],
                 domains,
                 overallScore: parseFloat(overall.toFixed(1)),
                 severity,
@@ -2253,9 +2442,13 @@ showCloudResults(student, assessments) {
             const s = this.students.find(st => st.id === a?.studentId);
             if (!a) return;
             let domainHtml = '';
-            Object.entries(a.domains).forEach(([key, val]) => {
-                const d = this.domains[key];
-                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${d.icon}" style="color:${d.color}; margin-right:8px;"></i>${d.name}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                        Object.entries(a.domains).forEach(([key, val]) => {
+                const d = this.getDomainInfo(key);
+                const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+                const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
+                const dIcon = d ? d.icon : 'fa-question-circle';
+                const dColor = d ? d.color : '#94a3b8';
+                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${s ? s.name : 'Unknown'}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
@@ -2296,12 +2489,15 @@ showCloudResults(student, assessments) {
                     'Overall Score': a.overallScore,
                     'Severity': a.severity,
                     'Status': a.status,
-                    'Emotional': a.domains.emotional,
-                    'Behavioral': a.domains.behavioral,
-                    'Social': a.domains.social,
-                    'Academic': a.domains.academic,
-                    'Physical': a.domains.physical,
-                    'Coping': a.domains.coping,
+                    'Verbal-Linguistic': a.domains.verbal,
+'Logical-Mathematical': a.domains.logical,
+'Visual-Spatial': a.domains.visual,
+'Musical': a.domains.musical,
+'Bodily-Kinesthetic': a.domains.kinesthetic,
+'Interpersonal': a.domains.interpersonal,
+'Intrapersonal': a.domains.intrapersonal,
+'Naturalist': a.domains.naturalist,
+'Existential': a.domains.existential,
                     'Counselor Notes': a.notes || ''
                 };
             });
