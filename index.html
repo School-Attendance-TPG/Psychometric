@@ -1778,14 +1778,18 @@ showCloudResults(student, assessments) {
         ? latest.notes.replace(/\n/g, '<br>') 
         : 'No specific recommendations recorded.';
     
-    let timelineHtml = '';
+        let timelineHtml = '';
     assessments.forEach((a, idx) => {
         const sev = this.getSeverityBadge(a.severity || 'normal');
+        const isLatest = idx === 0;
         timelineHtml += `
-            <div class="timeline-item">
-                <div class="timeline-date">${this.formatDate(a.date)}</div>
+            <div class="timeline-item" onclick="app.viewPastAssessment(${idx})" style="cursor:pointer; transition:all 0.2s; border-radius:8px; padding:12px; ${isLatest ? 'background:var(--healing-teal); color:white;' : 'background:var(--card-bg);'}">
+                <div class="timeline-date" style="${isLatest ? 'color:rgba(255,255,255,0.9);' : ''}">${this.formatDate(a.date)}</div>
                 <div class="timeline-content">
-                    <h5>Assessment #${assessments.length - idx} — Score: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10</h5>
+                    <h5 style="display:flex; justify-content:space-between; align-items:center;">
+                        Assessment #${assessments.length - idx} — Score: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10
+                        ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">CURRENT</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">VIEW</span>'}
+                    </h5>
                     <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
                 </div>
             </div>
@@ -1794,7 +1798,8 @@ showCloudResults(student, assessments) {
     document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
     
        this.currentResultStudent = student;
-    this.currentResultAssessment = latest;
+       this.currentResultAssessment = latest;
+       this.currentResultAllAssessments = assessments;
     
     // ✅ Save IC so refresh works
     localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
@@ -1849,6 +1854,9 @@ showCloudResults(student, assessments) {
                 `;
             });
             document.getElementById('domainBars').innerHTML = barsHtml;
+
+            
+
             
             // Domain details cards
             let detailsHtml = '';
@@ -1879,15 +1887,19 @@ showCloudResults(student, assessments) {
             // Counselor notes
             document.getElementById('counselorNotes').innerHTML = latest.notes ? latest.notes.replace(/\n/g, '<br>') : 'No specific recommendations recorded.';
             
-            // Timeline
+                        // Timeline
             let timelineHtml = '';
             assessments.forEach((a, idx) => {
                 const sev = this.getSeverityBadge(a.severity);
+                const isLatest = idx === 0;
                 timelineHtml += `
-                    <div class="timeline-item">
-                        <div class="timeline-date">${this.formatDate(a.date)}</div>
+                    <div class="timeline-item" onclick="app.viewPastAssessment(${idx})" style="cursor:pointer; transition:all 0.2s; border-radius:8px; padding:12px; ${isLatest ? 'background:var(--healing-teal); color:white;' : 'background:var(--card-bg);'}">
+                        <div class="timeline-date" style="${isLatest ? 'color:rgba(255,255,255,0.9);' : ''}">${this.formatDate(a.date)}</div>
                         <div class="timeline-content">
-                            <h5>Assessment #${assessments.length - idx} — Score: ${a.overallScore.toFixed(1)}/10</h5>
+                            <h5 style="display:flex; justify-content:space-between; align-items:center;">
+                                Assessment #${assessments.length - idx} — Score: ${a.overallScore.toFixed(1)}/10
+                                ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">CURRENT</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">VIEW</span>'}
+                            </h5>
                             <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
                         </div>
                     </div>
@@ -1896,8 +1908,9 @@ showCloudResults(student, assessments) {
             document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
             
                this.currentResultStudent = student;
-    this.currentResultAssessment = latest;
-    
+               this.currentResultAssessment = latest;
+               this.currentResultAllAssessments = assessments;
+
     // ✅ Save IC so refresh works
     localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
     
@@ -1982,6 +1995,114 @@ showCloudResults(student, assessments) {
             
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         },
+
+        viewPastAssessment(index) {
+    // Get the student and all assessments
+    const student = this.currentResultStudent;
+    if (!student) return;
+    
+    // Get assessments array (local or from parameter)
+    const assessments = this.currentResultAllAssessments || 
+        this.assessments.filter(a => a.studentId === student.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    const selected = assessments[index];
+    if (!selected) return;
+    
+    // Update header
+    document.getElementById('resChildName').textContent = student.name;
+    document.getElementById('resChildMeta').innerHTML = `Class ${student.class} • MyKid: ${student.icNumber} • Age ${student.age || '-'} • <strong style="color:var(--healing-teal)">${this.formatDate(selected.date)}</strong>`;
+    
+    // Update score ring
+    const circumference = 2 * Math.PI * 85;
+    const offset = circumference - (selected.overallScore / 10) * circumference;
+    setTimeout(() => {
+        const ring = document.getElementById('ringProgress');
+        if (ring) ring.style.strokeDashoffset = offset;
+    }, 100);
+    
+    const ringValue = document.getElementById('ringValue');
+    ringValue.textContent = selected.overallScore ? selected.overallScore.toFixed(1) : '-';
+    ringValue.style.color = this.getScoreColor(selected.overallScore || 0);
+    document.getElementById('ringLabel').textContent = '/ 10';
+    document.getElementById('severityBadgeArea').innerHTML = this.getSeverityBadge(selected.severity || 'normal');
+    
+    // Update domain bars
+    let barsHtml = '';
+    if (selected.domains) {
+        Object.entries(selected.domains).forEach(([key, val]) => {
+            const pct = val * 10;
+            const color = this.getScoreColor(val);
+            const d = this.getDomainInfo(key);
+            const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+            const dIcon = d ? d.icon : 'fa-question-circle';
+            const dColor = d ? d.color : '#94a3b8';
+            barsHtml += `
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
+                        <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                        <span style="font-weight:700; color:${color}">${val}/10</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('domainBars').innerHTML = barsHtml || '<p style="color:var(--text-muted); text-align:center;">No domain data</p>';
+    
+    // Update domain details
+    let detailsHtml = '';
+    if (selected.domains) {
+        Object.entries(selected.domains).forEach(([key, val]) => {
+            const d = this.getDomainInfo(key);
+            const color = this.getScoreColor(val);
+            const level = this.getScoreLabel(val);
+            const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
+            const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
+            const dIcon = d ? d.icon : 'fa-question-circle';
+            const dColor = d ? d.color : '#94a3b8';
+            detailsHtml += `
+                <div class="domain-item">
+                    <div class="domain-header">
+                        <div class="domain-name">
+                            <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
+                            ${dName}
+                        </div>
+                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
+                    </div>
+                    <div class="domain-desc">${dDesc}</div>
+                    <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('domainDetails').innerHTML = detailsHtml || '<p style="color:var(--text-muted); text-align:center;">No detailed data</p>';
+    
+    // Update notes
+    document.getElementById('counselorNotes').innerHTML = selected.notes 
+        ? selected.notes.replace(/\n/g, '<br>') 
+        : 'No specific recommendations recorded.';
+    
+    // Highlight selected timeline item
+    const items = document.querySelectorAll('.timeline-item');
+    items.forEach((item, i) => {
+        if (i === index) {
+            item.style.background = 'var(--healing-teal)';
+            item.style.color = 'white';
+            const dateEl = item.querySelector('.timeline-date');
+            if (dateEl) dateEl.style.color = 'rgba(255,255,255,0.9)';
+        } else {
+            item.style.background = 'var(--card-bg)';
+            item.style.color = 'var(--text-primary)';
+            const dateEl = item.querySelector('.timeline-date');
+            if (dateEl) dateEl.style.color = '';
+        }
+    });
+    
+    this.currentResultAssessment = selected;
+    
+    // Scroll to top of results
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+},
 
         // ═══════════════════════════════════════════════════════════════
         // ADMIN AUTH
