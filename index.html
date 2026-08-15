@@ -1072,9 +1072,29 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                         <input type="range" id="scoreExistential" min="1" max="10" value="5" oninput="app.updateSliderVal('Existential', this.value)">
                     </div>
                 </div>
-                <div class="form-group" style="margin-top:20px;">
-                    <label>Counselor Recommendations & Notes</label>
-                    <textarea id="assNotes" class="input-premium" placeholder="Detailed recommendations, follow-up plans, parent guidance..."></textarea>
+                                <div class="form-group" style="margin-top:20px;">
+                    <label style="margin-bottom:12px; font-weight:600;">Counselor Recommendations & Notes</label>
+                    
+                    <div style="margin-bottom:16px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                            <i class="fas fa-language" style="margin-right:6px; color:var(--malaysia-blue);"></i>English
+                        </label>
+                        <textarea id="assNotesEn" class="input-premium" placeholder="Write recommendations in English..." style="min-height:80px;"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom:16px;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                            <i class="fas fa-language" style="margin-right:6px; color:var(--healing-teal);"></i>Malay (Bahasa Malaysia)
+                        </label>
+                        <textarea id="assNotesMs" class="input-premium" placeholder="Tulis cadangan dalam Bahasa Malaysia..." style="min-height:80px;"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                            <i class="fas fa-language" style="margin-right:6px; color:var(--malaysia-red);"></i>Tamil (தமிழ்)
+                        </label>
+                        <textarea id="assNotesTa" class="input-premium" placeholder="தமிழில் பரிந்துரைகளை எழுதவும்..." style="min-height:80px;"></textarea>
+                    </div>
                 </div>
                 <div class="form-grid" style="margin-top:16px;">
                     <div class="form-group"><label>Follow-up Date</label><input type="date" id="assFollowUp" class="input-premium"></div>
@@ -1529,7 +1549,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             if (page === 'assessments') this.renderAssessmentsTable();
         },
 
-        setLang(lang) {
+                setLang(lang) {
             this.currentLang = lang;
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1538,6 +1558,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                     el.innerHTML = this.i18n[lang][key];
                 }
             });
+            // Parent results page-la language switch pannumbothu counselor notes-um automatic-a maaranum
+            if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
+                document.getElementById('counselorNotes').innerHTML = this.getNotes(this.currentResultAssessment);
+            }
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -1785,9 +1809,7 @@ showCloudResults(student, assessments) {
     }
     document.getElementById('domainDetails').innerHTML = detailsHtml || '<p style="color:var(--text-muted); text-align:center;">No detailed data</p>';
     
-    document.getElementById('counselorNotes').innerHTML = latest.notes 
-        ? latest.notes.replace(/\n/g, '<br>') 
-        : 'No specific recommendations recorded.';
+        document.getElementById('counselorNotes').innerHTML = this.getNotes(latest);
     
         let timelineHtml = '';
     assessments.forEach((a, idx) => {
@@ -1816,10 +1838,23 @@ showCloudResults(student, assessments) {
     localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
     
     this.showSection('resultsView');
-},
+    },
+    getNotes(assessment) {
+        if (!assessment || !assessment.notes) return 'No specific recommendations recorded.';
+        // Old format: plain string (backward compatibility)
+        if (typeof assessment.notes === 'string') return assessment.notes.replace(/\n/g, '<br>');
+        // New format: object with language keys
+        const notes = assessment.notes;
+        const lang = this.currentLang;
+        if (notes[lang] && notes[lang].trim()) return notes[lang].replace(/\n/g, '<br>');
+        if (notes.en && notes.en.trim()) return notes.en.replace(/\n/g, '<br>');
+        for (const key of ['ms', 'ta']) {
+            if (notes[key] && notes[key].trim()) return notes[key].replace(/\n/g, '<br>');
+        }
+        return 'No specific recommendations recorded.';
+    },
 
-
-        showResults(student) {
+    showResults(student) {
             const assessments = this.assessments.filter(a => a.studentId === student.id).sort((a,b) => b.date.localeCompare(a.date));
             if (assessments.length === 0) {
                 this.showToast('No assessments found for this student', 'info');
@@ -1896,7 +1931,7 @@ showCloudResults(student, assessments) {
         document.getElementById('domainDetails').innerHTML = detailsHtml;
             
             // Counselor notes
-            document.getElementById('counselorNotes').innerHTML = latest.notes ? latest.notes.replace(/\n/g, '<br>') : 'No specific recommendations recorded.';
+                        document.getElementById('counselorNotes').innerHTML = this.getNotes(latest);
             
                         // Timeline
             let timelineHtml = '';
@@ -2088,10 +2123,8 @@ showCloudResults(student, assessments) {
     }
     document.getElementById('domainDetails').innerHTML = detailsHtml || '<p style="color:var(--text-muted); text-align:center;">No detailed data</p>';
     
-    // Update notes
-    document.getElementById('counselorNotes').innerHTML = selected.notes 
-        ? selected.notes.replace(/\n/g, '<br>') 
-        : 'No specific recommendations recorded.';
+       // Update notes
+    document.getElementById('counselorNotes').innerHTML = this.getNotes(selected);
     
     // Highlight selected timeline item
     const items = document.querySelectorAll('.timeline-item');
@@ -2464,9 +2497,12 @@ localStorage.removeItem('manasu_lastAdminPage');
         filterAssessments() { this.renderAssessmentsTable(); },
 
         openAssessmentModal(id = null) {
-            document.getElementById('assessmentForm')?.reset();
-            document.getElementById('assEditId').value = '';
+                        document.getElementById('assEditId').value = '';
             document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychosomatic Assessment';
+            // Clear all note fields
+            document.getElementById('assNotesEn').value = '';
+            document.getElementById('assNotesMs').value = '';
+            document.getElementById('assNotesTa').value = '';
             // Reset sliders
                        ['Verbal','Logical','Visual','Musical','Kinesthetic','Interpersonal','Intrapersonal','Naturalist','Existential'].forEach(d => {
                 document.getElementById('score'+d).value = 5;
@@ -2483,7 +2519,22 @@ localStorage.removeItem('manasu_lastAdminPage');
                     document.getElementById('assEditId').value = a.id;
                     document.getElementById('assStudent').value = a.studentId;
                     document.getElementById('assDate').value = a.date;
-                    document.getElementById('assNotes').value = a.notes || '';
+                                        // Handle both old string format and new object format
+                    if (a.notes) {
+                        if (typeof a.notes === 'string') {
+                            document.getElementById('assNotesEn').value = a.notes;
+                            document.getElementById('assNotesMs').value = '';
+                            document.getElementById('assNotesTa').value = '';
+                        } else {
+                            document.getElementById('assNotesEn').value = a.notes.en || '';
+                            document.getElementById('assNotesMs').value = a.notes.ms || '';
+                            document.getElementById('assNotesTa').value = a.notes.ta || '';
+                        }
+                    } else {
+                        document.getElementById('assNotesEn').value = '';
+                        document.getElementById('assNotesMs').value = '';
+                        document.getElementById('assNotesTa').value = '';
+                    }
                     document.getElementById('assFollowUp').value = a.followUpDate || '';
                     document.getElementById('assStatus').value = a.status || 'active';
                     Object.entries(a.domains).forEach(([key, val]) => {
@@ -2567,7 +2618,11 @@ localStorage.removeItem('manasu_lastAdminPage');
                 domains,
                 overallScore: parseFloat(overall.toFixed(1)),
                 severity,
-                notes: document.getElementById('assNotes').value,
+                                notes: {
+                    en: document.getElementById('assNotesEn').value,
+                    ms: document.getElementById('assNotesMs').value,
+                    ta: document.getElementById('assNotesTa').value
+                },
                 followUpDate: document.getElementById('assFollowUp').value,
                 status: document.getElementById('assStatus').value,
                 counselorName: this.settings.counselorName,
@@ -2624,7 +2679,7 @@ localStorage.removeItem('manasu_lastAdminPage');
                 ${domainHtml}
                 <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">
                     <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Notes & Recommendations</h5>
-                    <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${a.notes ? a.notes.replace(/\n/g, '<br>') : 'No notes recorded.'}</p>
+                                        <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${this.getNotes(a)}</p>
                 </div>
             `;
             document.getElementById('viewAssessmentModal').classList.add('show');
@@ -2655,7 +2710,9 @@ localStorage.removeItem('manasu_lastAdminPage');
 'Intrapersonal': a.domains.intrapersonal,
 'Naturalist': a.domains.naturalist,
 'Existential': a.domains.existential,
-                    'Counselor Notes': a.notes || ''
+                                        'Counselor Notes (EN)': (a.notes && typeof a.notes === 'object' ? a.notes.en : a.notes) || '',
+                    'Counselor Notes (MS)': (a.notes && typeof a.notes === 'object' ? a.notes.ms : '') || '',
+                    'Counselor Notes (TA)': (a.notes && typeof a.notes === 'object' ? a.notes.ta : '') || '',
                 };
             });
             
