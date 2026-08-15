@@ -1273,8 +1273,7 @@ body.pdf-mode .timeline-content {
     // APP STATE & CONFIG
     // ═══════════════════════════════════════════════════════════════
     const app = {
-        currentLang: 'en',
-        currentUser: null,
+                navigatingViaHistory: false,
         students: [],
         assessments: [],
         settings: {
@@ -1439,31 +1438,39 @@ body.pdf-mode .timeline-content {
             document.getElementById('adminSidebar').classList.toggle('open');
         },
 
-        checkUrlParams() {
+                checkUrlParams() {
             const params = new URLSearchParams(window.location.search);
             const studentId = params.get('student');
             const icNumber = params.get('ic');
+            let targetStudent = null;
 
             if (studentId) {
-                const student = this.students.find(s => s.id === studentId);
-                if (student) {
-                    this.showResults(student);
-                    return;
-                }
+                targetStudent = this.students.find(s => s.id === studentId);
             }
 
-            if (icNumber) {
+            if (!targetStudent && icNumber) {
                 const cleanIc = icNumber.replace(/[-\s]/g, '');
-                const student = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
-                if (student) {
-                    this.showResults(student);
-                }
+                targetStudent = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
+            }
+
+            if (targetStudent) {
+                // SECURITY FIX: Don't auto-show results. Pre-fill MyKid and show Parent Portal
+                document.getElementById('parentIcInput').value = targetStudent.icNumber;
+                this.showSection('parentPortal');
+                setTimeout(() => {
+                    const input = document.getElementById('parentIcInput');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 300);
             }
         },
 
-        async init() {
+            async init() {
     this.loadSettings();
     this.loadDemoData();
+    this.setupHistoryNavigation();
     this.setupNavScroll();
     this.setupFirebase();
     this.setupInstallPrompt();
@@ -1544,6 +1551,36 @@ body.pdf-mode .timeline-content {
             check();
         },
 
+                setupHistoryNavigation() {
+            // Initial history state set pannu (first load-kku)
+            if (!history.state || !history.state.page) {
+                history.replaceState({ page: 'landing' }, '', window.location.pathname);
+            }
+            
+            // Browser back button handle pannu
+            window.addEventListener('popstate', (e) => {
+                if (e.state && e.state.page) {
+                    this.navigatingViaHistory = true;
+                    
+                    // Already logged in-a irukkumbothu adminLogin page-kku pooga koodathu
+                    if (e.state.page === 'adminLogin' && this.currentUser) {
+                        this.showSection('landing');
+                    } 
+                    // Admin dashboard with sub-page
+                    else if (e.state.page === 'adminDashboard' && e.state.adminPage) {
+                        this.showSection('adminDashboard');
+                        this.showAdminPage(e.state.adminPage);
+                    } 
+                    // Normal pages
+                    else {
+                        this.showSection(e.state.page);
+                    }
+                    
+                    this.navigatingViaHistory = false;
+                }
+            });
+        },
+
         setupAuthListener() {
     if (!this.firebaseReady) return;
     const { onAuthStateChanged } = window.fb;
@@ -1579,9 +1616,18 @@ body.pdf-mode .timeline-content {
         // ═══════════════════════════════════════════════════════════════
         // NAVIGATION
         // ═══════════════════════════════════════════════════════════════
-        showSection(id) {
+                showSection(id) {
     // ✅ Save current section to localStorage
     localStorage.setItem('manasu_lastSection', id);
+    
+    // ✅ Browser history for back button support
+    if (!this.navigatingViaHistory) {
+        const state = { page: id };
+        if (id === 'adminDashboard') {
+            state.adminPage = localStorage.getItem('manasu_lastAdminPage') || 'dash';
+        }
+        history.pushState(state, '', window.location.pathname);
+    }
     
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
