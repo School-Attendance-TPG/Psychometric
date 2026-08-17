@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-title" content="MANASU PsyCare">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="MANASU PsyCare">
-    <meta name="description" content="Secure psychosomatic wellness portal for SJKT TPG — Child psychology assessments for parents">
+    <meta name="description" content="Secure psychometric wellness portal for SJKT TPG — Child psychology assessments for parents">
     
-    <title>MANASU — Child Psychosomatic Wellness Portal</title>
+    <title>MANASU — Child Psychometric Wellness Portal</title>
     
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2913/2913465.png">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913465.png">
@@ -693,7 +693,7 @@ body.pdf-mode .timeline-content {
             <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
             <div class="nav-brand-text">
                 <h1>MANASU</h1>
-                <span>Psychosomatic Wellness</span>
+                <span>Psychometric Wellness</span>
             </div>
         </div>
         <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="app.toggleMobileMenu()" aria-label="Menu">
@@ -744,7 +744,8 @@ body.pdf-mode .timeline-content {
             <div class="hero-content">
                 <div class="hero-badge"><i class="fas fa-shield-alt"></i><span data-i18n="badge_secure">Secure & Confidential</span></div>
                 <h2 class="text-gradient" data-i18n="hero_title">Understanding Young Minds,<br>One Assessment at a Time</h2>
-                <p data-i18n="hero_subtitle">A comprehensive psychosomatic wellness portal for SJKT Telok Panglima Garang. Parents can securely access their children's psychological assessment results using their MyKid number.</p>
+                <p data-i18n="hero_subtitle">SJKT Telok Panglima Garang Psychometric Portal
+                    an online platform that enables parents to easily and securely access and review their children's psychometric assessment results using their MyKid number.</p>
                 <div class="hero-cta">
                     <button class="btn btn-teal" onclick="app.showSection('parentPortal')"><i class="fas fa-search"></i> <span data-i18n="btn_check_results">Check Results</span></button>
                     <button class="btn btn-outline" onclick="app.showSection('adminLogin')"><i class="fas fa-user-md"></i> <span data-i18n="btn_counselor_login">Counselor Login</span></button>
@@ -780,7 +781,7 @@ body.pdf-mode .timeline-content {
 </div>
                 <div class="portal-form-area">
                     <h3 data-i18n="portal_title">Parent Access Portal</h3>
-                    <p data-i18n="portal_desc">Enter your child's MyKid number to view their latest psychosomatic assessment results, counselor recommendations, and wellness trends.</p>
+                    <p data-i18n="portal_desc">Enter your child's MyKid number to view their latest psychometric assessment results, counselor recommendations, and wellness trends.</p>
                     <div class="glass-card" style="padding:32px;">
                         <div class="ic-input-wrap">
                             <i class="fas fa-id-card"></i>
@@ -840,7 +841,7 @@ body.pdf-mode .timeline-content {
                     <div id="domainBars"></div>
                 </div>
                 <div class="glass-card result-card-full">
-                    <h4 style="margin-bottom:16px; color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:2px;" data-i18n="detailed_analysis">Detailed Psychosomatic Analysis</h4>
+                    <h4 style="margin-bottom:16px; color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:2px;" data-i18n="detailed_analysis">Detailed Psychometric Analysis</h4>
                     <div class="domain-grid" id="domainDetails"></div>
                 </div>
                 <div class="glass-card result-card-full">
@@ -927,7 +928,7 @@ body.pdf-mode .timeline-content {
                 <!-- DASH -->
                 <div id="adminPage-dash" class="admin-page active">
                     <h1 style="font-size:1.6rem; margin-bottom:4px;">Dashboard</h1>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;">Overview of psychosomatic wellness metrics</p>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;">Overview of psychometric wellness metrics</p>
                     <div class="admin-stats">
                         <div class="admin-stat-card stat-blue">
                             <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
@@ -979,7 +980,7 @@ body.pdf-mode .timeline-content {
                 <!-- ASSESSMENTS -->
                 <div id="adminPage-assessments" class="admin-page">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-                        <div><h1 style="font-size:1.6rem;">Assessments</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Create and manage psychosomatic evaluations</p></div>
+                        <div><h1 style="font-size:1.6rem;">Assessments</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Create and manage psychometric evaluations</p></div>
                         <button class="btn btn-teal" onclick="app.openAssessmentModal()"><i class="fas fa-plus"></i> New Assessment</button>
                     </div>
                     <div class="toolbar">
@@ -1076,18 +1077,17 @@ body.pdf-mode .timeline-content {
                     <div class="form-group"><label>Full Name *</label><input type="text" id="stuName" class="input-premium" required placeholder="e.g. Arun Kumar"></div>
                     <div class="form-group"><label>MyKid Number *</label><input type="text" id="stuIc" class="input-premium" required placeholder="e.g. 200901041234" maxlength="14"></div>
                     <div class="form-group"><label>Class *</label>
-                        <select id="stuClass" class="input-premium" required>
-    <option value="">Select</option>
-    <option value="6 T">6 T</option>
-    <option value="6 V">6 V</option>
-    <option value="6 A">6 A</option>
-    <option value="5 T">5 T</option>
-    <option value="5 V">5 V</option>
-    <option value="5 A">5 A</option>
-    <option value="4 T">4 T</option>
-    <option value="4 V">4 V</option>
-</select>
-
+            <select id="stuClass" class="input-premium" required>
+                    <option value="">Select</option>
+                    <option value="6 T">6 T</option>
+                    <option value="6 V">6 V</option>
+                    <option value="6 A">6 A</option>
+                    <option value="5 T">5 T</option>
+                    <option value="5 V">5 V</option>
+                    <option value="5 A">5 A</option>
+                    <option value="4 T">4 T</option>
+                    <option value="4 V">4 V</option>
+            </select>
                     </div>
                     <div class="form-group"><label>Age</label><input type="number" id="stuAge" class="input-premium" placeholder="e.g. 12" min="5" max="18"></div>
                     <div class="form-group"><label>Parent Name</label><input type="text" id="stuParent" class="input-premium" placeholder="e.g. Mr. Kumar"></div>
@@ -1104,7 +1104,7 @@ body.pdf-mode .timeline-content {
     <!-- Assessment Modal -->
     <div class="modal-overlay" id="assessmentModal">
         <div class="modal modal-lg">
-            <div class="modal-header"><h3 class="modal-title" id="assModalTitle">New Psychosomatic Assessment</h3><button class="modal-close" onclick="app.closeAssessmentModal()">&times;</button></div>
+            <div class="modal-header"><h3 class="modal-title" id="assModalTitle">New Psychometric Assessment</h3><button class="modal-close" onclick="app.closeAssessmentModal()">&times;</button></div>
             <form onsubmit="app.saveAssessment(event)">
                                 <input type="hidden" id="assEditId">
                 <div class="form-grid" style="margin-bottom:20px;">
@@ -1360,19 +1360,19 @@ body.pdf-mode .timeline-content {
             en: {
                 badge_secure: 'Secure & Confidential',
                 hero_title: 'Understanding Young Minds,<br>One Assessment at a Time',
-                hero_subtitle: 'A comprehensive psychosomatic wellness portal for SJKT Telok Panglima Garang. Parents can securely access their children\'s psychological assessment results using their MyKid number.',
+                hero_subtitle: 'SJKT Telok Panglima Garang Psychometric Portal\nAn online platform that enables parents to easily and securely access and review their children\'s psychometric assessment results using their MyKid number.',
                 btn_check_results: 'Check Results',
                 btn_counselor_login: 'Counselor Login',
                 stat_students: 'Students Assessed',
                 stat_assessments: 'Assessments',
                 stat_flagged: 'Flagged Cases',
                 portal_title: 'Parent Access Portal',
-                portal_desc: 'Enter your child\'s MyKid number to view their latest psychosomatic assessment results, counselor recommendations, and wellness trends.',
+                portal_desc: 'Enter your child\'s MyKid number to view their latest psychometric assessment results, counselor recommendations, and wellness trends.',
                 btn_view_results: 'View Results',
                 portal_hint: 'Enter MyKid number without dashes or spaces',
                 overall_wellness: 'Overall Wellness Score',
                 domain_breakdown: 'Domain Breakdown',
-                detailed_analysis: 'Detailed Psychosomatic Analysis',
+                detailed_analysis: 'Detailed Psychometric Analysis',
                 counselor_notes: 'Counselor Recommendations',
                 assessment_history: 'Assessment History',
                 admin_login_title: 'Counselor Portal',
@@ -1408,19 +1408,19 @@ body.pdf-mode .timeline-content {
             ms: {
                 badge_secure: 'Selamat & Sulit',
                 hero_title: 'Kenali Minda, Fahami Diri,<br>Satu Penilaian, Satu Langkah Memahami Anak',
-                hero_subtitle: 'Portal kesihatan psikosomatik komprehensif untuk SJKT Telok Panglima Garang. Ibu bapa boleh mengakses keputusan penilaian psikologi anak mereka dengan nombor MyKid.',
+                hero_subtitle: 'Portal Psikometrik SJKT Telok Panglima Garang Platform digital untuk ibu bapa mengakses dan menyemak keputusan penilaian psikometrik anak dengan mudah dan selamat menggunakan nombor MyKid.',
                 btn_check_results: 'Semak Keputusan',
                 btn_counselor_login: 'Log Masuk Kaunselor',
                 stat_students: 'Murid Dinilai',
                 stat_assessments: 'Penilaian',
                 stat_flagged: 'Kes Bendera',
                 portal_title: 'Portal Akses Ibu Bapa',
-                portal_desc: 'Masukkan nombor MyKid anak anda untuk melihat keputusan penilaian psikosomatik terkini, cadangan kaunselor, dan trend kesihatan.',
+                portal_desc: 'Masukkan nombor MyKid anak anda untuk melihat keputusan penilaian psikometrik terkini, cadangan kaunselor, dan trend kesihatan.',
                 btn_view_results: 'Lihat Keputusan',
                 portal_hint: 'Masukkan nombor MyKid tanpa tanda tolak atau ruang',
                 overall_wellness: 'Skor Kesihatan Keseluruhan',
                 domain_breakdown: 'Pecahan Domain',
-                detailed_analysis: 'Analisis Psikosomatik Terperinci',
+                detailed_analysis: 'Analisis psikometrik Terperinci',
                 counselor_notes: 'Cadangan Kaunselor',
                 assessment_history: 'Sejarah Penilaian',
                 admin_login_title: 'Portal Kaunselor',
@@ -1734,7 +1734,7 @@ body.pdf-mode .timeline-content {
                         id: 'ASS_3', studentId: 'STU_3', date: new Date().toISOString().split('T')[0],
                         domains: { verbal: 4, logical: 5, visual: 6, musical: 4, kinesthetic: 3, interpersonal: 6, intrapersonal: 5, naturalist: 4, existential: 5 },
                         overallScore: 4.5, severity: 'moderate', status: 'active',
-                        notes: 'Kavin presents with frequent psychosomatic complaints (stomach aches, headaches) especially on school days. Possible separation anxiety. Recommend gradual exposure therapy and parent counseling session.',
+                        notes: 'Kavin presents with frequent psychometric complaints (stomach aches, headaches) especially on school days. Possible separation anxiety. Recommend gradual exposure therapy and parent counseling session.',
                         followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
                     }
                 ];
@@ -2216,7 +2216,7 @@ showCloudResults(student, assessments) {
             // ✅ Direct link with MyKid IC number
             const portalUrl = `${window.location.origin}${window.location.pathname}?ic=${student.icNumber}`;
             
-            const text = `MANASU Psychosomatic Report for ${student.name}\nClass: ${student.class}\nOverall Score: ${ass.overallScore}/10\nSeverity: ${ass.severity}\n\nView full report at: ${portalUrl}`;
+            const text = `MANASU Psychometric Report for ${student.name}\nClass: ${student.class}\nOverall Score: ${ass.overallScore}/10\nSeverity: ${ass.severity}\n\nView full report at: ${portalUrl}`;
             
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         },
@@ -2677,7 +2677,7 @@ localStorage.removeItem('manasu_lastAdminPage');
 
         openAssessmentModal(id = null) {
                         document.getElementById('assEditId').value = '';
-            document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychosomatic Assessment';
+            document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychometric Assessment';
             // Clear all note fields
             document.getElementById('assNotesEn').value = '';
             document.getElementById('assNotesMs').value = '';
@@ -3050,7 +3050,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             
             ctx.font = '500 15px Poppins, sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText('Psychosomatic Wellness Portal', 195, 142);
+            ctx.fillText('Psychometric Wellness Portal', 195, 142);
             
             // 6. School name badge
             ctx.fillStyle = 'rgba(255,255,255,0.15)';
