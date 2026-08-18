@@ -707,7 +707,8 @@ body.pdf-mode .timeline-content {
             </div>
             <button class="nav-link" onclick="app.showSection('landing')" data-nav="landing"><i class="fas fa-home"></i> <span class="nav-text">Home</span></button>
             <button class="nav-link" onclick="app.showSection('parentPortal')" data-nav="parentPortal"><i class="fas fa-user-shield"></i> <span class="nav-text">Parent Portal</span></button>
-            <button class="nav-link" onclick="app.showSection('adminLogin')" data-nav="adminLogin"><i class="fas fa-lock"></i> <span class="nav-text">Counselor</span></button>
+            <button class="nav-link" onclick="app.showSection('stemMission')" data-nav="stemMission"><i class="fas fa-rocket"></i> <span class="nav-text">STEM Mission</span></button>
+            
         </div>
     </nav>
 
@@ -726,7 +727,8 @@ body.pdf-mode .timeline-content {
     <div class="mobile-menu-body">
         <button class="mobile-nav-link" onclick="app.showSection('landing');app.closeMobileMenu()" data-nav="landing"><i class="fas fa-home"></i> Home</button>
         <button class="mobile-nav-link" onclick="app.showSection('parentPortal');app.closeMobileMenu()" data-nav="parentPortal"><i class="fas fa-user-shield"></i> Parent Portal</button>
-        <button class="mobile-nav-link" onclick="app.showSection('adminLogin');app.closeMobileMenu()" data-nav="adminLogin"><i class="fas fa-lock"></i> Counselor Login</button>
+        <button class="mobile-nav-link" onclick="app.showSection('stemMission');app.closeMobileMenu()" data-nav="stemMission"><i class="fas fa-rocket"></i> STEM Mission</button>
+        
     </div>
     <div class="mobile-menu-footer">
         <div class="lang-toggle" style="justify-content:center;">
@@ -896,7 +898,44 @@ body.pdf-mode .timeline-content {
         </div>
     </section>
 
-
+    <!-- STEM MISSION PORTAL -->
+    <section id="stemMission" class="section">
+        <div class="portal-section">
+            <div class="portal-grid">
+                <div class="portal-visual">
+                    <div class="portal-card-visual" style="background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(37,99,235,0.10));">
+                        <div class="brain-glow" style="background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, rgba(37,99,235,0.15) 40%, transparent 70%);"></div>
+                        <div class="brain-icon" style="font-size: 5.5rem; background: linear-gradient(135deg, #8b5cf6, #3b82f6); -webkit-background-clip: text;"><i class="fas fa-rocket"></i></div>
+                        <div class="brain-rings">
+                            <div class="ring ring-1" style="border-color: rgba(139,92,246,0.2);"></div>
+                            <div class="ring ring-2" style="border-color: rgba(37,99,235,0.15);"></div>
+                            <div class="ring ring-3" style="border-color: rgba(245,158,11,0.1);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="portal-form-area">
+                    <div class="hero-badge" style="margin-bottom:20px; display:inline-flex; background:rgba(139,92,246,0.08); border-color:rgba(139,92,246,0.20); color:#8b5cf6;">
+                        <i class="fas fa-flask"></i> STEM Challenge
+                    </div>
+                    <h3 style="font-size: 2rem; margin-bottom: 10px;">STEM Mission Portal</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter your MyKid number to access the latest STEM missions, download challenge files, and submit your completed work.</p>
+                    
+                    <div class="glass-card" style="padding:32px;">
+                        <div class="ic-input-wrap">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" class="input-premium" id="stemIcInput" placeholder="e.g. 200901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
+                        </div>
+                        <button class="btn" style="width:100%; margin-bottom:12px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.35);" onclick="app.searchStemMission()">
+                            <i class="fas fa-search"></i> Access Missions
+                        </button>
+                        <p style="text-align:center; font-size:0.8rem; color:var(--text-muted);">Enter MyKid number without dashes or spaces</p>
+                    </div>
+                    
+                    <div id="stemMissionList" style="margin-top: 24px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
     
     <!-- ADMIN DASHBOARD -->
     <section id="adminDashboard" class="section">
@@ -911,7 +950,8 @@ body.pdf-mode .timeline-content {
                 <button class="admin-nav-item" onclick="app.showAdminPage('students')" data-admin-nav="students"><i class="fas fa-user-graduate"></i> Students</button>
                 <button class="admin-nav-item" onclick="app.showAdminPage('assessments')" data-admin-nav="assessments"><i class="fas fa-clipboard-check"></i> Assessments</button>
                 <button class="admin-nav-item" onclick="app.showAdminPage('reports')" data-admin-nav="reports"><i class="fas fa-file-alt"></i> Reports</button>
-                <button class="admin-nav-item" onclick="app.showAdminPage('settings')" data-admin-nav="settings"><i class="fas fa-cog"></i> Settings</button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('stemMissions')" data-admin-nav="stemMissions"><i class="fas fa-rocket"></i> STEM Missions</button>
+                
                 <div class="admin-sidebar-footer">
     <button class="admin-nav-item" onclick="app.logout()" id="adminLogoutBtn" style="color:var(--danger); margin-bottom:8px; border:1px solid rgba(239,68,68,0.15);">
         <i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> 
@@ -1060,6 +1100,17 @@ body.pdf-mode .timeline-content {
                         <button class="btn btn-teal" onclick="app.saveSettings()"><i class="fas fa-save"></i> Save All Settings</button>
                     </div>
                 </div>
+              
+               <!-- STEM MISSIONS ADMIN -->
+                <div id="adminPage-stemMissions" class="admin-page">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+                        <div><h1 style="font-size:1.6rem;">STEM Missions</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Upload and manage STEM challenge missions</p></div>
+                        <button class="btn btn-teal" onclick="app.openStemMissionModal()"><i class="fas fa-plus"></i> New Mission</button>
+                    </div>
+                    <div id="stemMissionsList">
+                        <div class="empty-state"><i class="fas fa-rocket"></i><h4>No missions yet</h4><p>Create your first STEM mission</p></div>
+                    </div>
+                </div> 
             </main>
         </div>
     </section>
@@ -1217,10 +1268,51 @@ body.pdf-mode .timeline-content {
             <div id="viewAssessmentContent"></div>
         </div>
     </div>
+    
+    <!-- STEM Mission Modal -->
+    <div class="modal-overlay" id="stemMissionModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title" id="stemMissionModalTitle">Upload STEM Mission</h3>
+                <button class="modal-close" onclick="app.closeStemMissionModal()">&times;</button>
+            </div>
+            <form onsubmit="app.saveStemMission(event)">
+                <input type="hidden" id="stemMissionEditId">
+                <input type="hidden" id="stemMissionFileData">
+                <input type="hidden" id="stemMissionFileName">
+                <input type="hidden" id="stemMissionMimeType">
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Mission Title *</label>
+                        <input type="text" id="stemMissionTitle" class="input-premium" required placeholder="e.g. Build a Water Rocket">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Description *</label>
+                        <textarea id="stemMissionDesc" class="input-premium" required placeholder="Describe the mission objectives..." style="min-height:80px;"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Instructions for Students</label>
+                        <textarea id="stemMissionInstructions" class="input-premium" placeholder="Step-by-step instructions..." style="min-height:100px;"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>File URL (Google Drive, Dropbox, etc.)</label>
+                        <input type="url" id="stemMissionFileUrl" class="input-premium" placeholder="https://drive.google.com/... or direct file link">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;"><i class="fas fa-info-circle"></i> Paste a direct download link. OR upload a small file below.</p>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Upload File Directly (Small files only, &lt; 2MB)</label>
+                        <input type="file" id="stemMissionFile" class="input-premium" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.png" onchange="app.handleMissionFileUpload(this)">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+                    <button type="button" class="btn btn-outline" onclick="app.closeStemMissionModal()">Cancel</button>
+                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> Publish Mission</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
-
-
-
     // ═══════════════════════════════════════════════════════════════
     // PARTICLE BACKGROUND
     // ═══════════════════════════════════════════════════════════════
@@ -1283,6 +1375,9 @@ body.pdf-mode .timeline-content {
                 navigatingViaHistory: false,
         students: [],
         assessments: [],
+        stemMissions: [],
+        currentStemStudent: null,
+
         settings: {
             counselorName: 'Subashini Sivalingam',
             counselorQual: 'B.Sc Psychology',
@@ -1477,6 +1572,7 @@ body.pdf-mode .timeline-content {
             async init() {
     this.loadSettings();
     this.loadDemoData();
+    this.loadStemMissions();
     this.setupHistoryNavigation();
     this.setupNavScroll();
     this.setupFirebase();
@@ -1678,6 +1774,8 @@ body.pdf-mode .timeline-content {
             if (page === 'dash') this.updateDashboard();
             if (page === 'students') this.renderStudentsTable();
             if (page === 'assessments') this.renderAssessmentsTable();
+            if (page === 'settings') this.saveSettings();
+            if (page === 'stemMissions') this.loadStemMissions();
         },
 
                 setLang(lang) {
@@ -2575,7 +2673,13 @@ localStorage.removeItem('manasu_lastAdminPage');
                 this.renderAssessmentsTable();
                 this.showToast('Assessment deleted', 'info');
                 await this.deleteAssessmentFromFirebase(this.deleteTarget.id);
+            } else if (this.deleteTarget.type === 'stemMission') {
+                this.stemMissions = this.stemMissions.filter(m => m.id !== this.deleteTarget.id);
+                this.saveStemMissions();
+                this.renderAdminStemMissions();
+                this.showToast('Mission deleted', 'info');
             }
+
             this.closeDeleteModal();
             this.updateHeroStats();
         },
@@ -3415,8 +3519,241 @@ localStorage.removeItem('manasu_lastAdminPage');
                 const { doc, deleteDoc } = window.fb;
                 await deleteDoc(doc(this.db, 'assessments', id));
             } catch(e) { console.error('Firebase delete assessment failed', e); }
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEM MISSIONS MODULE
+        // ═══════════════════════════════════════════════════════════════
+        loadStemMissions() {
+            const saved = localStorage.getItem('manasu_stem_missions');
+            if (saved) {
+                this.stemMissions = JSON.parse(saved);
+            } else {
+                this.stemMissions = [];
+            }
+        },
+        saveStemMissions() {
+            localStorage.setItem('manasu_stem_missions', JSON.stringify(this.stemMissions));
+        },
+
+        searchStemMission() {
+            const ic = document.getElementById('stemIcInput').value.trim().replace(/[-\s]/g, '').toUpperCase();
+            if (!ic || ic.length < 6) {
+                this.showToast('Please enter a valid MyKid number', 'error');
+                return;
+            }
+            const student = this.students.find(s => s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === ic);
+            if (!student) {
+                this.showToast('Student not found. Please check your MyKid number.', 'error');
+                return;
+            }
+            this.currentStemStudent = student;
+            this.renderStemMissions();
+        },
+
+        renderStemMissions() {
+            const container = document.getElementById('stemMissionList');
+            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
+            const student = this.currentStemStudent;
+
+            if (activeMissions.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card" style="text-align:center; padding:40px; animation:fadeInUp 0.5s ease;">
+                        <i class="fas fa-rocket" style="font-size:3rem; color:var(--text-muted); opacity:0.3; margin-bottom:16px;"></i>
+                        <h4 style="color:var(--text-secondary); margin-bottom:8px;">No Active Missions</h4>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Check back later for new STEM challenges!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div style="margin-bottom:20px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.06)); border:1px solid rgba(139,92,246,0.15); border-radius:16px; animation:fadeInUp 0.4s ease;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg, #8b5cf6, #3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:1.2rem;">
+                            <i class="fas fa-user-astronaut"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; color:var(--text-primary);">${student.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Class ${student.class} • MyKid: ${student.icNumber}</div>
+                        </div>
+                    </div>
+                </div>
+                <h4 style="margin-bottom:16px; color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:2px;">
+                    <i class="fas fa-bullhorn" style="margin-right:8px; color:#8b5cf6;"></i>Active Missions
+                </h4>
+            `;
+
+            activeMissions.forEach((mission, idx) => {
+                const date = this.formatDate(mission.createdAt);
+                const whatsappText = `Hi Counselor, I am ${student.name} from Class ${student.class} (MyKid: ${student.icNumber}). I have completed the STEM Mission: "${mission.title}". Please find my attached work. Thank you!`;
+                const waLink = `https://wa.me/601125841706?text=${encodeURIComponent(whatsappText)}`;
+                const fileLink = mission.fileData ? 
+                    `data:${mission.mimeType || 'application/octet-stream'};base64,${mission.fileData}` : 
+                    (mission.fileUrl || '#');
+
+                html += `
+                    <div class="glass-card" style="margin-bottom: 16px; border-left: 4px solid #8b5cf6; animation: fadeInUp 0.5s ease ${idx * 0.1}s both;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                            <div style="flex:1; min-width:250px;">
+                                <h4 style="font-size: 1.15rem; margin-bottom: 8px; color: #7c3aed;">
+                                    <i class="fas fa-rocket" style="margin-right:8px;"></i>${mission.title}
+                                </h4>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px; line-height:1.6;">${mission.description}</p>
+                                ${mission.instructions ? `<div style="background:rgba(139,92,246,0.04); padding:12px; border-radius:10px; margin-bottom:12px; font-size:0.85rem; color:var(--text-secondary); line-height:1.6; white-space:pre-line;">${mission.instructions}</div>` : ''}
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <span style="font-size:0.75rem; background:rgba(139,92,246,0.08); color:#7c3aed; padding:4px 12px; border-radius:20px;">
+                                        <i class="fas fa-calendar"></i> ${date}
+                                    </span>
+                                    <span style="font-size:0.75rem; background:rgba(16,185,129,0.08); color:var(--success); padding:4px 12px; border-radius:20px;">
+                                        <i class="fas fa-check-circle"></i> Active
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:10px; min-width:180px;">
+                                <a href="${fileLink}" target="_blank" ${mission.fileData ? `download="${mission.fileName || 'mission-file'}"` : ''} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
+                                    <i class="fas fa-download"></i> Download File
+                                </a>
+                                <a href="${waLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #25d366, #128c7e); color:white; text-decoration:none; width:100%;">
+                                    <i class="fab fa-whatsapp"></i> Submit via WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+
+        openStemMissionModal(id = null) {
+            document.getElementById('stemMissionEditId').value = '';
+            document.getElementById('stemMissionModalTitle').textContent = id ? 'Edit Mission' : 'Upload New STEM Mission';
+            document.getElementById('stemMissionTitle').value = '';
+            document.getElementById('stemMissionDesc').value = '';
+            document.getElementById('stemMissionInstructions').value = '';
+            document.getElementById('stemMissionFileUrl').value = '';
+            document.getElementById('stemMissionFile').value = '';
+            document.getElementById('stemMissionFileData').value = '';
+            document.getElementById('stemMissionFileName').value = '';
+            document.getElementById('stemMissionMimeType').value = '';
+            
+            if (id) {
+                const m = this.stemMissions.find(x => x.id === id);
+                if (m) {
+                    document.getElementById('stemMissionEditId').value = m.id;
+                    document.getElementById('stemMissionTitle').value = m.title;
+                    document.getElementById('stemMissionDesc').value = m.description;
+                    document.getElementById('stemMissionInstructions').value = m.instructions || '';
+                    document.getElementById('stemMissionFileUrl').value = m.fileUrl || '';
+                }
+            }
+            document.getElementById('stemMissionModal').classList.add('show');
+        },
+        closeStemMissionModal() {
+            document.getElementById('stemMissionModal').classList.remove('show');
+        },
+        handleMissionFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                this.showToast('File too large! Max 2MB allowed.', 'error');
+                input.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64 = e.target.result.split(',')[1];
+                const mimeType = e.target.result.split(';')[0].split(':')[1];
+                document.getElementById('stemMissionFileData').value = base64;
+                document.getElementById('stemMissionFileName').value = file.name;
+                document.getElementById('stemMissionMimeType').value = mimeType;
+                this.showToast('File ready for upload!', 'success');
+            };
+            reader.readAsDataURL(file);
+        },
+        saveStemMission(e) {
+            e.preventDefault();
+            const id = document.getElementById('stemMissionEditId').value;
+            const data = {
+                title: document.getElementById('stemMissionTitle').value,
+                description: document.getElementById('stemMissionDesc').value,
+                instructions: document.getElementById('stemMissionInstructions').value,
+                fileUrl: document.getElementById('stemMissionFileUrl').value,
+                fileData: document.getElementById('stemMissionFileData').value || null,
+                fileName: document.getElementById('stemMissionFileName').value || null,
+                mimeType: document.getElementById('stemMissionMimeType').value || null,
+                status: 'active',
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (id) {
+                const idx = this.stemMissions.findIndex(m => m.id === id);
+                if (idx >= 0) {
+                    if (!data.fileData && this.stemMissions[idx].fileData) {
+                        data.fileData = this.stemMissions[idx].fileData;
+                        data.fileName = this.stemMissions[idx].fileName;
+                        data.mimeType = this.stemMissions[idx].mimeType;
+                    }
+                    this.stemMissions[idx] = { ...this.stemMissions[idx], ...data };
+                }
+                this.showToast('Mission updated!', 'success');
+            } else {
+                data.id = 'MISSION_' + Date.now();
+                data.createdAt = new Date().toISOString();
+                this.stemMissions.push(data);
+                this.showToast('Mission published!', 'success');
+            }
+            this.saveStemMissions();
+            this.renderAdminStemMissions();
+            this.closeStemMissionModal();
+        },
+
+        renderAdminStemMissions() {
+            const container = document.getElementById('stemMissionsList');
+            if (this.stemMissions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-rocket"></i><h4>No missions yet</h4><p>Create your first STEM mission</p></div>';
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:16px;">';
+            this.stemMissions.slice().reverse().forEach(m => {
+                const date = this.formatDate(m.createdAt);
+                const fileSource = m.fileData ? 'Direct Upload' : (m.fileUrl ? 'External Link' : 'No file');
+                html += `
+                    <div class="glass-card" style="border-left: 4px solid ${m.status === 'active' ? '#8b5cf6' : '#94a3b8'};">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                            <div style="flex:1; min-width:250px;">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                    <h4 style="font-size: 1.1rem; color: var(--text-primary);">${m.title}</h4>
+                                    <span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:${m.status==='active'?'rgba(139,92,246,0.1)':'rgba(148,163,184,0.1)'}; color:${m.status==='active'?'#8b5cf6':'#94a3b8'}; font-weight:600;">${m.status.toUpperCase()}</span>
+                                </div>
+                                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">${m.description}</p>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">
+                                    <i class="fas fa-paperclip" style="margin-right:6px;"></i>${fileSource} • ${date}
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn-table btn-table-edit" onclick="app.editStemMission('${m.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-table btn-table-del" onclick="app.deleteStemMission('${m.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        },
+        editStemMission(id) {
+            this.openStemMissionModal(id);
+        },
+        deleteStemMission(id) {
+            this.deleteTarget = { type: 'stemMission', id };
+            document.getElementById('deleteModal').classList.add('show');
         }
     };
+
+    
 
     document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
