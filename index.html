@@ -787,7 +787,7 @@ body.pdf-mode .timeline-content {
                     <div class="glass-card" style="padding:32px;">
                         <div class="ic-input-wrap">
                             <i class="fas fa-id-card"></i>
-                            <input type="text" class="input-premium" id="parentIcInput" placeholder="e.g. 200901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchByIC()">
+                            <input type="text" class="input-premium" id="parentIcInput" placeholder="e.g. 100901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchByIC()">
                         </div>
                         <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="app.searchByIC()">
                             <i class="fas fa-search"></i> <span data-i18n="btn_view_results">View Results</span>
@@ -923,7 +923,7 @@ body.pdf-mode .timeline-content {
                     <div class="glass-card" style="padding:32px;">
                         <div class="ic-input-wrap">
                             <i class="fas fa-id-card"></i>
-                            <input type="text" class="input-premium" id="stemIcInput" placeholder="e.g. 200901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
+                            <input type="text" class="input-premium" id="stemIcInput" placeholder="e.g. 100901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
                         </div>
                         <button class="btn" style="width:100%; margin-bottom:12px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.35);" onclick="app.searchStemMission()">
                             <i class="fas fa-search"></i> Access Missions
@@ -1161,7 +1161,7 @@ body.pdf-mode .timeline-content {
                 <div class="form-grid" style="margin-bottom:20px;">
                     <div class="form-group">
                         <label>Student *</label>
-                        <select id="assStudent" class="input-premium" required>
+                        <select id="assStudent" class="input-premium" required onchange="app.onStudentSelect()">
                             <option value="">Select Student</option>
                         </select>
                     </div>
@@ -1206,6 +1206,10 @@ body.pdf-mode .timeline-content {
                     <div class="score-slider">
                         <div class="score-slider-header"><label><i class="fas fa-lightbulb" style="margin-right:8px; color:#8b5cf6;"></i>Existential</label><span class="score-value" id="valExistential" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">5</span></div>
                         <input type="range" id="scoreExistential" min="1" max="10" value="5" oninput="app.updateSliderVal('Existential', this.value)">
+
+                        <div class="form-grid" id="assessmentSlidersContainer" style="margin-bottom:20px;">
+                    <!-- Sliders auto-generated based on student age -->
+                </div>
                     </div>
                 </div>
                                 <div class="form-group" style="margin-top:20px;">
@@ -1395,59 +1399,81 @@ body.pdf-mode .timeline-content {
                 domains: {
             verbal: { 
                 icon: 'fa-book', 
-                color: '#e74c3c', 
+                color: '#e74c3c',
+                max:10,
                 name: { en: 'Verbal-Linguistic', ta: 'மொழியியல் திறன்', ms: 'Verbal Linguistik' }, 
                 desc: { en: 'Ability to use language effectively for communication, reading, writing, and storytelling', ta: 'தொடர்புக்கும் வாசிப்புக்கும் எழுத்துக்கும் கதைசொல்லலுக்கும் மொழியை திறம்பட பயன்படுத்தும் திறன்', ms: 'Keupayaan menggunakan bahasa dengan berkesan untuk komunikasi, membaca, menulis dan bercerita' } 
             },
             logical: { 
                 icon: 'fa-calculator', 
                 color: '#3498db', 
+                max:10,
                 name: { en: 'Logical-Mathematical', ta: 'தர்க்க-கணிதத் திறன்', ms: 'Logik Matematik' }, 
                 desc: { en: 'Capacity for logical reasoning, abstract thinking, and mathematical problem-solving', ta: 'தர்க்கபூர்வமான சிந்தனை, சுருக்க சிந்தனை மற்றும் கணித பிரச்சனை தீர்க்கும் திறன்', ms: 'Keupayaan penaakulan logik, pemikiran abstrak dan penyelesaian masalah matematik' } 
             },
             visual: { 
                 icon: 'fa-images', 
                 color: '#9b59b6', 
+                max:10,
                 name: { en: 'Visual-Spatial', ta: 'காட்சி-இடவெளித் திறன்', ms: 'Visual Ruang' }, 
                 desc: { en: 'Ability to visualize, manipulate mental images, and navigate spatial environments', ta: 'மனதில் காட்சிகளை உருவாக்கி, இடவெளி சூழல்களை சரியாக புரிந்துகொள்ளும் திறன்', ms: 'Keupayaan untuk memvisualisasikan, memanipulasi imej mental dan menavigasi persekitaran ruang' } 
             },
             musical: { 
                 icon: 'fa-music', 
                 color: '#f39c12', 
+                max:10,
                 name: { en: 'Musical', ta: 'இசைத் திறன்', ms: 'Muzik' }, 
                 desc: { en: 'Sensitivity to rhythm, pitch, melody, and appreciation of musical patterns', ta: 'தாளம், சுருதி, இசை மற்றும் இசை பாணிகளை புரிந்துகொள்ளும் திறன்', ms: 'Kepekaan terhadap irama, pic, melodi dan penghargaan corak muzik' } 
             },
             kinesthetic: { 
                 icon: 'fa-running', 
                 color: '#e67e22', 
+                max:10,
                 name: { en: 'Bodily-Kinesthetic', ta: 'உடல் இயக்கத் திறன்', ms: 'Kinestetik' }, 
                 desc: { en: 'Skill in using the body for expression, coordination, and physical activity', ta: 'உடலை கட்டுப்படுத்தி, ஒருங்கிணைத்து, இயக்கி வெளிப்படுத்தும் திறன்', ms: 'Kemahiran menggunakan badan untuk ekspresi, koordinasi dan aktiviti fizikal' } 
             },
             interpersonal: { 
                 icon: 'fa-users', 
                 color: '#00b894', 
+                max:10,
                 name: { en: 'Interpersonal', ta: 'மனிதர்களுக்கிடையேயான தொடர்புத் திறன்', ms: 'Interpersonal' }, 
                 desc: { en: 'Ability to understand and interact effectively with others', ta: 'மற்றவர்களை புரிந்துகொண்டு திறம்பட தொடர்புகொள்ளும் திறன்', ms: 'Keupayaan memahami dan berinteraksi dengan berkesan dengan orang lain' } 
             },
             intrapersonal: { 
                 icon: 'fa-user', 
                 color: '#10b981', 
+                max:10,
                 name: { en: 'Intrapersonal', ta: 'சுய விழிப்புணர்வுத் திறன்', ms: 'Intrapersonal' }, 
                 desc: { en: 'Self-awareness, understanding personal emotions, and introspective capacity', ta: 'சுய விழிப்புணர்வு, சொந்த உணர்வுகளை புரிந்துகொள்ளுதல் மற்றும் ஆழ்ந்த சிந்தனை திறன்', ms: 'Kesedaran kendiri, memahami emosi peribadi dan kapasiti introspektif' } 
             },
             naturalist: { 
                 icon: 'fa-leaf', 
                 color: '#27ae60', 
+                max:10,
                 name: { en: 'Naturalist', ta: 'இயற்கை சார்ந்த திறன்', ms: 'Naturalis' }, 
                 desc: { en: 'Ability to recognize and classify flora, fauna, and natural phenomena', ta: 'தாவரங்கள், விலங்குகள் மற்றும் இயற்கை நிகழ்வுகளை அடையாளம் கண்டு வகைப்படுத்தும் திறன்', ms: 'Keupayaan mengenal pasti dan mengklasifikasikan flora, fauna dan fenomena semula jadi' } 
             },
             existential: { 
                 icon: 'fa-lightbulb', 
                 color: '#8b5cf6', 
+                max:10,
                 name: { en: 'Existential', ta: 'தத்துவ / வாழ்வியல் திறன்', ms: 'Eksistensial' }, 
                 desc: { en: 'Capacity to contemplate deep questions about human existence and meaning', ta: 'மனித இருப்பு, பொருள் மற்றும் ஆழ்ந்த தத்துவ கேள்விகளை சிந்திக்கும் திறன்', ms: 'Keupayaan mempertimbangkan soalan mendalam tentang kewujudan dan makna manusia' } 
             }
         },
+
+        age10Domains: {
+            malay_word: { icon: 'fa-book', color: '#e74c3c', max: 10, name: { en: 'Malay Language Word Skills', ta: 'மலாய் மொழி சொல் திறன்கள்', ms: 'Kemahiran Perkataan Bahasa Melayu' }, desc: { en: 'Ability to understand and use Malay vocabulary effectively', ta: 'மலாய் சொல்லாட்சியை புரிந்துகொண்டு திறம்பட பயன்படுத்தும் திறன்', ms: 'Keupayaan memahami dan menggunakan kosa kata Bahasa Melayu dengan berkesan' } },
+            malay_verbal: { icon: 'fa-comments', color: '#3498db', max: 15, name: { en: 'Malay Language Verbal Concept Skills', ta: 'மலாய் மொழி வாய்மொழி கருத்தியல் திறன்கள்', ms: 'Kemahiran Konsep Verbal Bahasa Melayu' }, desc: { en: 'Capacity to grasp verbal concepts in Malay language', ta: 'மலாய் மொழியில் வாய்மொழி கருத்துகளைப் பிடித்துக் கொள்ளும் திறன்', ms: 'Keupayaan memahami konsep verbal dalam bahasa Melayu' } },
+            malay_critical: { icon: 'fa-brain', color: '#9b59b6', max: 5, name: { en: 'Critical Application Skills', ta: 'விமர்சன பயன்பாட்டுத் திறன்கள்', ms: 'Kemahiran Aplikasi Kritikal' }, desc: { en: 'Ability to apply critical thinking in Malay language contexts', ta: 'மலாய் மொழி சூழல்களில் விமர்சன சிந்தனையை பயன்படுத்தும் திறன்', ms: 'Keupayaan mengaplikasikan pemikiran kritikal dalam konteks Bahasa Melayu' } },
+            word_skills: { icon: 'fa-font', color: '#f39c12', max: 5, name: { en: 'Word Skills', ta: 'சொல் திறன்கள்', ms: 'Kemahiran Perkataan' }, desc: { en: 'General vocabulary and word usage proficiency', ta: 'பொது சொல்லாட்சி மற்றும் சொல் பயன்பாட்டில் திறமை', ms: 'Kecekapan kosa kata dan penggunaan perkataan umum' } },
+            verbal_concept: { icon: 'fa-comment-dots', color: '#e67e22', max: 20, name: { en: 'Verbal Concept Skill', ta: 'வாய்மொழி கருத்தியல் திறன்', ms: 'Kemahiran Konsep Verbal' }, desc: { en: 'Understanding and organizing verbal concepts', ta: 'வாய்மொழி கருத்துகளைப் புரிந்துகொண்டு ஒழுங்கமைக்கும் திறன்', ms: 'Memahami dan mengorganisasi konsep verbal' } },
+            critical_app: { icon: 'fa-lightbulb', color: '#00b894', max: 5, name: { en: 'Critical Application Skills', ta: 'விமர்சன பயன்பாட்டுத் திறன்கள்', ms: 'Kemahiran Aplikasi Kritikal' }, desc: { en: 'Applying critical thinking to solve problems', ta: 'சிக்கல்களை தீர்க்க விமர்சன சிந்தனையைப் பயன்படுத்துதல்', ms: 'Mengaplikasikan pemikiran kritikal untuk menyelesaikan masalah' } },
+            math_numeric: { icon: 'fa-calculator', color: '#10b981', max: 7, name: { en: 'Mathematical Reasoning for Numerical Systems and Number Logic', ta: 'எண் முறைமைகள் மற்றும் எண் தர்க்கத்திற்கான கணித பகுத்தறிவு', ms: 'Penaakulan Matematik untuk Sistem Numerik dan Logik Nombor' }, desc: { en: 'Reasoning with numbers, numerical systems and logic', ta: 'எண்கள், எண் முறைமைகள் மற்றும் தர்க்கத்துடன் பகுத்தறிதல்', ms: 'Penaakulan dengan nombor, sistem numerik dan logik' } },
+            math_perception: { icon: 'fa-eye', color: '#27ae60', max: 4, name: { en: 'Mathematical Reasoning for Perception', ta: 'புலனறிவுக்கான கணித பகுத்தறிவு', ms: 'Penaakulan Matematik untuk Membuat Persepsi' }, desc: { en: 'Using mathematical reasoning to form perceptions', ta: 'புலனறிவுகளை உருவாக்க கணித பகுத்தறிவைப் பயன்படுத்துதல்', ms: 'Menggunakan penaakulan matematik untuk membentuk persepsi' } },
+            problem_solving: { icon: 'fa-puzzle-piece', color: '#8b5cf6', max: 9, name: { en: 'Problem Solving', ta: 'சிக்கல் தீர்த்தல்', ms: 'Penyelesaian Masalah' }, desc: { en: 'Ability to analyze and solve problems systematically', ta: 'சிக்கல்களை பகுத்தாய்ந்து முறையாக தீர்க்கும் திறன்', ms: 'Keupayaan menganalisis dan menyelesaikan masalah secara sistematik' } }
+        },
+
         // ═══════════════════════════════════════════════════════════════
         // LOCALIZATION
         // ═══════════════════════════════════════════════════════════════
@@ -2112,9 +2138,11 @@ showCloudResults(student, assessments) {
             // Domain bars
             let barsHtml = '';
                                    Object.entries(latest.domains).forEach(([key, val]) => {
-                const pct = val * 10;
-                const color = this.getScoreColor(val);
                 const d = this.getDomainInfo(key);
+                const max = d.max || 10;
+                const pct = (val / max) * 100;
+                const color = this.getScoreColor(val, max);
+                const level = this.getScoreLabel(val, max);
                 const dName = d && typeof d.name === 'object' ? (d.name[this.currentLang] || d.name.en) : (d ? d.name : key);
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
@@ -2122,7 +2150,7 @@ showCloudResults(student, assessments) {
                     <div style="margin-bottom:14px;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
                             <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
-                            <span style="font-weight:700; color:${color}">${val}/10</span>
+                             <span style="font-weight:700; color:${color}">${val}/${max}</span>
                         </div>
                         <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
                     </div>
@@ -2137,8 +2165,9 @@ showCloudResults(student, assessments) {
             let detailsHtml = '';
                                     Object.entries(latest.domains).forEach(([key, val]) => {
                 const d = this.getDomainInfo(key);
-                const color = this.getScoreColor(val);
-                const level = this.getScoreLabel(val);
+                const max = d.max || 10;
+                const color = this.getScoreColor(val, max);
+                const level = this.getScoreLabel(val, max);
                 const dName = d && typeof d.name === 'object' ? (d.name[this.currentLang] || d.name.en) : (d ? d.name : key);
                 const dDesc = d && typeof d.desc === 'object' ? (d.desc[this.currentLang] || d.desc.en) : (d ? d.desc : '');
                 const dIcon = d ? d.icon : 'fa-question-circle';
@@ -2150,10 +2179,10 @@ showCloudResults(student, assessments) {
                                 <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
                                 ${dName}
                             </div>
-                            <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
+                            <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/${max}</span></div>
                         </div>
                         <div class="domain-desc">${dDesc}</div>
-                        <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
+                         <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
                     </div>
                 `;
             });
@@ -2193,6 +2222,9 @@ showCloudResults(student, assessments) {
 },
 
         getDomainInfo(key) {
+            if (this.age10Domains && this.age10Domains[key]) {
+                return this.age10Domains[key];
+            }
             const normalized = key.toLowerCase().replace(/[-\s]/g, '');
             const map = {
                 'verbal': 'verbal', 'verballinguistic': 'verbal',
@@ -2209,32 +2241,85 @@ showCloudResults(student, assessments) {
             return this.domains[mapped] || { 
                 icon: 'fa-brain', 
                 color: '#0d9488', 
+                max: 10,
                 name: { en: key, ta: key, ms: key },
                 desc: { en: '', ta: '', ms: '' }
             };
         },
 
-        getScoreColor(score) {
-        const n = 7, m = 5, mod = 3;
-        if (score >= n) return 'var(--success)';
-        if (score >= m) return 'var(--healing-teal)';
-        if (score >= mod) return 'var(--warning)';
-        return 'var(--danger)';
-    },
-    getScoreClass(score) {
-        const n = 7, m = 5, mod = 3;
-        if (score >= n) return 'score-excellent';
-        if (score >= m) return 'score-good';
-        if (score >= mod) return 'score-moderate';
-        return 'score-severe';
-    },
-    getScoreLabel(score) {
-        const n = 7, m = 5, mod = 3;
-        if (score >= n) return 'Excellent';
-        if (score >= m) return 'Good';
-        if (score >= mod) return 'Moderate Concern';
-        return 'Requires Immediate Attention';
-    },
+        getScoreColor(score, max) {
+            const m = max || 10;
+            const pct = (score / m) * 100;
+            if (pct >= 70) return 'var(--success)';
+            if (pct >= 50) return 'var(--healing-teal)';
+            if (pct >= 30) return 'var(--warning)';
+            return 'var(--danger)';
+        },
+    getScoreClass(score, max) {
+            const m = max || 10;
+            const pct = (score / m) * 100;
+            if (pct >= 70) return 'score-excellent';
+            if (pct >= 50) return 'score-good';
+            if (pct >= 30) return 'score-moderate';
+            return 'score-severe';
+        },
+    getScoreLabel(score, max) {
+            const m = max || 10;
+            const pct = (score / m) * 100;
+            if (pct >= 70) return 'Excellent';
+            if (pct >= 50) return 'Good';
+            if (pct >= 30) return 'Moderate Concern';
+            return 'Requires Immediate Attention';
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // AGE-BASED DOMAIN HELPERS
+        // ═══════════════════════════════════════════════════════════════
+        getAssessmentDomainSet(assessment) {
+            if (assessment && assessment.domainSet) return assessment.domainSet;
+            const keys = assessment && assessment.domains ? Object.keys(assessment.domains) : [];
+            if (keys.length === 0) return 'standard';
+            const age10Keys = this.age10Domains ? Object.keys(this.age10Domains) : [];
+            if (keys.some(k => age10Keys.includes(k))) return 'age10';
+            return 'standard';
+        },
+
+        onStudentSelect() {
+            const studentId = document.getElementById('assStudent').value;
+            const student = this.students.find(s => s.id === studentId);
+            const age = student ? parseInt(student.age) : 0;
+            const isAge10 = age === 10;
+            console.log('Student selected:', student?.name, 'Age:', age, 'isAge10:', isAge10);
+            this.generateAssessmentSliders(isAge10 ? 'age10' : 'standard');
+        },
+
+        generateAssessmentSliders(domainSet, existingValues) {
+            const container = document.getElementById('assessmentSlidersContainer');
+            if (!container) return;
+            const domains = domainSet === 'age10' ? (this.age10Domains || {}) : (this.domains || {});
+            let slidersHtml = '';
+            Object.entries(domains).forEach(([key, config]) => {
+                const defaultVal = Math.ceil((config.max || 10) / 2);
+                const val = existingValues && existingValues[key] !== undefined ? existingValues[key] : defaultVal;
+                const name = config.name && config.name[this.currentLang] ? config.name[this.currentLang] : (config.name ? config.name.en : key);
+                slidersHtml += `
+                    <div class="score-slider">
+                        <div class="score-slider-header">
+                            <label><i class="fas ${config.icon}" style="margin-right:8px; color:${config.color};"></i>${name}</label>
+                            <span class="score-value" id="val_${key}" style="background:${config.color}26; color:${config.color};">${val}</span>
+                        </div>
+                        <input type="range" id="score_${key}" min="1" max="${config.max || 10}" value="${val}" oninput="app.updateSliderVal('${key}', this.value)">
+                    </div>
+                `;
+            });
+            container.innerHTML = slidersHtml;
+            Object.keys(domains).forEach(key => {
+                const el = document.getElementById('score_' + key);
+                if (el) this.updateSliderVal(key, el.value);
+            });
+            this.calculateLivePreview();
+        },
+
         getSeverityBadge(sev) {
             const map = { normal: ['sev-normal', 'Normal'], mild: ['sev-mild', 'Mild Concern'], moderate: ['sev-moderate', 'Moderate Concern'], severe: ['sev-severe', 'Severe Concern'] };
             const [cls, text] = map[sev] || map.normal;
@@ -2780,29 +2865,21 @@ localStorage.removeItem('manasu_lastAdminPage');
         filterAssessments() { this.renderAssessmentsTable(); },
 
         openAssessmentModal(id = null) {
-                        document.getElementById('assEditId').value = '';
+            document.getElementById('assEditId').value = '';
             document.getElementById('assModalTitle').textContent = id ? 'Edit Assessment' : 'New Psychometric Assessment';
-            // Clear all note fields
             document.getElementById('assNotesEn').value = '';
             document.getElementById('assNotesMs').value = '';
             document.getElementById('assNotesTa').value = '';
-            // Reset sliders
-                       ['Verbal','Logical','Visual','Musical','Kinesthetic','Interpersonal','Intrapersonal','Naturalist','Existential'].forEach(d => {
-                document.getElementById('score'+d).value = 5;
-                this.updateSliderVal(d, 5);
-            });
-
-            this.calculateLivePreview();
             const assDateEl = document.getElementById('assDate');
             if (assDateEl) assDateEl.value = new Date().toISOString().split('T')[0];
-            
+            let domainSet = 'standard';
+            let existingValues = null;
             if (id) {
                 const a = this.assessments.find(as => as.id === id);
                 if (a) {
                     document.getElementById('assEditId').value = a.id;
                     document.getElementById('assStudent').value = a.studentId;
                     document.getElementById('assDate').value = a.date;
-                                        // Handle both old string format and new object format
                     if (a.notes) {
                         if (typeof a.notes === 'string') {
                             document.getElementById('assNotesEn').value = a.notes;
@@ -2813,95 +2890,106 @@ localStorage.removeItem('manasu_lastAdminPage');
                             document.getElementById('assNotesMs').value = a.notes.ms || '';
                             document.getElementById('assNotesTa').value = a.notes.ta || '';
                         }
-                    } else {
-                        document.getElementById('assNotesEn').value = '';
-                        document.getElementById('assNotesMs').value = '';
-                        document.getElementById('assNotesTa').value = '';
                     }
                     document.getElementById('assFollowUp').value = a.followUpDate || '';
                     document.getElementById('assStatus').value = a.status || 'active';
-                    Object.entries(a.domains).forEach(([key, val]) => {
-                        const cap = key.charAt(0).toUpperCase() + key.slice(1);
-                        const el = document.getElementById('score'+cap);
-                        if (el) { el.value = val; this.updateSliderVal(cap, val); }
-                    });
+                    domainSet = this.getAssessmentDomainSet(a);
+                    existingValues = a.domains;
+                }
+            } else {
+                const studentId = document.getElementById('assStudent').value;
+                if (studentId) {
+                    const student = this.students.find(s => s.id === studentId);
+                    const age = student ? parseInt(student.age) : 0;
+                    if (age === 10) domainSet = 'age10';
                 }
             }
+            this.generateAssessmentSliders(domainSet, existingValues);
             document.getElementById('assessmentModal').classList.add('show');
         },
         closeAssessmentModal() { document.getElementById('assessmentModal').classList.remove('show'); },
-                updateSliderVal(domain, val) {
-            const el = document.getElementById('val'+domain);
+                updateSliderVal(key, val) {
+            const el = document.getElementById('val_' + key);
             if (!el) return;
             el.textContent = val;
             const v = parseInt(val);
-            if (v >= 8) { el.style.background = 'rgba(0,210,160,0.15)'; el.style.color = 'var(--success)'; }
-            else if (v >= 6) { el.style.background = 'rgba(0,184,148,0.15)'; el.style.color = 'var(--healing-teal)'; }
-            else if (v >= 4) { el.style.background = 'rgba(253,203,110,0.15)'; el.style.color = 'var(--warning)'; }
+            const domainInfo = this.getDomainInfo(key);
+            const max = domainInfo.max || 10;
+            const pct = (v / max) * 100;
+            if (pct >= 80) { el.style.background = 'rgba(0,210,160,0.15)'; el.style.color = 'var(--success)'; }
+            else if (pct >= 60) { el.style.background = 'rgba(0,184,148,0.15)'; el.style.color = 'var(--healing-teal)'; }
+            else if (pct >= 40) { el.style.background = 'rgba(253,203,110,0.15)'; el.style.color = 'var(--warning)'; }
             else { el.style.background = 'rgba(255,107,107,0.15)'; el.style.color = 'var(--danger)'; }
-            
-            // ✅ Live overall score calculation
             this.calculateLivePreview();
         },
 
                 calculateLivePreview() {
-            const domains = ['Verbal', 'Logical', 'Visual', 'Musical', 'Kinesthetic', 'Interpersonal', 'Intrapersonal', 'Naturalist', 'Existential'];
-            let total = 0;
+            const studentId = document.getElementById('assStudent').value;
+            const student = this.students.find(s => s.id === studentId);
+            const isAge10 = student && student.age === 10;
+            const domains = isAge10 ? (this.age10Domains) : (this.domains);
+            let totalPct = 0;
             let count = 0;
-            domains.forEach(d => {
-                const el = document.getElementById('score' + d);
-                if (el) { total += parseInt(el.value); count++; }
+            Object.keys(domains).forEach(key => {
+                const el = document.getElementById('score_' + key);
+                if (el) {
+                    const val = parseInt(el.value);
+                    const max = domains[key].max || 10;
+                    totalPct += (val / max) * 100;
+                    count++;
+                }
             });
-            const overall = count > 0 ? (total / count).toFixed(1) : '0.0';
-            
+            const overallPct = count > 0 ? totalPct / count : 0;
+            const overall = (overallPct / 10).toFixed(1);
             const scoreEl = document.getElementById('liveOverallScore');
             const badgeEl = document.getElementById('liveSeverityBadge');
             if (!scoreEl || !badgeEl) return;
-            
             scoreEl.textContent = overall;
             scoreEl.style.color = this.getScoreColor(parseFloat(overall));
-            
             let sev = 'normal';
             if (overall < this.settings.thresholds.moderate) sev = 'severe';
             else if (overall < this.settings.thresholds.mild) sev = 'moderate';
             else if (overall < this.settings.thresholds.normal) sev = 'mild';
-            
             badgeEl.innerHTML = this.getSeverityBadge(sev);
         },
         onStudentSelect() {
-            // Could auto-fill age/class if needed
+            const studentId = document.getElementById('assStudent').value;
+            const student = this.students.find(s => s.id === studentId);
+            const isAge10 = student && student.age === 10;
+            this.generateAssessmentSliders(isAge10 ? 'age10' : 'standard');
         },
 
         saveAssessment(e) {
             e.preventDefault();
             const studentId = document.getElementById('assStudent').value;
             if (!studentId) { this.showToast('Please select a student', 'error'); return; }
-            
-                        const domains = {
-                verbal: parseInt(document.getElementById('scoreVerbal').value) || 5,
-                logical: parseInt(document.getElementById('scoreLogical').value) || 5,
-                visual: parseInt(document.getElementById('scoreVisual').value) || 5,
-                musical: parseInt(document.getElementById('scoreMusical').value) || 5,
-                kinesthetic: parseInt(document.getElementById('scoreKinesthetic').value) || 5,
-                interpersonal: parseInt(document.getElementById('scoreInterpersonal').value) || 5,
-                intrapersonal: parseInt(document.getElementById('scoreIntrapersonal').value) || 5,
-                naturalist: parseInt(document.getElementById('scoreNaturalist').value) || 5,
-                existential: parseInt(document.getElementById('scoreExistential').value) || 5
-            };
-            const values = Object.values(domains);
-            const overall = values.reduce((a,b) => a+b, 0) / values.length;
+            const student = this.students.find(s => s.id === studentId);
+            const isAge10 = student && student.age === 10;
+            const domainSet = isAge10 ? 'age10' : 'standard';
+            const domainsConfig = isAge10 ? (this.age10Domains || {}) : (this.domains || {});
+            const domains = {};
+            Object.keys(domainsConfig).forEach(key => {
+                const el = document.getElementById('score_' + key);
+                domains[key] = parseInt(el?.value || Math.ceil((domainsConfig[key].max || 10) / 2));
+            });
+            const values = Object.entries(domains).map(([key, val]) => {
+                const max = domainsConfig[key].max || 10;
+                return (val / max) * 100;
+            });
+            const overallPct = values.reduce((a,b) => a+b, 0) / values.length;
+            const overall = parseFloat((overallPct / 10).toFixed(1));
             let severity = 'normal';
             if (overall < this.settings.thresholds.moderate) severity = 'severe';
             else if (overall < this.settings.thresholds.mild) severity = 'moderate';
             else if (overall < this.settings.thresholds.normal) severity = 'mild';
-            
             const data = {
                 studentId,
                 date: document.getElementById('assDate')?.value || new Date().toISOString().split('T')[0],
                 domains,
-                overallScore: parseFloat(overall.toFixed(1)),
+                domainSet,
+                overallScore: overall,
                 severity,
-                                notes: {
+                notes: {
                     en: document.getElementById('assNotesEn').value,
                     ms: document.getElementById('assNotesMs').value,
                     ta: document.getElementById('assNotesTa').value
@@ -2911,7 +2999,6 @@ localStorage.removeItem('manasu_lastAdminPage');
                 counselorName: this.settings.counselorName,
                 updatedAt: new Date().toISOString()
             };
-            
             const editId = document.getElementById('assEditId').value;
             if (editId) {
                 const idx = this.assessments.findIndex(a => a.id === editId);
@@ -2930,6 +3017,8 @@ localStorage.removeItem('manasu_lastAdminPage');
             const finalAssessment = editId ? this.assessments.find(a => a.id === editId) : this.assessments[this.assessments.length - 1];
             this.saveAssessmentToFirebase(finalAssessment);
         },
+
+
         editAssessment(id) { this.openAssessmentModal(id); },
         deleteAssessment(id) { this.deleteTarget = { type: 'assessment', id }; document.getElementById('deleteModal').classList.add('show'); },
         viewAssessment(id) {
