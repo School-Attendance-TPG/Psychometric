@@ -680,6 +680,7 @@ body.pdf-mode .timeline-content {
         
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -915,10 +916,10 @@ body.pdf-mode .timeline-content {
                 </div>
                 <div class="portal-form-area">
                     <div class="hero-badge" style="margin-bottom:20px; display:inline-flex; background:rgba(139,92,246,0.08); border-color:rgba(139,92,246,0.20); color:#8b5cf6;">
-                        <i class="fas fa-flask"></i> STEM Challenge
+                        <i class="fas fa-flask"></i> <span data-i18n="stem_badge">STEM Challenge</span>
                     </div>
-                    <h3 style="font-size: 2rem; margin-bottom: 10px;">STEM Mission Portal</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter your MyKid number to access the latest STEM missions, download challenge files, and submit your completed work.</p>
+                    <h3 style="font-size: 2rem; margin-bottom: 10px;" data-i18n="stem_title">STEM Mission Portal</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px;" data-i18n="stem_desc">Enter your MyKid number to access the latest STEM missions, download challenge files, and submit your completed work.</p>
                     
                     <div class="glass-card" style="padding:32px;">
                         <div class="ic-input-wrap">
@@ -926,9 +927,9 @@ body.pdf-mode .timeline-content {
                             <input type="text" class="input-premium" id="stemIcInput" placeholder="e.g. 100901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
                         </div>
                         <button class="btn" style="width:100%; margin-bottom:12px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.35);" onclick="app.searchStemMission()">
-                            <i class="fas fa-search"></i> Access Missions
+                            <i class="fas fa-search"></i> <span data-i18n="stem_access_btn">Access Missions</span>
                         </button>
-                        <p style="text-align:center; font-size:0.8rem; color:var(--text-muted);">Enter MyKid number without dashes or spaces</p>
+                        <p style="text-align:center; font-size:0.8rem; color:var(--text-muted);" data-i18n="stem_hint">Enter MyKid number without dashes or spaces</p>
                     </div>
                     
                     <div id="stemMissionList" style="margin-top: 24px;"></div>
@@ -1496,6 +1497,16 @@ body.pdf-mode .timeline-content {
                 detailed_analysis: 'Detailed Psychometric Analysis',
                 counselor_notes: 'Counselor Recommendations',
                 assessment_history: 'Assessment History',
+                stem_badge: 'STEM Challenge',
+                stem_title: 'STEM Mission Portal',
+                stem_desc: 'Enter your MyKid number to access the latest STEM missions, download challenge files, and submit your completed work.',
+                stem_access_btn: 'Access Missions',
+                stem_hint: 'Enter MyKid number without dashes or spaces',
+                stem_no_missions: 'No Active Missions',
+                stem_check_back: 'Check back later for new STEM challenges!',
+                stem_download: 'Download File',
+                stem_submit_whatsapp: 'Submit via WhatsApp',
+                stem_active_missions: 'Active Missions',
                 admin_login_title: 'Counselor Portal',
                 admin_login_subtitle: 'Secure access for authorized counseling staff only',
                 label_email: 'Email Address',
@@ -1520,6 +1531,16 @@ body.pdf-mode .timeline-content {
                 detailed_analysis: 'விரிவான மனநல பகுப்பாய்வு',
                 counselor_notes: 'ஆலோசகர் பரிந்துரைகள்',
                 assessment_history: 'மதிப்பீட்டு வரலாறு',
+                stem_badge: 'STEM சவால்',
+                stem_title: 'STEM மிஷன் போர்டல்',
+                stem_desc: 'சமீபத்திய STEM மிஷன்களை அணுக, சவால் கோப்புகளை பதிவிறக்கம் செய்ய, மற்றும் உங்கள் முடிவுற்ற பணியை சமர்ப்பிக்க உங்கள் குழந்தையின் MyKid எண்ணை உள்ளிடவும்.',
+                stem_access_btn: 'மிஷன்களை அணுக',
+                stem_hint: 'கோடுகள் அல்லது இடைவெளிகள் இல்லாமல் MyKid எண்ணை உள்ளிடவும்',
+                stem_no_missions: 'செயலில் உள்ள மிஷன்கள் இல்லை',
+                stem_check_back: 'புதிய STEM சவால்களுக்கு பின்னர் மீண்டும் சரிபார்க்கவும்!',
+                stem_download: 'கோப்பை பதிவிறக்கம் செய்',
+                stem_submit_whatsapp: 'WhatsApp மூலம் சமர்ப்பி',
+                stem_active_missions: 'செயலில் உள்ள மிஷன்கள்',
                 admin_login_title: 'ஆலோசகர் போர்டல்',
                 admin_login_subtitle: 'அங்கீகரிக்கப்பட்ட ஆலோசகர்கள் மட்டுமே அணுக முடியும்',
                 label_email: 'மின்னஞ்சல் முகவரி',
@@ -1536,14 +1557,24 @@ body.pdf-mode .timeline-content {
                 stat_assessments: 'Penilaian',
                 stat_flagged: 'Kes Bendera',
                 portal_title: 'Portal Akses Ibu Bapa',
-                portal_desc: 'Masukkan nombor MyKid anak anda untuk melihat keputusan penilaian psikometrik terkini, cadangan kaunselor, dan trend kesihatan.',
+                portal_desc: 'Masukkan nombor MyKid anak anda untuk melihat keputusan penilaian psikometrik terkini, cadangan cadangan guru bimbingan dan kaunseling, penerokaan aktiviti STEM.',
                 btn_view_results: 'Lihat Keputusan',
                 portal_hint: 'Masukkan nombor MyKid tanpa tanda tolak atau ruang',
-                overall_wellness: 'Skor Kesihatan Keseluruhan',
+                overall_wellness: 'skor psikometrik Keseluruhan',
                 domain_breakdown: 'Pecahan Domain',
                 detailed_analysis: 'Analisis psikometrik Terperinci',
-                counselor_notes: 'Cadangan Kaunselor',
+                counselor_notes: 'Cadangan Guru Bimbingan dan Kaunseling',
                 assessment_history: 'Sejarah Penilaian',
+                stem_badge: 'Cabaran STEM',
+                stem_title: 'Portal Misi STEM',
+                stem_desc: 'Masukkan nombor MyKid anda untuk mengakses misi STEM terkini, memuat turun fail cabaran, dan menghantar kerja yang telah siap.',
+                stem_access_btn: 'Akses Misi',
+                stem_hint: 'Masukkan nombor MyKid tanpa tanda tolak atau ruang',
+                stem_no_missions: 'Tiada Misi Aktif',
+                stem_check_back: 'Semak semula kemudian untuk cabaran STEM baharu!',
+                stem_download: 'Muat Turun Fail',
+                stem_submit_whatsapp: 'Hantar melalui WhatsApp',
+                stem_active_missions: 'Misi Aktif',
                 admin_login_title: 'Portal Kaunselor',
                 admin_login_subtitle: 'Akses selamat untuk kakitangan kaunseling yang dibenarkan sahaja',
                 label_email: 'Alamat Emel',
@@ -1571,27 +1602,40 @@ body.pdf-mode .timeline-content {
             const studentId = params.get('student');
             const icNumber = params.get('ic');
             let targetStudent = null;
+            let source = null;
 
             if (studentId) {
                 targetStudent = this.students.find(s => s.id === studentId);
+                source = 'qr';
             }
 
             if (!targetStudent && icNumber) {
                 const cleanIc = icNumber.replace(/[-\s]/g, '');
                 targetStudent = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
+                source = 'qr';
             }
 
             if (targetStudent) {
-                // SECURITY FIX: Don't auto-show results. Pre-fill MyKid and show Parent Portal
+                // QR SCAN FLOW: Pre-fill IC, show portal, then auto-verify
                 document.getElementById('parentIcInput').value = targetStudent.icNumber;
                 this.showSection('parentPortal');
-                setTimeout(() => {
-                    const input = document.getElementById('parentIcInput');
-                    if (input) {
-                        input.focus();
-                        input.select();
-                    }
-                }, 300);
+
+                if (source === 'qr') {
+                    // Auto-trigger search after parent sees the portal (1.5s delay)
+                    setTimeout(() => {
+                        const input = document.getElementById('parentIcInput');
+                        if (input && input.value === targetStudent.icNumber) {
+                            this.showToast('🔐 Verifying MyKid...', 'info');
+                            this.searchByIC();
+                        }
+                    }, 1500);
+                } else {
+                    // Manual entry: just focus the input
+                    setTimeout(() => {
+                        const input = document.getElementById('parentIcInput');
+                        if (input) { input.focus(); input.select(); }
+                    }, 300);
+                }
             }
         },
 
@@ -1816,6 +1860,10 @@ body.pdf-mode .timeline-content {
             // Parent results page-la language switch pannumbothu counselor notes-um automatic-a maaranum
             if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
                 document.getElementById('counselorNotes').innerHTML = this.getNotes(this.currentResultAssessment);
+            }
+            // STEM Mission page-la language switch pannumbothu content-um refresh aaganum
+            if (document.getElementById('stemMission').classList.contains('active') && this.currentStemStudent) {
+                this.renderStemMissions();
             }
         },
 
@@ -2296,19 +2344,17 @@ showCloudResults(student, assessments) {
         generateAssessmentSliders(domainSet, existingValues) {
             const container = document.getElementById('assessmentSlidersContainer');
             if (!container) return;
-            const domains = domainSet === 'age10' ? (this.age10Domains || {}) : (this.domains || {});
+            const domains = domainSet === 'age10' ? (this.age10Domains) : (this.domains);
             let slidersHtml = '';
             Object.entries(domains).forEach(([key, config]) => {
-                const defaultVal = Math.ceil((config.max || 10) / 2);
+                const max = domainSet === 'age10' ? (config.max || 10) : 10;
+                const defaultVal = Math.ceil(max / 2);
                 const val = existingValues && existingValues[key] !== undefined ? existingValues[key] : defaultVal;
                 const name = config.name && config.name[this.currentLang] ? config.name[this.currentLang] : (config.name ? config.name.en : key);
                 slidersHtml += `
                     <div class="score-slider">
-                        <div class="score-slider-header">
-                            <label><i class="fas ${config.icon}" style="margin-right:8px; color:${config.color};"></i>${name}</label>
-                            <span class="score-value" id="val_${key}" style="background:${config.color}26; color:${config.color};">${val}</span>
-                        </div>
-                        <input type="range" id="score_${key}" min="1" max="${config.max || 10}" value="${val}" oninput="app.updateSliderVal('${key}', this.value)">
+                        <div class="score-slider-header"><label><i class="fas ${config.icon}" style="margin-right:8px; color:${config.color};"></i>${name}</label><span class="score-value" id="val_${key}" style="background:${config.color}26; color:${config.color};">${val}</span></div>
+                        <input type="range" id="score_${key}" min="1" max="${max}" value="${val}" oninput="app.updateSliderVal('${key}', this.value)">
                     </div>
                 `;
             });
@@ -2397,7 +2443,7 @@ showCloudResults(student, assessments) {
             if (!student || !ass) return;
             
             // ✅ Direct link with MyKid IC number
-            const portalUrl = `${window.location.origin}${window.location.pathname}?ic=${student.icNumber}`;
+            const portalUrl = `${window.location.origin}${window.location.pathname}?ic=${s.icNumber}`;
             
             const text = `MANASU Psychometric Report for ${student.name}\nClass: ${student.class}\nOverall Score: ${ass.overallScore}/10\nSeverity: ${ass.severity}\n\nView full report at: ${portalUrl}`;
             
@@ -2900,7 +2946,7 @@ localStorage.removeItem('manasu_lastAdminPage');
                 const studentId = document.getElementById('assStudent').value;
                 if (studentId) {
                     const student = this.students.find(s => s.id === studentId);
-                    const age = student ? parseInt(student.age) : 0;
+                    const age = student && student.age ? parseInt(student.age) : 0;
                     if (age === 10) domainSet = 'age10';
                 }
             }
@@ -2954,8 +3000,11 @@ localStorage.removeItem('manasu_lastAdminPage');
         },
         onStudentSelect() {
             const studentId = document.getElementById('assStudent').value;
+            if (!studentId) return;
             const student = this.students.find(s => s.id === studentId);
-            const isAge10 = student && student.age === 10;
+            const age = student && student.age ? parseInt(student.age) : 0;
+            const isAge10 = age === 10;
+            console.log('Selected:', student?.name, 'Age:', age, 'isAge10:', isAge10);
             this.generateAssessmentSliders(isAge10 ? 'age10' : 'standard');
         },
 
@@ -3112,30 +3161,55 @@ localStorage.removeItem('manasu_lastAdminPage');
             this.showToast('Students exported!', 'success');
         },
                         generateQR() {
-            const studentId = document.getElementById('qrStudentId').value;
-            if (!studentId) { this.showToast('Select a student first', 'error'); return; }
-            const s = this.students.find(st => st.id === studentId);
+            try {
+                const studentId = document.getElementById('qrStudentId').value;
+                if (!studentId) { 
+                    this.showToast('⚠️ Please select a student from the dropdown first', 'error'); 
+                    return; 
+                }
+                const s = this.students.find(st => st.id === studentId);
+                if (!s) {
+                    this.showToast('Student not found. Please search and select again.', 'error');
+                    return;
+                }
 
-            
-            this.currentQRStudent = s;
-            const container = document.getElementById('qrResult');
-            
-            // Generate QR in hidden container first
-            container.innerHTML = '<div id="qrCodeBox" style="display:none;"></div>';
-            const url = `${window.location.origin}${window.location.pathname}?student=${studentId}`;
-            new QRCode(document.getElementById('qrCodeBox'), { 
-                text: url, 
-                width: 300, 
-                height: 300, 
-                colorDark: '#0f172a', 
-                colorLight: '#ffffff', 
-                correctLevel: QRCode.CorrectLevel.H 
-            });
-            
-            // Draw premium ID card after QR renders
-            setTimeout(() => {
-                this.drawIDCard(s, container);
-            }, 300);
+                this.currentQRStudent = s;
+                const container = document.getElementById('qrResult');
+                container.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem; color:var(--healing-teal);"></i><p style="margin-top:10px; color:var(--text-muted);">Generating QR...</p></div>';
+
+                // Generate QR in hidden container
+                const qrBox = document.createElement('div');
+                qrBox.id = 'qrCodeBox';
+                qrBox.style.display = 'none';
+                document.body.appendChild(qrBox);
+
+                const url = `${window.location.origin}${window.location.pathname}?ic=${s.icNumber}`;
+                console.log('QR URL:', url);
+
+                new QRCode(qrBox, { 
+                    text: url, 
+                    width: 300, 
+                    height: 300, 
+                    colorDark: '#0f172a', 
+                    colorLight: '#ffffff', 
+                    correctLevel: QRCode.CorrectLevel.H 
+                });
+
+                // Draw premium ID card after QR renders
+                setTimeout(() => {
+                    try {
+                        this.drawIDCard(s, container);
+                        if (qrBox.parentNode) qrBox.parentNode.removeChild(qrBox);
+                    } catch (err) {
+                        console.error('QR render error:', err);
+                        container.innerHTML = '<p style="color:var(--danger); text-align:center;">Failed to generate QR. Please try again.</p>';
+                        this.showToast('QR generation failed', 'error');
+                    }
+                }, 500);
+            } catch (err) {
+                console.error('generateQR error:', err);
+                this.showToast('Error generating QR: ' + err.message, 'error');
+            }
         },
 
                 drawIDCard(student, container) {
@@ -3644,13 +3718,14 @@ localStorage.removeItem('manasu_lastAdminPage');
             const container = document.getElementById('stemMissionList');
             const activeMissions = this.stemMissions.filter(m => m.status === 'active');
             const student = this.currentStemStudent;
+            const t = this.i18n[this.currentLang] || this.i18n.en;
 
             if (activeMissions.length === 0) {
                 container.innerHTML = `
                     <div class="glass-card" style="text-align:center; padding:40px; animation:fadeInUp 0.5s ease;">
                         <i class="fas fa-rocket" style="font-size:3rem; color:var(--text-muted); opacity:0.3; margin-bottom:16px;"></i>
-                        <h4 style="color:var(--text-secondary); margin-bottom:8px;">No Active Missions</h4>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Check back later for new STEM challenges!</p>
+                        <h4 style="color:var(--text-secondary); margin-bottom:8px;">${t.stem_no_missions || 'No Active Missions'}</h4>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">${t.stem_check_back || 'Check back later for new STEM challenges!'}</p>
                     </div>
                 `;
                 return;
@@ -3669,7 +3744,7 @@ localStorage.removeItem('manasu_lastAdminPage');
                     </div>
                 </div>
                 <h4 style="margin-bottom:16px; color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:2px;">
-                    <i class="fas fa-bullhorn" style="margin-right:8px; color:#8b5cf6;"></i>Active Missions
+                    <i class="fas fa-bullhorn" style="margin-right:8px; color:#8b5cf6;"></i>${t.stem_active_missions || 'Active Missions'}
                 </h4>
             `;
 
@@ -3701,10 +3776,10 @@ localStorage.removeItem('manasu_lastAdminPage');
                             </div>
                             <div style="display:flex; flex-direction:column; gap:10px; min-width:180px;">
                                 <a href="${fileLink}" target="_blank" ${mission.fileData ? `download="${mission.fileName || 'mission-file'}"` : ''} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
-                                    <i class="fas fa-download"></i> Download File
+                                    <i class="fas fa-download"></i> ${t.stem_download || 'Download File'}
                                 </a>
                                 <a href="${waLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #25d366, #128c7e); color:white; text-decoration:none; width:100%;">
-                                    <i class="fab fa-whatsapp"></i> Submit via WhatsApp
+                                    <i class="fab fa-whatsapp"></i> ${t.stem_submit_whatsapp || 'Submit via WhatsApp'}
                                 </a>
                             </div>
                         </div>
