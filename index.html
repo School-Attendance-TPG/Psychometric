@@ -3746,16 +3746,16 @@ localStorage.removeItem('manasu_lastAdminPage');
                 const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
-                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(0,0,0,0.2); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${s ? s.name : 'Unknown'}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
                 <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:rgba(0,0,0,0.2); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
                         <div style="font-size:2.5rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
                         <div style="font-size:0.8rem; color:var(--text-muted);">Overall Score</div>
                     </div>
-                    <div style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.2); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
                         <div style="margin-bottom:8px;">${this.getSeverityBadge(a.severity)}</div>
                         <div style="font-size:0.85rem; color:var(--text-muted);">Status: <span style="color:var(--text-primary); font-weight:600;">${a.status}</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ${a.counselorName}</div>
