@@ -290,6 +290,11 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .search-box input { width: 100%; padding: 12px 16px 12px 44px; background: rgba(255,255,255,0.80); border: 2px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-family: 'Poppins', sans-serif; font-size: 0.9rem; transition: all 0.3s; }
         .search-box input:focus { outline: none; border-color: var(--healing-teal); }
+        .filter-box { min-width: 200px; position: relative; }
+        .filter-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1; pointer-events: none; }
+        .filter-box select { width: 100%; padding: 12px 16px 12px 44px; background: rgba(255,255,255,0.80); border: 2px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); font-family: 'Poppins', sans-serif; font-size: 0.9rem; transition: all 0.3s; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+        .filter-box select:focus { outline: none; border-color: var(--healing-teal); box-shadow: 0 0 0 4px rgba(13,148,136,0.08); }
+        @media (max-width: 968px) { .filter-box { min-width: 100%; } }
 
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .form-group { margin-bottom: 4px; }
@@ -678,7 +683,126 @@ body.pdf-mode .timeline-content {
 }
 
         
-    </style>
+    
+        /* ═══════════════════════════════════════════════════════════════
+           CAREER PREDICTION STYLES
+        ═══════════════════════════════════════════════════════════════ */
+        .career-prediction-card {
+            background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(37,99,235,0.06));
+            border: 1px solid rgba(139,92,246,0.15);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .career-prediction-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #7c3aed;
+        }
+        .career-match-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.70);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+        }
+        .career-match-item:hover {
+            transform: translateX(4px);
+            border-color: rgba(139,92,246,0.20);
+            box-shadow: 0 4px 16px rgba(139,92,246,0.08);
+        }
+        .career-match-rank {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .career-match-rank.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
+        .career-match-rank.silver { background: linear-gradient(135deg, #94a3b8, #64748b); color: white; }
+        .career-match-rank.bronze { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .career-match-rank.other { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .career-match-info { flex: 1; min-width: 0; }
+        .career-match-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .career-match-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .career-match-bar-wrap {
+            width: 80px;
+            flex-shrink: 0;
+        }
+        .career-match-bar {
+            height: 6px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .career-match-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .career-match-pct {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #7c3aed;
+            text-align: right;
+        }
+        .career-match-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .career-insight-box {
+            background: rgba(255,255,255,0.60);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 16px;
+            border-left: 3px solid #8b5cf6;
+        }
+        .career-insight-box p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+        .career-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+        }
+        .career-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.3;
+            color: #8b5cf6;
+        }
+
+</style>
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -864,6 +988,18 @@ body.pdf-mode .timeline-content {
                     <h4 style="margin-bottom:16px; color:var(--text-secondary); font-size:0.9rem; text-transform:uppercase; letter-spacing:2px;" data-i18n="assessment_history">Assessment History</h4>
                     <div class="timeline" id="assessmentTimeline"></div>
                 </div>
+                <div class="glass-card result-card-full">
+                    <div class="career-prediction-card" id="careerPredictionContainer">
+                        <h4><i class="fas fa-briefcase"></i> <span data-i18n="career_prediction_title">Career Path Prediction</span></h4>
+                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:16px; line-height:1.6;" data-i18n="career_prediction_desc">Based on the student's psychometric profile, here are the top career paths that align with their natural strengths and abilities.</p>
+                        <div id="careerMatchesList">
+                            <div class="career-empty">
+                                <i class="fas fa-brain"></i>
+                                <h4 data-i18n="career_no_data">No career data available</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -875,16 +1011,16 @@ body.pdf-mode .timeline-content {
                 <div style="width:70px; height:70px; background:linear-gradient(135deg, var(--malaysia-blue), var(--malaysia-red)); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; font-size:1.8rem; color:white; box-shadow:0 10px 30px rgba(0,0,128,0.3);">
                     <i class="fas fa-user-shield"></i>
                 </div>
-                <h2 style="font-size:1.8rem; margin-bottom:8px;" data-i18n="admin_login_title">Counselor Portal</h2>
-                <p style="margin-bottom:32px;" data-i18n="admin_login_subtitle">Secure access for authorized counselor access only</p>
+                <h2 style="font-size:1.8rem; margin-bottom:8px;" data-i18n="login_title">Counselor Portal</h2>
+                <p style="margin-bottom:32px;" data-i18n="login_subtitle">Secure access for authorized counseling staff only</p>
                 <div class="glass-card" style="padding:32px; text-align:left;">
                     <form id="adminLoginForm" onsubmit="app.adminLogin(event)">
                         <div class="form-group">
-                            <label data-i18n="label_email">Email Address</label>
+                            <label data-i18n="login_email">Email Address</label>
                             <input type="email" id="adminEmail" class="input-premium" placeholder="counselor@sjkt-tpg.edu.my" required>
                         </div>
                         <div class="form-group">
-                            <label data-i18n="label_password">Password</label>
+                            <label data-i18n="login_password">Password</label>
                             <input type="password" id="adminPassword" class="input-premium" placeholder="••••••••" required>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;" id="adminLoginBtn">
@@ -892,7 +1028,7 @@ body.pdf-mode .timeline-content {
                         </button>
                     </form>
                     <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--glass-border); text-align:center;">
-                        <p style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-info-circle" style="margin-right:6px;"></i>Firebase Authentication Protected</p>
+                        <p style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-info-circle" style="margin-right:6px;"></i><span data-i18n="login_firebase">Firebase Authentication Protected</span></p>
                     </div>
                 </div>
             </div>
@@ -944,58 +1080,64 @@ body.pdf-mode .timeline-content {
             <button class="admin-mobile-toggle" id="adminMobileToggle" onclick="app.toggleAdminSidebar()" aria-label="Menu"><i class="fas fa-bars"></i></button>
             <aside class="admin-sidebar" id="adminSidebar">
                 <div class="admin-sidebar-header">
-                    <h3><i class="fas fa-brain" style="color:var(--healing-teal)"></i> MANASU Admin</h3>
-                    <p>Counselor Control Center</p>
+                    <h3><i class="fas fa-brain" style="color:var(--healing-teal)"></i> MANASU <span data-i18n="sidebar_admin">Admin</span></h3>
+                    <p data-i18n="sidebar_control_center">Counselor Control Center</p>
                 </div>
-                <button class="admin-nav-item active" onclick="app.showAdminPage('dash')" data-admin-nav="dash"><i class="fas fa-chart-pie"></i> Dashboard</button>
-                <button class="admin-nav-item" onclick="app.showAdminPage('students')" data-admin-nav="students"><i class="fas fa-user-graduate"></i> Students</button>
-                <button class="admin-nav-item" onclick="app.showAdminPage('assessments')" data-admin-nav="assessments"><i class="fas fa-clipboard-check"></i> Assessments</button>
-                <button class="admin-nav-item" onclick="app.showAdminPage('reports')" data-admin-nav="reports"><i class="fas fa-file-alt"></i> Reports</button>
-                <button class="admin-nav-item" onclick="app.showAdminPage('stemMissions')" data-admin-nav="stemMissions"><i class="fas fa-rocket"></i> STEM Missions</button>
+                <button class="admin-nav-item active" onclick="app.showAdminPage('dash')" data-admin-nav="dash"><i class="fas fa-chart-pie"></i> <span data-i18n="nav_dashboard">Dashboard</span></button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('students')" data-admin-nav="students"><i class="fas fa-user-graduate"></i> <span data-i18n="nav_students">Students</span></button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('assessments')" data-admin-nav="assessments"><i class="fas fa-clipboard-check"></i> <span data-i18n="nav_assessments">Assessments</span></button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('reports')" data-admin-nav="reports"><i class="fas fa-file-alt"></i> <span data-i18n="nav_reports">Reports</span></button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('stemMissions')" data-admin-nav="stemMissions"><i class="fas fa-rocket"></i> <span data-i18n="nav_stem_missions">STEM Missions</span></button>
                 
                 <div class="admin-sidebar-footer">
+    <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; padding:0 12px;">
+        <div class="lang-toggle" style="width:100%; justify-content:center;">
+            <button class="lang-btn active" onclick="app.setLang('en')" data-lang="en">EN</button>
+            <button class="lang-btn" onclick="app.setLang('ms')" data-lang="ms">MS</button>
+        </div>
+    </div>
     <button class="admin-nav-item" onclick="app.logout()" id="adminLogoutBtn" style="color:var(--danger); margin-bottom:8px; border:1px solid rgba(239,68,68,0.15);">
         <i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> 
-        <span>Logout</span>
+        <span data-i18n="nav_logout">Logout</span>
     </button>
     <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); text-align:center;">
         <div style="margin-bottom:4px;"><i class="fas fa-shield-alt" style="color:var(--malaysia-yellow); font-size:0.8rem;"></i></div>
-        <div style="font-size:0.7rem;">Secured by Firebase</div>
-        <div style="font-size:0.65rem; color:var(--text-muted);">v3.0 Premium</div>
+        <div style="font-size:0.7rem;" data-i18n="secured_by">Secured by Firebase</div>
+        <div style="font-size:0.65rem; color:var(--text-muted);" data-i18n="version">v3.0 Premium</div>
     </div>
 </div>
             </aside>
             <main class="admin-main">
                 <!-- DASH -->
                 <div id="adminPage-dash" class="admin-page active">
-                    <h1 style="font-size:1.6rem; margin-bottom:4px;">Dashboard</h1>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;">Overview of psychometric wellness metrics</p>
+                    <h1 style="font-size:1.6rem; margin-bottom:4px;" data-i18n="admin_dash_title">Dashboard</h1>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;" data-i18n="admin_dash_subtitle">Overview of psychometric wellness metrics</p>
                     <div class="admin-stats">
                         <div class="admin-stat-card stat-blue">
                             <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
                             <div class="admin-stat-value" id="dashTotalStudents">0</div>
-                            <div class="admin-stat-label">Total Students</div>
+                            <div class="admin-stat-label" data-i18n="stat_total_students">Total Students</div>
                         </div>
                         <div class="admin-stat-card stat-teal">
                             <div class="admin-stat-icon"><i class="fas fa-clipboard-check"></i></div>
                             <div class="admin-stat-value" id="dashTotalAssessments">0</div>
-                            <div class="admin-stat-label">Assessments</div>
+                            <div class="admin-stat-label" data-i18n="stat_total_assessments">Assessments</div>
                         </div>
                         <div class="admin-stat-card stat-gold">
                             <div class="admin-stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
                             <div class="admin-stat-value" id="dashFlagged">0</div>
-                            <div class="admin-stat-label">Flagged Cases</div>
+                            <div class="admin-stat-label" data-i18n="stat_flagged_cases">Flagged Cases</div>
                         </div>
                         <div class="admin-stat-card stat-red">
                             <div class="admin-stat-icon"><i class="fas fa-calendar-check"></i></div>
                             <div class="admin-stat-value" id="dashThisMonth">0</div>
-                            <div class="admin-stat-label">This Month</div>
+                            <div class="admin-stat-label" data-i18n="stat_this_month">This Month</div>
                         </div>
                     </div>
                     <div class="glass-card">
-                        <h4 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="margin-right:8px; color:var(--healing-teal)"></i>Recent Assessments</h4>
+                        <h4 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="margin-right:8px; color:var(--healing-teal)"></i><span data-i18n="recent_assessments">Recent Assessments</span></h4>
                         <div id="dashRecentAssessments">
-                            <div class="empty-state"><i class="fas fa-clipboard-list"></i><h4>No assessments yet</h4><p>Create your first assessment to see data here</p></div>
+                            <div class="empty-state"><i class="fas fa-clipboard-list"></i><h4 data-i18n="empty_no_assessments">No assessments yet</h4><p data-i18n="empty_create_first_assessment">Create your first assessment to see data here</p></div>
                         </div>
                     </div>
                 </div>
@@ -1003,16 +1145,16 @@ body.pdf-mode .timeline-content {
                 <!-- STUDENTS -->
                 <div id="adminPage-students" class="admin-page">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-                        <div><h1 style="font-size:1.6rem;">Student Management</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Manage children profiles and MyKid numbers</p></div>
-                        <button class="btn btn-teal" onclick="app.openStudentModal()"><i class="fas fa-plus"></i> Add Student</button>
+                        <div><h1 style="font-size:1.6rem;" data-i18n="admin_students_title">Student Management</h1><p style="color:var(--text-secondary); font-size:0.9rem;" data-i18n="admin_students_subtitle">Manage children profiles and MyKid numbers</p></div>
+                        <button class="btn btn-teal" onclick="app.openStudentModal()"><i class="fas fa-plus"></i> <span data-i18n="btn_add_student">Add Student</span></button>
                     </div>
                     <div class="toolbar">
-                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search by name or IC number..." oninput="app.filterStudents()"></div>
-                        <button class="btn btn-sm btn-outline" onclick="app.exportStudents()"><i class="fas fa-download"></i> Export</button>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search by name or IC number..." data-i18n-placeholder="search_placeholder_students" oninput="app.filterStudents()"></div>
+                        <button class="btn btn-sm btn-outline" onclick="app.exportStudents()"><i class="fas fa-download"></i> <span data-i18n="btn_export">Export</span></button>
                     </div>
                     <div class="data-table-container">
                         <table class="data-table">
-                            <thead><tr><th>Name</th><th>MyKid</th><th>Class</th><th>Age</th><th>Parent Contact</th><th>Actions</th></tr></thead>
+                            <thead><tr><th data-i18n="th_name">Name</th><th data-i18n="th_mykid">MyKid</th><th data-i18n="th_class">Class</th><th data-i18n="th_age">Age</th><th data-i18n="th_parent_contact">Parent Contact</th><th data-i18n="th_actions">Actions</th></tr></thead>
                             <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center; padding:40px;"><div class="skeleton" style="height:20px; width:200px; margin:0 auto;"></div></td></tr></tbody>
                         </table>
                     </div>
@@ -1021,15 +1163,25 @@ body.pdf-mode .timeline-content {
                 <!-- ASSESSMENTS -->
                 <div id="adminPage-assessments" class="admin-page">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-                        <div><h1 style="font-size:1.6rem;">Assessments</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Create and manage psychometric evaluations</p></div>
-                        <button class="btn btn-teal" onclick="app.openAssessmentModal()"><i class="fas fa-plus"></i> New Assessment</button>
+                        <div><h1 style="font-size:1.6rem;" data-i18n="admin_assessments_title">Assessments</h1><p style="color:var(--text-secondary); font-size:0.9rem;" data-i18n="admin_assessments_subtitle">Create and manage psychometric evaluations</p></div>
+                        <button class="btn btn-teal" onclick="app.openAssessmentModal()"><i class="fas fa-plus"></i> <span data-i18n="btn_new_assessment">New Assessment</span></button>
                     </div>
                     <div class="toolbar">
-                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="assessmentSearch" placeholder="Search assessments..." oninput="app.filterAssessments()"></div>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="assessmentSearch" placeholder="Search assessments..." data-i18n-placeholder="search_placeholder_assessments" oninput="app.filterAssessments()"></div>
+                        <div class="filter-box">
+                            <i class="fas fa-filter"></i>
+                            <select id="severityFilter" class="input-premium" onchange="app.filterAssessments()">
+                                <option value="all" data-i18n="filter_all_severities">All Severities</option>
+                                <option value="normal" data-i18n="filter_normal">Normal</option>
+                                <option value="mild" data-i18n="filter_mild">Mild Concern</option>
+                                <option value="moderate" data-i18n="filter_moderate">Moderate Concern</option>
+                                <option value="severe" data-i18n="filter_severe">Severe Concern</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="data-table-container">
                         <table class="data-table">
-                            <thead><tr><th>Date</th><th>Student</th><th>Overall</th><th>Severity</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th data-i18n="th_date">Date</th><th data-i18n="th_student">Student</th><th data-i18n="th_overall">Overall</th><th data-i18n="th_severity">Severity</th><th data-i18n="th_status">Status</th><th data-i18n="th_actions">Actions</th></tr></thead>
                             <tbody id="assessmentsTableBody"><tr><td colspan="6" style="text-align:center; padding:40px;">Loading...</td></tr></tbody>
                         </table>
                     </div>
@@ -1037,79 +1189,79 @@ body.pdf-mode .timeline-content {
 
                 <!-- REPORTS -->
                 <div id="adminPage-reports" class="admin-page">
-                    <h1 style="font-size:1.6rem; margin-bottom:4px;">Analytics & Reports</h1>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;">Export data and view trends</p>
+                    <h1 style="font-size:1.6rem; margin-bottom:4px;" data-i18n="admin_reports_title">Analytics & Reports</h1>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;" data-i18n="admin_reports_subtitle">Export data and view trends</p>
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <h4 style="margin-bottom:16px;">Generate Report</h4>
+                        <h4 style="margin-bottom:16px;" data-i18n="report_generate_title">Generate Report</h4>
                         <div class="form-grid">
-                            <div class="form-group"><label>Report Type</label><select class="input-premium" id="reportType"><option value="all">All Assessments</option><option value="flagged">Flagged Cases Only</option><option value="student">By Student</option></select></div>
-                            <div class="form-group"><label>Date From</label><input type="date" class="input-premium" id="reportDateFrom"></div>
-                            <div class="form-group"><label>Date To</label><input type="date" class="input-premium" id="reportDateTo"></div>
+                            <div class="form-group"><label data-i18n="form_report_type">Report Type</label><select class="input-premium" id="reportType"><option value="all" data-i18n="report_all">All Assessments</option><option value="flagged" data-i18n="report_flagged">Flagged Cases Only</option><option value="student" data-i18n="report_by_student">By Student</option></select></div>
+                            <div class="form-group"><label data-i18n="form_date_from">Date From</label><input type="date" class="input-premium" id="reportDateFrom"></div>
+                            <div class="form-group"><label data-i18n="form_date_to">Date To</label><input type="date" class="input-premium" id="reportDateTo"></div>
                         </div>
                         <div style="margin-top:20px; display:flex; gap:12px;">
-                            <button class="btn btn-primary" onclick="app.generateReport()"><i class="fas fa-file-alt"></i> Generate Report</button>
-                            <button class="btn btn-teal" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+                            <button class="btn btn-primary" onclick="app.generateReport()"><i class="fas fa-file-alt"></i> <span data-i18n="btn_generate_report">Generate Report</span></button>
+                            <button class="btn btn-teal" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> <span data-i18n="btn_export_excel">Export Excel</span></button>
                         </div>
                     </div>
                     <div class="glass-card">
-                        <h4 style="margin-bottom:16px;">QR Code Generator</h4>
-                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Generate a QR code that parents can scan to directly access their child's latest result.</p>
+                        <h4 style="margin-bottom:16px;" data-i18n="qr_generator">QR Code Generator</h4>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;" data-i18n="qr_desc">Generate a QR code that parents can scan to directly access their child's latest result.</p>
                         <div class="form-grid">
     <div class="form-group" style="position:relative;">
-        <label>Search Student (Name or MyKid)</label>
-        <input type="text" class="input-premium" id="qrSearchInput" placeholder="Type name or MyKid number..." autocomplete="off" oninput="app.filterQRStudents()" onfocus="app.showQRDropdown()">
+        <label data-i18n="form_search_student">Search Student (Name or MyKid)</label>
+        <input type="text" class="input-premium" id="qrSearchInput" placeholder="Type name or MyKid number..." data-i18n-placeholder="form_type_name_mykid" autocomplete="off" oninput="app.filterQRStudents()" onfocus="app.showQRDropdown()">
         <input type="hidden" id="qrStudentId">
         <div id="qrDropdown" class="qr-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid var(--glass-border); border-radius:12px; max-height:200px; overflow-y:auto; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.1); margin-top:4px;"></div>
     </div>
 </div>
-                        <button class="btn btn-primary" style="margin-top:12px;" onclick="app.generateQR()"><i class="fas fa-qrcode"></i> Generate QR Code</button>
+                        <button class="btn btn-primary" style="margin-top:12px;" onclick="app.generateQR()"><i class="fas fa-qrcode"></i> <span data-i18n="btn_generate_qr">Generate QR Code</span></button>
                         <div id="qrResult" style="margin-top:20px;"></div>
                     </div>
                 </div>
 
                 <!-- SETTINGS -->
                 <div id="adminPage-settings" class="admin-page">
-                    <h1 style="font-size:1.6rem; margin-bottom:4px;">Settings</h1>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;">Configure system preferences</p>
+                    <h1 style="font-size:1.6rem; margin-bottom:4px;" data-i18n="admin_settings_title">Settings</h1>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;" data-i18n="admin_settings_subtitle">Configure system preferences</p>
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <h4 style="margin-bottom:20px;"><i class="fas fa-user-md" style="margin-right:8px; color:var(--healing-teal)"></i>Counselor Profile</h4>
+                        <h4 style="margin-bottom:20px;"><i class="fas fa-user-md" style="margin-right:8px; color:var(--healing-teal)"></i><span data-i18n="settings_counselor_profile">Counselor Profile</span></h4>
                         <div class="form-grid">
-                            <div class="form-group"><label>Full Name</label><input type="text" class="input-premium" id="settingCounselorName" value="Subashini Sivalingam"></div>
-                            <div class="form-group"><label>Qualification</label><input type="text" class="input-premium" id="settingCounselorQual" value="B.Sc Psychology"></div>
-                            <div class="form-group"><label>School Name</label><input type="text" class="input-premium" id="settingSchoolName" value="SJKT Telok Panglima Garang"></div>
-                            <div class="form-group"><label>Contact Email</label><input type="email" class="input-premium" id="settingEmail" value="counselor@sjkt-tpg.edu.my"></div>
+                            <div class="form-group"><label data-i18n="settings_full_name">Full Name</label><input type="text" class="input-premium" id="settingCounselorName" value="Subashini Sivalingam"></div>
+                            <div class="form-group"><label data-i18n="settings_qualification">Qualification</label><input type="text" class="input-premium" id="settingCounselorQual" value="B.Sc Psychology"></div>
+                            <div class="form-group"><label data-i18n="settings_school_name">School Name</label><input type="text" class="input-premium" id="settingSchoolName" value="SJKT Telok Panglima Garang"></div>
+                            <div class="form-group"><label data-i18n="settings_contact_email">Contact Email</label><input type="email" class="input-premium" id="settingEmail" value="counselor@sjkt-tpg.edu.my"></div>
                         </div>
                     </div>
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <h4 style="margin-bottom:20px;"><i class="fas fa-sliders-h" style="margin-right:8px; color:var(--malaysia-yellow)"></i>Scoring Thresholds</h4>
+                        <h4 style="margin-bottom:20px;"><i class="fas fa-sliders-h" style="margin-right:8px; color:var(--malaysia-yellow)"></i><span data-i18n="settings_scoring_thresholds">Scoring Thresholds</span></h4>
                         <div class="form-grid">
-                            <div class="form-group"><label>Normal Threshold (≥)</label><input type="number" class="input-premium" id="threshNormal" value="7" min="1" max="10"></div>
-                            <div class="form-group"><label>Mild Threshold (≥)</label><input type="number" class="input-premium" id="threshMild" value="5" min="1" max="10"></div>
-                            <div class="form-group"><label>Moderate Threshold (≥)</label><input type="number" class="input-premium" id="threshModerate" value="3" min="1" max="10"></div>
+                            <div class="form-group"><label data-i18n="settings_normal_threshold">Normal Threshold (≥)</label><input type="number" class="input-premium" id="threshNormal" value="7" min="1" max="10"></div>
+                            <div class="form-group"><label data-i18n="settings_mild_threshold">Mild Threshold (≥)</label><input type="number" class="input-premium" id="threshMild" value="5" min="1" max="10"></div>
+                            <div class="form-group"><label data-i18n="settings_moderate_threshold">Moderate Threshold (≥)</label><input type="number" class="input-premium" id="threshModerate" value="3" min="1" max="10"></div>
                         </div>
                     </div>
                     <div class="glass-card">
-                        <h4 style="margin-bottom:20px;"><i class="fas fa-database" style="margin-right:8px; color:var(--danger)"></i>Data Management</h4>
+                        <h4 style="margin-bottom:20px;"><i class="fas fa-database" style="margin-right:8px; color:var(--danger)"></i><span data-i18n="settings_data_management">Data Management</span></h4>
                         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                            <button class="btn btn-primary" onclick="app.backupData()"><i class="fas fa-download"></i> Backup JSON</button>
-                            <button class="btn btn-outline" onclick="document.getElementById('restoreFile').click()" style="border-color:var(--danger); color:var(--danger);"><i class="fas fa-upload"></i> Restore JSON</button>
+                            <button class="btn btn-primary" onclick="app.backupData()"><i class="fas fa-download"></i> <span data-i18n="btn_backup">Backup JSON</span></button>
+                            <button class="btn btn-outline" onclick="document.getElementById('restoreFile').click()" style="border-color:var(--danger); color:var(--danger);"><i class="fas fa-upload"></i> <span data-i18n="btn_restore">Restore JSON</span></button>
                             <input type="file" id="restoreFile" style="display:none;" accept=".json" onchange="app.restoreData(this)">
                         </div>
-                        <p style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);"><i class="fas fa-info-circle" style="margin-right:6px;"></i>Backup includes all students, assessments, and settings.</p>
+                        <p style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);" data-i18n="settings_backup_hint"><i class="fas fa-info-circle" style="margin-right:6px;"></i>Backup includes all students, assessments, and settings.</p>
                     </div>
                     <div style="margin-top:24px; text-align:right;">
-                        <button class="btn btn-teal" onclick="app.saveSettings()"><i class="fas fa-save"></i> Save All Settings</button>
+                        <button class="btn btn-teal" onclick="app.saveSettings()"><i class="fas fa-save"></i> <span data-i18n="btn_save_settings">Save All Settings</span></button>
                     </div>
                 </div>
               
                <!-- STEM MISSIONS ADMIN -->
                 <div id="adminPage-stemMissions" class="admin-page">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-                        <div><h1 style="font-size:1.6rem;">STEM Missions</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Upload and manage STEM challenge missions</p></div>
-                        <button class="btn btn-teal" onclick="app.openStemMissionModal()"><i class="fas fa-plus"></i> New Mission</button>
+                        <div><h1 style="font-size:1.6rem;" data-i18n="admin_stem_title">STEM Missions</h1><p style="color:var(--text-secondary); font-size:0.9rem;" data-i18n="admin_stem_subtitle">Upload and manage STEM challenge missions</p></div>
+                        <button class="btn btn-teal" onclick="app.openStemMissionModal()"><i class="fas fa-plus"></i> <span data-i18n="btn_new_mission">New Mission</span></button>
                     </div>
                     <div id="stemMissionsList">
-                        <div class="empty-state"><i class="fas fa-rocket"></i><h4>No missions yet</h4><p>Create your first STEM mission</p></div>
+                        <div class="empty-state"><i class="fas fa-rocket"></i><h4 data-i18n="empty_no_missions">No missions yet</h4><p data-i18n="empty_create_first_mission">Create your first STEM mission</p></div>
                     </div>
                 </div> 
             </main>
@@ -1122,15 +1274,15 @@ body.pdf-mode .timeline-content {
     <!-- Student Modal -->
     <div class="modal-overlay" id="studentModal">
         <div class="modal">
-            <div class="modal-header"><h3 class="modal-title" id="studentModalTitle">Add Student</h3><button class="modal-close" onclick="app.closeStudentModal()">&times;</button></div>
+            <div class="modal-header"><h3 class="modal-title" id="studentModalTitle" data-i18n="modal_add_student">Add Student</h3><button class="modal-close" onclick="app.closeStudentModal()">&times;</button></div>
             <form onsubmit="app.saveStudent(event)">
                 <input type="hidden" id="studentEditId">
                 <div class="form-grid">
-                    <div class="form-group"><label>Full Name *</label><input type="text" id="stuName" class="input-premium" required placeholder="e.g. Arun Kumar"></div>
-                    <div class="form-group"><label>MyKid Number *</label><input type="text" id="stuIc" class="input-premium" required placeholder="e.g. 200901041234" maxlength="14"></div>
-                    <div class="form-group"><label>Class *</label>
+                    <div class="form-group"><label data-i18n="form_full_name">Full Name *</label><input type="text" id="stuName" class="input-premium" required placeholder="e.g. Arun Kumar"></div>
+                    <div class="form-group"><label data-i18n="form_mykid">MyKid Number *</label><input type="text" id="stuIc" class="input-premium" required placeholder="e.g. 200901041234" maxlength="14"></div>
+                    <div class="form-group"><label data-i18n="form_class">Class *</label>
             <select id="stuClass" class="input-premium" required>
-                    <option value="">Select</option>
+                    <option value="" data-i18n="form_select">Select</option>
                     <option value="6 T">6 T</option>
                     <option value="6 V">6 V</option>
                     <option value="6 A">6 A</option>
@@ -1141,13 +1293,13 @@ body.pdf-mode .timeline-content {
                     <option value="4 V">4 V</option>
             </select>
                     </div>
-                    <div class="form-group"><label>Age</label><input type="number" id="stuAge" class="input-premium" placeholder="e.g. 12" min="5" max="18"></div>
-                    <div class="form-group"><label>Parent Name</label><input type="text" id="stuParent" class="input-premium" placeholder="e.g. Mr. Kumar"></div>
-                    <div class="form-group"><label>Parent Phone</label><input type="tel" id="stuPhone" class="input-premium" placeholder="e.g. 012-3456789"></div>
+                    <div class="form-group"><label data-i18n="form_age">Age</label><input type="number" id="stuAge" class="input-premium" placeholder="e.g. 12" min="5" max="18"></div>
+                    <div class="form-group"><label data-i18n="form_parent_name">Parent Name</label><input type="text" id="stuParent" class="input-premium" placeholder="e.g. Mr. Kumar"></div>
+                    <div class="form-group"><label data-i18n="form_parent_phone">Parent Phone</label><input type="tel" id="stuPhone" class="input-premium" placeholder="e.g. 012-3456789"></div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
-                    <button type="button" class="btn btn-outline" onclick="app.closeStudentModal()">Cancel</button>
-                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> Save Student</button>
+                    <button type="button" class="btn btn-outline" onclick="app.closeStudentModal()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> <span data-i18n="btn_save_student">Save Student</span></button>
                 </div>
             </form>
         </div>
@@ -1156,18 +1308,18 @@ body.pdf-mode .timeline-content {
     <!-- Assessment Modal -->
     <div class="modal-overlay" id="assessmentModal">
         <div class="modal modal-lg">
-            <div class="modal-header"><h3 class="modal-title" id="assModalTitle">New Psychometric Assessment</h3><button class="modal-close" onclick="app.closeAssessmentModal()">&times;</button></div>
+            <div class="modal-header"><h3 class="modal-title" id="assModalTitle" data-i18n="modal_new_assessment">New Psychometric Assessment</h3><button class="modal-close" onclick="app.closeAssessmentModal()">&times;</button></div>
             <form onsubmit="app.saveAssessment(event)">
                                 <input type="hidden" id="assEditId">
                 <div class="form-grid" style="margin-bottom:20px;">
                     <div class="form-group">
-                        <label>Student *</label>
+                        <label data-i18n="form_student">Student *</label>
                         <select id="assStudent" class="input-premium" required onchange="app.onStudentSelect()">
-                            <option value="">Select Student</option>
+                            <option value="" data-i18n="form_select">Select Student</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Assessment Date *</label>
+                        <label data-i18n="form_assessment_date">Assessment Date *</label>
                         <input type="date" id="assDate" class="input-premium" required>
                     </div>
                 </div>
@@ -1214,40 +1366,40 @@ body.pdf-mode .timeline-content {
                     </div>
                 </div>
                                 <div class="form-group" style="margin-top:20px;">
-                    <label style="margin-bottom:12px; font-weight:600;">Counselor Recommendations & Notes</label>
+                    <label style="margin-bottom:12px; font-weight:600;" data-i18n="counselor_notes_title">Counselor Recommendations & Notes</label>
                     
                     <div style="margin-bottom:16px;">
-                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;" data-i18n="label_english">
                             <i class="fas fa-language" style="margin-right:6px; color:var(--malaysia-blue);"></i>English
                         </label>
                         <textarea id="assNotesEn" class="input-premium" placeholder="Write recommendations in English..." style="min-height:80px;"></textarea>
                     </div>
                     
                     <div style="margin-bottom:16px;">
-                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;" data-i18n="label_malay">
                             <i class="fas fa-language" style="margin-right:6px; color:var(--healing-teal);"></i>Malay (Bahasa Malaysia)
                         </label>
                         <textarea id="assNotesMs" class="input-premium" placeholder="Tulis cadangan dalam Bahasa Malaysia..." style="min-height:80px;"></textarea>
                     </div>
                     
                     <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">
+                        <label style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;" data-i18n="label_tamil">
                             <i class="fas fa-language" style="margin-right:6px; color:var(--malaysia-red);"></i>Tamil (தமிழ்)
                         </label>
                         <textarea id="assNotesTa" class="input-premium" placeholder="தமிழில் பரிந்துரைகளை எழுதவும்..." style="min-height:80px;"></textarea>
                     </div>
                 </div>
                 <div class="form-grid" style="margin-top:16px;">
-                    <div class="form-group"><label>Follow-up Date</label><input type="date" id="assFollowUp" class="input-premium"></div>
-                    <div class="form-group"><label>Status</label>
+                    <div class="form-group"><label data-i18n="form_follow_up_date">Follow-up Date</label><input type="date" id="assFollowUp" class="input-premium"></div>
+                    <div class="form-group"><label data-i18n="form_status">Status</label>
                         <select id="assStatus" class="input-premium">
-                            <option value="active">Active Monitoring</option><option value="resolved">Resolved</option><option value="referral">Referred Specialist</option>
+                            <option value="active" data-i18n="status_active">Active Monitoring</option><option value="resolved" data-i18n="status_resolved">Resolved</option><option value="referral" data-i18n="status_referral">Referred Specialist</option>
                         </select>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
-                    <button type="button" class="btn btn-outline" onclick="app.closeAssessmentModal()">Cancel</button>
-                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> Save Assessment</button>
+                    <button type="button" class="btn btn-outline" onclick="app.closeAssessmentModal()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> <span data-i18n="btn_save_assessment">Save Assessment</span></button>
                 </div>
             </form>
         </div>
@@ -1257,11 +1409,11 @@ body.pdf-mode .timeline-content {
     <div class="modal-overlay" id="deleteModal">
         <div class="modal" style="max-width:400px; text-align:center;">
             <div style="width:70px; height:70px; background:rgba(255,107,107,0.1); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:20px;"><i class="fas fa-exclamation-triangle" style="font-size:1.8rem; color:var(--danger);"></i></div>
-            <h3 style="margin-bottom:10px;">Delete Record?</h3>
-            <p style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem;">This action cannot be undone. The record will be permanently removed from the system.</p>
+            <h3 style="margin-bottom:10px;" data-i18n="modal_delete_title">Delete Record?</h3>
+            <p style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem;" data-i18n="modal_delete_desc">This action cannot be undone. The record will be permanently removed from the system.</p>
             <div style="display:flex; gap:10px; justify-content:center;">
-                <button class="btn btn-outline" onclick="app.closeDeleteModal()">Cancel</button>
-                <button class="btn" style="background:var(--danger); color:white;" onclick="app.confirmDelete()"><i class="fas fa-trash"></i> Delete</button>
+                <button class="btn btn-outline" onclick="app.closeDeleteModal()" data-i18n="btn_cancel">Cancel</button>
+                <button class="btn" style="background:var(--danger); color:white;" onclick="app.confirmDelete()"><i class="fas fa-trash"></i> <span data-i18n="btn_delete">Delete</span></button>
             </div>
         </div>
     </div>
@@ -1269,7 +1421,7 @@ body.pdf-mode .timeline-content {
     <!-- View Assessment Modal -->
     <div class="modal-overlay" id="viewAssessmentModal">
         <div class="modal modal-lg">
-            <div class="modal-header"><h3 class="modal-title">Assessment Details</h3><button class="modal-close" onclick="document.getElementById('viewAssessmentModal').classList.remove('show')">&times;</button></div>
+            <div class="modal-header"><h3 class="modal-title" data-i18n="modal_assessment_details">Assessment Details</h3><button class="modal-close" onclick="document.getElementById('viewAssessmentModal').classList.remove('show')">&times;</button></div>
             <div id="viewAssessmentContent"></div>
         </div>
     </div>
@@ -1278,7 +1430,7 @@ body.pdf-mode .timeline-content {
     <div class="modal-overlay" id="stemMissionModal">
         <div class="modal modal-lg">
             <div class="modal-header">
-                <h3 class="modal-title" id="stemMissionModalTitle">Upload STEM Mission</h3>
+                <h3 class="modal-title" id="stemMissionModalTitle" data-i18n="modal_upload_mission">Upload STEM Mission</h3>
                 <button class="modal-close" onclick="app.closeStemMissionModal()">&times;</button>
             </div>
             <form onsubmit="app.saveStemMission(event)">
@@ -1288,30 +1440,30 @@ body.pdf-mode .timeline-content {
                 <input type="hidden" id="stemMissionMimeType">
                 <div class="form-grid">
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Mission Title *</label>
+                        <label data-i18n="form_mission_title">Mission Title *</label>
                         <input type="text" id="stemMissionTitle" class="input-premium" required placeholder="e.g. Build a Water Rocket">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Description *</label>
+                        <label data-i18n="form_mission_desc">Description *</label>
                         <textarea id="stemMissionDesc" class="input-premium" required placeholder="Describe the mission objectives..." style="min-height:80px;"></textarea>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Instructions for Students</label>
+                        <label data-i18n="form_mission_instructions">Instructions for Students</label>
                         <textarea id="stemMissionInstructions" class="input-premium" placeholder="Step-by-step instructions..." style="min-height:100px;"></textarea>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>File URL (Google Drive, Dropbox, etc.)</label>
+                        <label data-i18n="form_file_url">File URL (Google Drive, Dropbox, etc.)</label>
                         <input type="url" id="stemMissionFileUrl" class="input-premium" placeholder="https://drive.google.com/... or direct file link">
-                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;"><i class="fas fa-info-circle"></i> Paste a direct download link. OR upload a small file below.</p>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;" data-i18n="form_file_url_hint"><i class="fas fa-info-circle"></i> Paste a direct download link. OR upload a small file below.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Upload File Directly (Small files only, &lt; 2MB)</label>
+                        <label data-i18n="form_upload_file">Upload File Directly (Small files only, &lt; 2MB)</label>
                         <input type="file" id="stemMissionFile" class="input-premium" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.png" onchange="app.handleMissionFileUpload(this)">
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
-                    <button type="button" class="btn btn-outline" onclick="app.closeStemMissionModal()">Cancel</button>
-                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> Publish Mission</button>
+                    <button type="button" class="btn btn-outline" onclick="app.closeStemMissionModal()" data-i18n="btn_cancel">Cancel</button>
+                    <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> <span data-i18n="btn_publish_mission">Publish Mission</span></button>
                 </div>
             </form>
         </div>
@@ -1511,7 +1663,214 @@ body.pdf-mode .timeline-content {
                 admin_login_subtitle: 'Secure access for authorized counseling staff only',
                 label_email: 'Email Address',
                 label_password: 'Password',
-                btn_sign_in: 'Sign In Securely'
+                btn_sign_in: 'Sign In Securely',
+                // Admin Sidebar & Navigation
+                sidebar_admin: 'Admin',
+                sidebar_control_center: 'Counselor Control Center',
+                nav_dashboard: 'Dashboard',
+                nav_students: 'Students',
+                nav_assessments: 'Assessments',
+                nav_reports: 'Reports',
+                nav_stem_missions: 'STEM Missions',
+                nav_settings: 'Settings',
+                nav_logout: 'Logout',
+                secured_by: 'Secured by Firebase',
+                version: 'v3.0 Premium',
+
+                // Admin Login
+                login_title: 'Counselor Portal',
+                login_subtitle: 'Secure access for authorized counseling staff only',
+                login_email: 'Email Address',
+                login_password: 'Password',
+                login_firebase: 'Firebase Authentication Protected',
+
+                // Dashboard
+                admin_dash_title: 'Dashboard',
+                admin_dash_subtitle: 'Overview of psychometric wellness metrics',
+                stat_total_students: 'Total Students',
+                stat_total_assessments: 'Assessments',
+                stat_flagged_cases: 'Flagged Cases',
+                stat_this_month: 'This Month',
+                recent_assessments: 'Recent Assessments',
+                empty_no_assessments: 'No assessments yet',
+                empty_create_first_assessment: 'Create your first assessment to see data here',
+
+                // Students
+                admin_students_title: 'Student Management',
+                admin_students_subtitle: 'Manage children profiles and MyKid numbers',
+                btn_add_student: 'Add Student',
+                search_placeholder_students: 'Search by name or IC number...',
+                btn_export: 'Export',
+                th_name: 'Name',
+                th_mykid: 'MyKid',
+                th_class: 'Class',
+                th_age: 'Age',
+                th_parent_contact: 'Parent Contact',
+                th_actions: 'Actions',
+                empty_no_students: 'No students found',
+
+                // Assessments
+                admin_assessments_title: 'Assessments',
+                admin_assessments_subtitle: 'Create and manage psychometric evaluations',
+                btn_new_assessment: 'New Assessment',
+                search_placeholder_assessments: 'Search assessments...',
+                th_date: 'Date',
+                th_student: 'Student',
+                th_overall: 'Overall',
+                th_severity: 'Severity',
+                th_status: 'Status',
+                empty_no_assessments_found: 'No assessments found',
+
+                // Reports
+                admin_reports_title: 'Analytics & Reports',
+                admin_reports_subtitle: 'Export data and view trends',
+                report_generate_title: 'Generate Report',
+                form_report_type: 'Report Type',
+                report_all: 'All Assessments',
+                report_flagged: 'Flagged Cases Only',
+                report_by_student: 'By Student',
+                form_date_from: 'Date From',
+                form_date_to: 'Date To',
+                btn_generate_report: 'Generate Report',
+                btn_export_excel: 'Export Excel',
+                qr_generator: 'QR Code Generator',
+                qr_desc: 'Generate a QR code that parents can scan to directly access their child\'s latest result.',
+                form_search_student: 'Search Student (Name or MyKid)',
+                form_type_name_mykid: 'Type name or MyKid number...',
+                btn_generate_qr: 'Generate QR Code',
+
+                // Settings
+                admin_settings_title: 'Settings',
+                admin_settings_subtitle: 'Configure system preferences',
+                settings_counselor_profile: 'Counselor Profile',
+                settings_full_name: 'Full Name',
+                settings_qualification: 'Qualification',
+                settings_school_name: 'School Name',
+                settings_contact_email: 'Contact Email',
+                settings_scoring_thresholds: 'Scoring Thresholds',
+                settings_normal_threshold: 'Normal Threshold (≥)',
+                settings_mild_threshold: 'Mild Threshold (≥)',
+                settings_moderate_threshold: 'Moderate Threshold (≥)',
+                settings_data_management: 'Data Management',
+                btn_backup: 'Backup JSON',
+                btn_restore: 'Restore JSON',
+                settings_backup_hint: 'Backup includes all students, assessments, and settings.',
+                btn_save_settings: 'Save All Settings',
+
+                // STEM Admin
+                admin_stem_title: 'STEM Missions',
+                admin_stem_subtitle: 'Upload and manage STEM challenge missions',
+                btn_new_mission: 'New Mission',
+                empty_no_missions: 'No missions yet',
+                empty_create_first_mission: 'Create your first STEM mission',
+
+                // Modal - Student
+                modal_add_student: 'Add New Student',
+                modal_edit_student: 'Edit Student',
+                form_full_name: 'Full Name',
+                form_mykid: 'MyKid Number',
+                form_class: 'Class',
+                form_select: 'Select',
+                form_age: 'Age',
+                form_parent_name: 'Parent Name',
+                form_parent_phone: 'Parent Phone',
+                btn_save_student: 'Save Student',
+                btn_cancel: 'Cancel',
+
+                // Modal - Assessment
+                modal_new_assessment: 'New Psychometric Assessment',
+                modal_edit_assessment: 'Edit Assessment',
+                form_student: 'Student',
+                form_assessment_date: 'Assessment Date',
+                counselor_notes_title: 'Counselor Recommendations & Notes',
+                label_english: 'English',
+                label_malay: 'Malay (Bahasa Malaysia)',
+                label_tamil: 'Tamil (தமிழ்)',
+                form_follow_up_date: 'Follow-up Date',
+                form_status: 'Status',
+                status_active: 'Active Monitoring',
+                status_resolved: 'Resolved',
+                status_referral: 'Referred Specialist',
+                btn_save_assessment: 'Save Assessment',
+
+                // Modal - Delete
+                modal_delete_title: 'Delete Record?',
+                modal_delete_desc: 'This action cannot be undone. The record will be permanently removed from the system.',
+                btn_delete: 'Delete',
+
+                // Modal - View
+                modal_assessment_details: 'Assessment Details',
+
+                // Modal - STEM Mission
+                modal_upload_mission: 'Upload New STEM Mission',
+                modal_edit_mission: 'Edit Mission',
+                form_mission_title: 'Mission Title',
+                form_mission_desc: 'Description',
+                form_mission_instructions: 'Instructions for Students',
+                form_file_url: 'File URL (Google Drive, Dropbox, etc.)',
+                form_file_url_hint: 'Paste a direct download link. OR upload a small file below.',
+                form_upload_file: 'Upload File Directly (Small files only, < 2MB)',
+                btn_publish_mission: 'Publish Mission',
+
+                // Toasts
+                toast_student_added: 'Student added!',
+                toast_student_updated: 'Student updated!',
+                toast_student_deleted: 'Student deleted',
+                toast_assessment_added: 'Assessment created!',
+                toast_assessment_updated: 'Assessment updated!',
+                toast_assessment_deleted: 'Assessment deleted',
+                toast_mission_added: 'Mission published!',
+                toast_mission_updated: 'Mission updated!',
+                toast_mission_deleted: 'Mission deleted',
+                toast_settings_saved: 'Settings saved!',
+                toast_backup_downloaded: 'Backup downloaded!',
+                toast_data_restored: 'Data restored!',
+                toast_invalid_backup: 'Invalid backup file!',
+                toast_report_generated: 'Report generated! (Demo: check console)',
+                toast_excel_exported: 'Excel exported!',
+                toast_csv_exported: 'CSV exported!',
+                toast_students_exported: 'Students exported!',
+                toast_card_generated: 'Premium ID Card generated!',
+                toast_card_downloaded: 'ID Card downloaded!',
+                toast_generate_card_first: 'Generate card first!',
+                toast_no_results_download: 'No results to download',
+                toast_pdf_downloaded: 'PDF downloaded successfully!',
+                toast_pdf_failed: 'PDF generation failed. Please try again.',
+                toast_logged_out: 'Logged out successfully.',
+                toast_welcome_back: 'Welcome back, Counselor!',
+                toast_demo_login: 'Demo mode: Logged in as Counselor',
+                toast_enter_valid_mykid: 'Please enter a valid MyKid number',
+                toast_select_student: 'Please select a student',
+                toast_no_assessments_found: 'No assessments found for this student',
+                toast_no_student_found: 'No student found with this MyKid number',
+                toast_cloud_sync_failed: 'Cloud sync failed, using local data',
+                toast_file_too_large: 'File too large! Max 2MB allowed.',
+                toast_file_ready: 'File ready for upload!',
+                toast_select_student_qr: 'Please select a student from the dropdown first',
+                toast_student_not_found_qr: 'Student not found. Please search and select again.',
+                toast_qr_failed: 'QR generation failed',
+                toast_no_data_export: 'No data to export!',
+                toast_searching: 'Searching...',
+                toast_authenticating: 'Authenticating...',
+                toast_logging_out: 'Logging out...',
+                toast_verifying: 'Verifying MyKid...',
+                toast_generate_pdf: 'Generating...',
+                toast_no_student_mission: 'Student not found. Please check your MyKid number.',
+                filter_all_severities: 'All Severities',
+                filter_normal: 'Normal',
+                filter_mild: 'Mild Concern',
+                filter_moderate: 'Moderate Concern',
+                filter_severe: 'Severe Concern',
+                career_prediction_title: 'Career Path Prediction',
+                career_prediction_desc: 'Based on the student\'s psychometric profile, here are the top career paths that align with their natural strengths and abilities.',
+                career_no_data: 'No career data available',
+                career_insight_prefix: 'This student shows strong aptitude in',
+                career_insight_suffix: 'which suggests excellent potential for careers requiring these skills.',
+                career_top_match: 'Top Career Match',
+                career_strong_fit: 'Strong Fit',
+                career_good_fit: 'Good Fit',
+                career_moderate_fit: 'Moderate Fitting'
+
             },
             ta: {
                 badge_secure: 'பாதுகாப்பானது & ரகசியமானது',
@@ -1545,7 +1904,21 @@ body.pdf-mode .timeline-content {
                 admin_login_subtitle: 'அங்கீகரிக்கப்பட்ட ஆலோசகர்கள் மட்டுமே அணுக முடியும்',
                 label_email: 'மின்னஞ்சல் முகவரி',
                 label_password: 'கடவுச்சொல்',
-                btn_sign_in: 'பாதுகாப்பாக உள்நுழைக'
+                btn_sign_in: 'பாதுகாப்பாக உள்நுழைக',
+                career_prediction_title: 'பணி பாதை கணிப்பு',
+                career_prediction_desc: 'மாணவரின் மனநல சுயவிவரத்தின் அடிப்படையில், அவர்களின் இயற்கையான திறன்களுக்கு ஏற்ற சிறந்த பணி பாதைகள் இங்கே காட்டப்பட்டுள்ளன.',
+                career_no_data: 'பணி தரவு எதுவும் இல்லை',
+                career_insight_prefix: 'இந்த மாணவர்',
+                career_insight_suffix: 'ஆகியவற்றில் வலுவான திறனைக் காட்டுகிறார், இது இந்த திறன்களைப் பயன்படுத்தும் பணிகளுக்கு சிறந்த திறனைக் குறிக்கிறது.',
+                career_top_match: 'சிறந்த பணி பொருத்தம்',
+                career_strong_fit: 'வலுவான பொருத்தம்',
+                career_good_fit: 'நல்ல பொருத்தம்',
+                career_moderate_fit: 'மிதமான பொருத்தம்',
+                filter_all_severities: 'அனைத்து தீவிரங்களும்',
+                filter_normal: 'சாதாரணம்',
+                filter_mild: 'லேசான கவலை',
+                filter_moderate: 'மிதமான கவலை',
+                filter_severe: 'கடுமையான கவலை'
             },
             ms: {
                 badge_secure: 'Selamat & Sulit',
@@ -1579,8 +1952,221 @@ body.pdf-mode .timeline-content {
                 admin_login_subtitle: 'Akses selamat untuk kakitangan kaunseling yang dibenarkan sahaja',
                 label_email: 'Alamat Emel',
                 label_password: 'Kata Laluan',
-                btn_sign_in: 'Log Masuk dengan Selamat'
+                btn_sign_in: 'Log Masuk dengan Selamat',
+                // Admin Sidebar & Navigation
+                sidebar_admin: 'Admin',
+                sidebar_control_center: 'Pusat Kawalan Kaunselor',
+                nav_dashboard: 'Papan Pemuka',
+                nav_students: 'Murid',
+                nav_assessments: 'Penilaian',
+                nav_reports: 'Laporan',
+                nav_stem_missions: 'Misi STEM',
+                nav_settings: 'Tetapan',
+                nav_logout: 'Log Keluar',
+                secured_by: 'Dilindungi oleh Firebase',
+                version: 'v3.0 Premium',
+
+                // Admin Login
+                login_title: 'Portal Kaunselor',
+                login_subtitle: 'Akses selamat untuk kakitangan kaunseling yang dibenarkan sahaja',
+                login_email: 'Alamat Emel',
+                login_password: 'Kata Laluan',
+                login_firebase: 'Dilindungi oleh Pengesahan Firebase',
+
+                // Dashboard
+                admin_dash_title: 'Papan Pemuka',
+                admin_dash_subtitle: 'Gambaran keseluruhan metrik kesejahteraan psikometrik',
+                stat_total_students: 'Jumlah Murid',
+                stat_total_assessments: 'Penilaian',
+                stat_flagged_cases: 'Kes Bendera',
+                stat_this_month: 'Bulan Ini',
+                recent_assessments: 'Penilaian Terkini',
+                empty_no_assessments: 'Tiada penilaian lagi',
+                empty_create_first_assessment: 'Cipta penilaian pertama anda untuk melihat data di sini',
+
+                // Students
+                admin_students_title: 'Pengurusan Murid',
+                admin_students_subtitle: 'Urus profil kanak-kanak dan nombor MyKid',
+                btn_add_student: 'Tambah Murid',
+                search_placeholder_students: 'Cari mengikut nama atau nombor IC...',
+                btn_export: 'Eksport',
+                th_name: 'Nama',
+                th_mykid: 'MyKid',
+                th_class: 'Kelas',
+                th_age: 'Umur',
+                th_parent_contact: 'Hubungan Ibubapa',
+                th_actions: 'Tindakan',
+                empty_no_students: 'Tiada murid dijumpai',
+
+                // Assessments
+                admin_assessments_title: 'Penilaian',
+                admin_assessments_subtitle: 'Cipta dan urus penilaian psikometrik',
+                btn_new_assessment: 'Penilaian Baharu',
+                search_placeholder_assessments: 'Cari penilaian...',
+                th_date: 'Tarikh',
+                th_student: 'Murid',
+                th_overall: 'Keseluruhan',
+                th_severity: 'Keterukan',
+                th_status: 'Status',
+                empty_no_assessments_found: 'Tiada penilaian dijumpai',
+
+                // Reports
+                admin_reports_title: 'Analitik & Laporan',
+                admin_reports_subtitle: 'Eksport data dan lihat trend',
+                report_generate_title: 'Jana Laporan',
+                form_report_type: 'Jenis Laporan',
+                report_all: 'Semua Penilaian',
+                report_flagged: 'Kes Bendera Sahaja',
+                report_by_student: 'Mengikut Murid',
+                form_date_from: 'Tarikh Dari',
+                form_date_to: 'Tarikh Hingga',
+                btn_generate_report: 'Jana Laporan',
+                btn_export_excel: 'Eksport Excel',
+                qr_generator: 'Penjana Kod QR',
+                qr_desc: 'Jana kod QR yang boleh diimbas oleh ibu bapa untuk mengakses terus keputusan terkini anak mereka.',
+                form_search_student: 'Cari Murid (Nama atau MyKid)',
+                form_type_name_mykid: 'Taip nama atau nombor MyKid...',
+                btn_generate_qr: 'Jana Kod QR',
+
+                // Settings
+                admin_settings_title: 'Tetapan',
+                admin_settings_subtitle: 'Konfigurasi keutamaan sistem',
+                settings_counselor_profile: 'Profil Kaunselor',
+                settings_full_name: 'Nama Penuh',
+                settings_qualification: 'Kelayakan',
+                settings_school_name: 'Nama Sekolah',
+                settings_contact_email: 'Emel Hubungan',
+                settings_scoring_thresholds: 'Ambang Penilaian',
+                settings_normal_threshold: 'Ambang Normal (≥)',
+                settings_mild_threshold: 'Ambang Ringan (≥)',
+                settings_moderate_threshold: 'Ambang Sederhana (≥)',
+                settings_data_management: 'Pengurusan Data',
+                btn_backup: 'Sandaran JSON',
+                btn_restore: 'Pulih JSON',
+                settings_backup_hint: 'Sandaran merangkumi semua murid, penilaian, dan tetapan.',
+                btn_save_settings: 'Simpan Semua Tetapan',
+
+                // STEM Admin
+                admin_stem_title: 'Misi STEM',
+                admin_stem_subtitle: 'Muat naik dan urus cabaran misi STEM',
+                btn_new_mission: 'Misi Baharu',
+                empty_no_missions: 'Tiada misi lagi',
+                empty_create_first_mission: 'Cipta misi STEM pertama anda',
+
+                // Modal - Student
+                modal_add_student: 'Tambah Murid Baharu',
+                modal_edit_student: 'Sunting Murid',
+                form_full_name: 'Nama Penuh',
+                form_mykid: 'Nombor MyKid',
+                form_class: 'Kelas',
+                form_select: 'Pilih',
+                form_age: 'Umur',
+                form_parent_name: 'Nama Ibubapa',
+                form_parent_phone: 'Telefon Ibubapa',
+                btn_save_student: 'Simpan Murid',
+                btn_cancel: 'Batal',
+
+                // Modal - Assessment
+                modal_new_assessment: 'Penilaian Psikometrik Baharu',
+                modal_edit_assessment: 'Sunting Penilaian',
+                form_student: 'Murid',
+                form_assessment_date: 'Tarikh Penilaian',
+                counselor_notes_title: 'Cadangan & Nota Kaunselor',
+                label_english: 'Bahasa Inggeris',
+                label_malay: 'Bahasa Malaysia',
+                label_tamil: 'Tamil (தமிழ்)',
+                form_follow_up_date: 'Tarikh Susulan',
+                form_status: 'Status',
+                status_active: 'Pemantauan Aktif',
+                status_resolved: 'Selesai',
+                status_referral: 'Dirujuk Pakar',
+                btn_save_assessment: 'Simpan Penilaian',
+
+                // Modal - Delete
+                modal_delete_title: 'Padam Rekod?',
+                modal_delete_desc: 'Tindakan ini tidak boleh dibatalkan. Rekod akan dipadamkan secara kekal dari sistem.',
+                btn_delete: 'Padam',
+
+                // Modal - View
+                modal_assessment_details: 'Butiran Penilaian',
+
+                // Modal - STEM Mission
+                modal_upload_mission: 'Muat Naik Misi STEM Baharu',
+                modal_edit_mission: 'Sunting Misi',
+                form_mission_title: 'Tajuk Misi',
+                form_mission_desc: 'Penerangan',
+                form_mission_instructions: 'Arahan untuk Murid',
+                form_file_url: 'URL Fail (Google Drive, Dropbox, dll.)',
+                form_file_url_hint: 'Tampal pautan muat turun terus. ATAU muat naik fail kecil di bawah.',
+                form_upload_file: 'Muat Naik Fail Terus (Fail kecil sahaja, < 2MB)',
+                btn_publish_mission: 'Terbitkan Misi',
+
+                // Toasts
+                toast_student_added: 'Murid ditambah!',
+                toast_student_updated: 'Murid dikemas kini!',
+                toast_student_deleted: 'Murid dipadam',
+                toast_assessment_added: 'Penilaian dicipta!',
+                toast_assessment_updated: 'Penilaian dikemas kini!',
+                toast_assessment_deleted: 'Penilaian dipadam',
+                toast_mission_added: 'Misi diterbitkan!',
+                toast_mission_updated: 'Misi dikemas kini!',
+                toast_mission_deleted: 'Misi dipadam',
+                toast_settings_saved: 'Tetapan disimpan!',
+                toast_backup_downloaded: 'Sandaran dimuat turun!',
+                toast_data_restored: 'Data dipulihkan!',
+                toast_invalid_backup: 'Fail sandaran tidak sah!',
+                toast_report_generated: 'Laporan dijana! (Demo: semak konsol)',
+                toast_excel_exported: 'Excel dieksport!',
+                toast_csv_exported: 'CSV dieksport!',
+                toast_students_exported: 'Murid dieksport!',
+                toast_card_generated: 'Kad ID Premium dijana!',
+                toast_card_downloaded: 'Kad ID dimuat turun!',
+                toast_generate_card_first: 'Jana kad dahulu!',
+                toast_no_results_download: 'Tiada keputusan untuk dimuat turun',
+                toast_pdf_downloaded: 'PDF berjaya dimuat turun!',
+                toast_pdf_failed: 'Penjanaan PDF gagal. Sila cuba lagi.',
+                toast_logged_out: 'Berjaya log keluar.',
+                toast_welcome_back: 'Selamat kembali, Kaunselor!',
+                toast_demo_login: 'Mod demo: Log masuk sebagai Kaunselor',
+                toast_enter_valid_mykid: 'Sila masukkan nombor MyKid yang sah',
+                toast_select_student: 'Sila pilih seorang murid',
+                toast_no_assessments_found: 'Tiada penilaian dijumpai untuk murid ini',
+                toast_no_student_found: 'Tiada murid dijumpai dengan nombor MyKid ini',
+                toast_cloud_sync_failed: 'Penyegerakan awan gagal, menggunakan data tempatan',
+                toast_file_too_large: 'Fail terlalu besar! Saiz maksimum 2MB dibenarkan.',
+                toast_file_ready: 'Fail sedia untuk muat naik!',
+                toast_select_student_qr: 'Sila pilih murid dari menu lungsur dahulu',
+                toast_student_not_found_qr: 'Murid tidak dijumpai. Sila cari dan pilih semula.',
+                toast_qr_failed: 'Penjanaan QR gagal',
+                toast_no_data_export: 'Tiada data untuk dieksport!',
+                toast_searching: 'Mencari...',
+                toast_authenticating: 'Mengesahkan...',
+                toast_logging_out: 'Log keluar...',
+                toast_verifying: 'Mengesahkan MyKid...',
+                toast_generate_pdf: 'Menjana...',
+                toast_no_student_mission: 'Murid tidak dijumpai. Sila semak nombor MyKid anda.',
+                career_prediction_title: 'Ramalan Laluan Kerjaya',
+                career_prediction_desc: 'Berdasarkan profil psikometrik murid, berikut adalah laluan kerjaya teratas yang selaras dengan kekuatan dan kebolehan semula jadi mereka.',
+                career_no_data: 'Tiada data kerjaya tersedia',
+                career_insight_prefix: 'Murid ini menunjukkan aptitud yang kuat dalam',
+                career_insight_suffix: 'yang mencadangkan potensi cemerlang untuk kerjaya yang memerlukan kemahiran ini.',
+                career_top_match: 'Padanan Kerjaya Teratas',
+                career_strong_fit: 'Padanan Kuat',
+                career_good_fit: 'Padanan Baik',
+                career_moderate_fit: 'Padanan Sederhana',
+                filter_all_severities: 'Semua Keterukan',
+                filter_normal: 'Normal',
+                filter_mild: 'Keprihatinan Ringan',
+                filter_moderate: 'Keprihatinan Sederhana',
+                filter_severe: 'Keprihatinan Teruk'
+
             }
+        },
+
+        t(key) {
+            return (this.i18n[this.currentLang] && this.i18n[this.currentLang][key]) 
+                || this.i18n['en'][key] 
+                || key;
         },
 
         toggleMobileMenu() {
@@ -1857,11 +2443,34 @@ body.pdf-mode .timeline-content {
                     el.innerHTML = this.i18n[lang][key];
                 }
             });
-            // Parent results page-la language switch pannumbothu counselor notes-um automatic-a maaranum
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (this.i18n[lang] && this.i18n[lang][key]) {
+                    el.placeholder = this.i18n[lang][key];
+                }
+            });
+            // Update severity filter dropdown options
+            const severityFilter = document.getElementById('severityFilter');
+            if (severityFilter) {
+                const options = severityFilter.querySelectorAll('option');
+                options.forEach(opt => {
+                    const key = opt.dataset.i18n;
+                    if (key && this.i18n[lang] && this.i18n[lang][key]) {
+                        opt.textContent = this.i18n[lang][key];
+                    }
+                });
+            }
+            if (document.getElementById('adminDashboard').classList.contains('active')) {
+                const activePage = document.querySelector('.admin-page.active');
+                if (activePage) {
+                    const pageId = activePage.id.replace('adminPage-', '');
+                    this.showAdminPage(pageId);
+                }
+                this.updateDashboard();
+            }
             if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
                 document.getElementById('counselorNotes').innerHTML = this.getNotes(this.currentResultAssessment);
             }
-            // STEM Mission page-la language switch pannumbothu content-um refresh aaganum
             if (document.getElementById('stemMission').classList.contains('active') && this.currentStemStudent) {
                 this.renderStemMissions();
             }
@@ -1947,13 +2556,13 @@ body.pdf-mode .timeline-content {
     const ic = icInput.value.trim();
     
     if (!ic || ic.replace(/[-\s]/g, '').length < 6) {
-        this.showToast('Please enter a valid MyKid number', 'error');
+        this.showToast(this.t('toast_enter_valid_mykid'), 'error');
         return;
     }
     
     const btn = document.querySelector('#parentPortal .btn-teal');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_searching');
     btn.disabled = true;
     
     const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
@@ -2026,11 +2635,11 @@ body.pdf-mode .timeline-content {
         // ═══════════════════════════════════════════════════════
         // STEP 3: Not found anywhere
         // ═══════════════════════════════════════════════════════
-        this.showToast('No student found with this MyKid number', 'error');
+        this.showToast(this.t('toast_no_student_found'), 'error');
         
     } catch (err) {
         console.error('Search error:', err);
-        this.showToast('Unable to fetch results. Please try again.', 'error');
+        this.showToast(this.t('toast_cloud_sync_failed'), 'error');
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -2132,6 +2741,7 @@ showCloudResults(student, assessments) {
         `;
     });
     document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
+    this.renderCareerPredictions(latest.domains, 'careerMatchesList');
     
        this.currentResultStudent = student;
        this.currentResultAssessment = latest;
@@ -2258,6 +2868,7 @@ showCloudResults(student, assessments) {
                 `;
             });
             document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
+            this.renderCareerPredictions(latest.domains, 'careerMatchesList');
             
                this.currentResultStudent = student;
                this.currentResultAssessment = latest;
@@ -2321,6 +2932,104 @@ showCloudResults(student, assessments) {
         },
 
         // ═══════════════════════════════════════════════════════════════
+        // CAREER PREDICTION ENGINE
+        // ═══════════════════════════════════════════════════════════════
+        careers: [
+            { id: 'doctor', name: { en: 'Doctor / Physician', ms: 'Doktor / Pakar Perubatan', ta: 'மருத்துவர்' }, icon: 'fa-user-md', color: '#ef4444', desc: { en: 'Diagnosing and treating illnesses, saving lives through medical expertise', ms: 'Mendiagnosis dan merawat penyakit, menyelamatkan nyawa melalui kepakaran perubatan', ta: 'நோய்களை கண்டறிதல் மற்றும் சிகிச்சையளித்தல்' }, weights: { verbal: 0.6, logical: 0.9, visual: 0.5, musical: 0.2, kinesthetic: 0.7, interpersonal: 0.9, intrapersonal: 0.7, naturalist: 0.8, existential: 0.5 } },
+            { id: 'engineer', name: { en: 'Engineer', ms: 'Jurutera', ta: 'பொறியாளர்' }, icon: 'fa-cogs', color: '#3b82f6', desc: { en: 'Designing and building structures, machines, and systems', ms: 'Mereka bentuk dan membina struktur, mesin dan sistem', ta: 'கட்டமைப்புகள், இயந்திரங்கள் மற்றும் அமைப்புகளை வடிவமைத்தல்' }, weights: { verbal: 0.5, logical: 1.0, visual: 0.8, musical: 0.2, kinesthetic: 0.5, interpersonal: 0.4, intrapersonal: 0.5, naturalist: 0.4, existential: 0.3 } },
+            { id: 'teacher', name: { en: 'Teacher / Educator', ms: 'Guru / Pendidik', ta: 'ஆசிரியர்' }, icon: 'fa-chalkboard-teacher', color: '#10b981', desc: { en: 'Shaping young minds through knowledge and mentorship', ms: 'Membentuk minda muda melalui pengetahuan dan bimbingan', ta: 'அறிவு மற்றும் வழிகாட்டுதல் மூலம் இளம் மனங்களை வடிவமைத்தல்' }, weights: { verbal: 0.9, logical: 0.6, visual: 0.5, musical: 0.4, kinesthetic: 0.5, interpersonal: 0.9, intrapersonal: 0.7, naturalist: 0.5, existential: 0.6 } },
+            { id: 'lawyer', name: { en: 'Lawyer / Legal Professional', ms: 'Peguam / Profesional Undang-Undang', ta: 'வழக்கறிஞர்' }, icon: 'fa-balance-scale', color: '#8b5cf6', desc: { en: 'Upholding justice through legal expertise and advocacy', ms: 'Menegakkan keadilan melalui kepakaran undang-undang dan advokasi', ta: 'சட்ட நிபுணத்துவம் மற்றும் வழக்காடுதல் மூலம் நீதியை நிலைநாட்டுதல்' }, weights: { verbal: 0.95, logical: 0.85, visual: 0.3, musical: 0.2, kinesthetic: 0.3, interpersonal: 0.8, intrapersonal: 0.6, naturalist: 0.2, existential: 0.5 } },
+            { id: 'software_dev', name: { en: 'Software Developer', ms: 'Pembangun Perisian', ta: 'மென்பொருள் உருவாக்குநர்' }, icon: 'fa-laptop-code', color: '#06b6d4', desc: { en: 'Creating digital solutions through code and innovation', ms: 'Mencipta penyelesaian digital melalui kod dan inovasi', ta: 'குறியீடு மற்றும் புதுமை மூலம் டிஜிட்டல் தீர்வுகளை உருவாக்குதல்' }, weights: { verbal: 0.5, logical: 1.0, visual: 0.7, musical: 0.3, kinesthetic: 0.4, interpersonal: 0.4, intrapersonal: 0.7, naturalist: 0.2, existential: 0.3 } },
+            { id: 'psychologist', name: { en: 'Psychologist / Counselor', ms: 'Psikolog / Kaunselor', ta: 'மனநல நிபுணர் / ஆலோசகர்' }, icon: 'fa-brain', color: '#ec4899', desc: { en: 'Helping others understand and improve their mental wellbeing', ms: 'Membantu orang lain memahami dan meningkatkan kesejahteraan mental', ta: 'மற்றவர்கள் தங்கள் மன ஆரோக்கியத்தைப் புரிந்துகொள்ளவும் மேம்படுத்தவும் உதவுதல்' }, weights: { verbal: 0.8, logical: 0.6, visual: 0.4, musical: 0.3, kinesthetic: 0.3, interpersonal: 1.0, intrapersonal: 0.95, naturalist: 0.4, existential: 0.7 } },
+            { id: 'accountant', name: { en: 'Accountant / Auditor', ms: 'Akauntan / Juruaudit', ta: 'கணக்காளர்' }, icon: 'fa-calculator', color: '#f59e0b', desc: { en: 'Managing finances and ensuring fiscal responsibility', ms: 'Menguruskan kewangan dan memastikan tanggungjawab fiskal', ta: 'நிதிகளை நிர்வகித்தல் மற்றும் நிதி பொறுப்புணர்வை உறுதி செய்தல்' }, weights: { verbal: 0.5, logical: 0.95, visual: 0.4, musical: 0.2, kinesthetic: 0.3, interpersonal: 0.4, intrapersonal: 0.7, naturalist: 0.2, existential: 0.3 } },
+            { id: 'architect', name: { en: 'Architect', ms: 'Arkitek', ta: 'கட்டிடக் கலைஞர்' }, icon: 'fa-drafting-compass', color: '#6366f1', desc: { en: 'Designing buildings and spaces that inspire and function', ms: 'Mereka bentuk bangunan dan ruang yang memberi inspirasi dan berfungsi', ta: 'ஊக்கமளிக்கும் மற்றும் செயல்படும் கட்டிடங்கள் மற்றும் இடங்களை வடிவமைத்தல்' }, weights: { verbal: 0.5, logical: 0.8, visual: 1.0, musical: 0.4, kinesthetic: 0.5, interpersonal: 0.5, intrapersonal: 0.6, naturalist: 0.5, existential: 0.4 } },
+            { id: 'artist', name: { en: 'Artist / Designer', ms: 'Artis / Pereka', ta: 'கலைஞர் / வடிவமைப்பாளர்' }, icon: 'fa-palette', color: '#d946ef', desc: { en: 'Creating visual and artistic expressions that move people', ms: 'Mencipta ungkapan visual dan artistik yang menggerakkan hati', ta: 'மக்களை ஈர்க்கும் காட்சி மற்றும் கலை வெளிப்பாடுகளை உருவாக்குதல்' }, weights: { verbal: 0.5, logical: 0.4, visual: 1.0, musical: 0.6, kinesthetic: 0.6, interpersonal: 0.4, intrapersonal: 0.7, naturalist: 0.5, existential: 0.6 } },
+            { id: 'scientist', name: { en: 'Scientist / Researcher', ms: 'Saintis / Penyelidik', ta: 'விஞ்ஞானி / ஆய்வாளர்' }, icon: 'fa-flask', color: '#14b8a6', desc: { en: 'Discovering new knowledge through systematic investigation', ms: 'Menemui pengetahuan baharu melalui penyiasatan sistematik', ta: 'முறையான விசாரணை மூலம் புதிய அறிவைக் கண்டறிதல்' }, weights: { verbal: 0.6, logical: 0.95, visual: 0.6, musical: 0.2, kinesthetic: 0.4, interpersonal: 0.3, intrapersonal: 0.6, naturalist: 0.9, existential: 0.7 } },
+            { id: 'entrepreneur', name: { en: 'Business Manager / Entrepreneur', ms: 'Pengurus Perniagaan / Usahawan', ta: 'வணிக மேலாளர் / தொழில்முனைவோர்' }, icon: 'fa-chart-line', color: '#f97316', desc: { en: 'Leading businesses and creating economic value', ms: 'Memimpin perniagaan dan mencipta nilai ekonomi', ta: 'வணிகங்களை வழிநடத்துதல் மற்றும் பொருளாதார மதிப்பை உருவாக்குதல்' }, weights: { verbal: 0.7, logical: 0.8, visual: 0.4, musical: 0.2, kinesthetic: 0.4, interpersonal: 0.9, intrapersonal: 0.8, naturalist: 0.3, existential: 0.5 } },
+            { id: 'nurse', name: { en: 'Nurse / Healthcare Worker', ms: 'Jururawat / Pekerja Kesihatan', ta: 'செவிலியர் / சுகாதார பணியாளர்' }, icon: 'fa-heartbeat', color: '#ef4444', desc: { en: 'Caring for patients and supporting medical teams', ms: 'Menjaga pesakit dan menyokong pasukan perubatan', ta: 'நோயாளிகளை கவனித்தல் மற்றும் மருத்துவ குழுக்களுக்கு ஆதரவளித்தல்' }, weights: { verbal: 0.6, logical: 0.6, visual: 0.4, musical: 0.3, kinesthetic: 0.7, interpersonal: 0.95, intrapersonal: 0.6, naturalist: 0.6, existential: 0.5 } },
+            { id: 'journalist', name: { en: 'Journalist / Writer', ms: 'Wartawan / Penulis', ta: 'பத்திரிகையாளர் / எழுத்தாளர்' }, icon: 'fa-pen-nib', color: '#8b5cf6', desc: { en: 'Informing and engaging the public through written stories', ms: 'Memaklumkan dan melibatkan orang ramai melalui cerita bertulis', ta: 'எழுதப்பட்ட கதைகள் மூலம் பொதுமக்களுக்கு தகவல் அளித்தல்' }, weights: { verbal: 1.0, logical: 0.5, visual: 0.4, musical: 0.3, kinesthetic: 0.3, interpersonal: 0.6, intrapersonal: 0.8, naturalist: 0.3, existential: 0.5 } },
+            { id: 'musician', name: { en: 'Musician / Performer', ms: 'Pemuzik / Penghibur', ta: 'இசைக்கலைஞர் / நடிப்பவர்' }, icon: 'fa-guitar', color: '#f59e0b', desc: { en: 'Creating and performing music that touches hearts', ms: 'Mencipta dan mempersembahkan muzik yang menyentuh hati', ta: 'இதயங்களைத் தொடும் இசையை உருவாக்குதல் மற்றும் நிகழ்த்துதல்' }, weights: { verbal: 0.4, logical: 0.4, visual: 0.5, musical: 1.0, kinesthetic: 0.6, interpersonal: 0.5, intrapersonal: 0.6, naturalist: 0.3, existential: 0.5 } },
+            { id: 'chef', name: { en: 'Chef / Culinary Artist', ms: 'Chef / Seniman Kulinari', ta: 'சமையல்காரர்' }, icon: 'fa-utensils', color: '#f97316', desc: { en: 'Creating culinary experiences through food artistry', ms: 'Mencipta pengalaman kulinari melalui seni makanan', ta: 'உணவு கலை மூலம் சமையல் அனுபவங்களை உருவாக்குதல்' }, weights: { verbal: 0.4, logical: 0.5, visual: 0.7, musical: 0.3, kinesthetic: 0.9, interpersonal: 0.5, intrapersonal: 0.5, naturalist: 0.7, existential: 0.3 } },
+            { id: 'athlete', name: { en: 'Athlete / Sports Professional', ms: 'Atlet / Profesional Sukan', ta: 'விளையாட்டு வீரர்' }, icon: 'fa-running', color: '#22c55e', desc: { en: 'Excelling in physical sports and competitive activities', ms: 'Cemerlang dalam sukan fizikal dan aktiviti berdaya saing', ta: 'உடல் விளையாட்டுகள் மற்றும் போட்டி நடவடிக்கைகளில் சிறந்து விளங்குதல்' }, weights: { verbal: 0.3, logical: 0.4, visual: 0.5, musical: 0.3, kinesthetic: 1.0, interpersonal: 0.6, intrapersonal: 0.7, naturalist: 0.4, existential: 0.3 } },
+            { id: 'social_worker', name: { en: 'Social Worker / Community Leader', ms: 'Pekerja Sosial / Pemimpin Komuniti', ta: 'சமூக பணியாளர்' }, icon: 'fa-hands-helping', color: '#06b6d4', desc: { en: 'Supporting communities and advocating for social change', ms: 'Menyokong komuniti dan mengadvokasi perubahan sosial', ta: 'சமூகங்களுக்கு ஆதரவளித்தல் மற்றும் சமூக மாற்றத்திற்காக போராடுதல்' }, weights: { verbal: 0.7, logical: 0.5, visual: 0.3, musical: 0.3, kinesthetic: 0.4, interpersonal: 0.95, intrapersonal: 0.8, naturalist: 0.4, existential: 0.6 } },
+            { id: 'environmentalist', name: { en: 'Environmental Scientist', ms: 'Saintis Alam Sekitar', ta: 'சுற்றுச்சூழல் விஞ்ஞானி' }, icon: 'fa-leaf', color: '#16a34a', desc: { en: 'Protecting nature and solving environmental challenges', ms: 'Melindungi alam semula jadi dan menyelesaikan cabaran alam sekitar', ta: 'இயற்கையைப் பாதுகாத்தல் மற்றும் சுற்றுச்சூழல் சவால்களைத் தீர்த்தல்' }, weights: { verbal: 0.5, logical: 0.8, visual: 0.5, musical: 0.2, kinesthetic: 0.5, interpersonal: 0.5, intrapersonal: 0.6, naturalist: 1.0, existential: 0.8 } },
+            { id: 'pilot', name: { en: 'Pilot / Aviation Professional', ms: 'Juruterbang / Profesional Penerbangan', ta: 'விமானி' }, icon: 'fa-plane', color: '#3b82f6', desc: { en: 'Navigating aircraft and ensuring safe air travel', ms: 'Mengendalikan pesawat dan memastikan perjalanan udara yang selamat', ta: 'விமானங்களை வழிநடத்துதல் மற்றும் பாதுகாப்பான விமான பயணத்தை உறுதி செய்தல்' }, weights: { verbal: 0.5, logical: 0.8, visual: 0.9, musical: 0.2, kinesthetic: 0.7, interpersonal: 0.5, intrapersonal: 0.7, naturalist: 0.4, existential: 0.3 } },
+            { id: 'data_analyst', name: { en: 'Data Analyst / Statistician', ms: 'Penganalisis Data / Statistik', ta: 'தரவு பகுப்பாய்வாளர்' }, icon: 'fa-database', color: '#6366f1', desc: { en: 'Extracting insights from data to drive decisions', ms: 'Mengekstrak pandangan dari data untuk memacu keputusan', ta: 'முடிவுகளை எடுக்க தரவிலிருந்து நுண்ணறிவுகளைப் பெறுதல்' }, weights: { verbal: 0.4, logical: 1.0, visual: 0.5, musical: 0.2, kinesthetic: 0.3, interpersonal: 0.3, intrapersonal: 0.7, naturalist: 0.3, existential: 0.3 } }
+        ],
+
+        getCareerPredictions(domains) {
+            if (!domains || Object.keys(domains).length === 0) return [];
+            const normalizedDomains = {};
+            Object.entries(domains).forEach(([key, val]) => {
+                const norm = key.toLowerCase().replace(/[-\s]/g, '');
+                const map = {
+                    'verbal': 'verbal', 'verballinguistic': 'verbal',
+                    'logical': 'logical', 'logicalmathematical': 'logical',
+                    'visual': 'visual', 'visualspatial': 'visual',
+                    'musical': 'musical',
+                    'kinesthetic': 'kinesthetic', 'bodilykinesthetic': 'kinesthetic',
+                    'interpersonal': 'interpersonal',
+                    'intrapersonal': 'intrapersonal',
+                    'naturalist': 'naturalist',
+                    'existential': 'existential',
+                    'malayword': 'verbal', 'malayverbal': 'verbal', 'malaycritical': 'logical',
+                    'wordskills': 'verbal', 'verbalconcept': 'verbal', 'criticalapp': 'logical',
+                    'mathnumeric': 'logical', 'mathperception': 'visual', 'problemsolving': 'logical'
+                };
+                const mapped = map[norm] || norm;
+                if (!normalizedDomains[mapped] || normalizedDomains[mapped] < val) {
+                    normalizedDomains[mapped] = val;
+                }
+            });
+            const results = this.careers.map(career => {
+                let weightedScore = 0;
+                let maxPossible = 0;
+                Object.entries(career.weights).forEach(([domain, weight]) => {
+                    const score = normalizedDomains[domain] || 5;
+                    const normalizedScore = (score / 10) * 100;
+                    weightedScore += normalizedScore * weight;
+                    maxPossible += 100 * weight;
+                });
+                const matchPercentage = maxPossible > 0 ? Math.round((weightedScore / maxPossible) * 100) : 0;
+                return { ...career, matchPercentage: Math.min(matchPercentage, 99) };
+            });
+            results.sort((a, b) => b.matchPercentage - a.matchPercentage);
+            return results.slice(0, 5);
+        },
+
+        renderCareerPredictions(domains, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const predictions = this.getCareerPredictions(domains);
+            const lang = this.currentLang;
+            if (predictions.length === 0) {
+                container.innerHTML = '<div class="career-empty"><i class="fas fa-brain"></i><h4>' + this.t('career_no_data') + '</h4></div>';
+                return;
+            }
+            const domainEntries = Object.entries(domains).sort((a, b) => b[1] - a[1]).slice(0, 2);
+            const topDomainNames = domainEntries.map(([key, val]) => {
+                const d = this.getDomainInfo(key);
+                return d && d.name ? (d.name[lang] || d.name.en) : key;
+            }).join(' & ');
+            let html = '';
+            predictions.forEach((career, idx) => {
+                const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : 'other';
+                const rankLabel = idx === 0 ? this.t('career_top_match') : idx === 1 ? this.t('career_strong_fit') : idx === 2 ? this.t('career_good_fit') : this.t('career_moderate_fit');
+                const careerName = career.name[lang] || career.name.en;
+                const careerDesc = career.desc[lang] || career.desc.en;
+                html += '<div class="career-match-item"><div class="career-match-rank ' + rankClass + '">' + (idx + 1) + '</div><div class="career-match-icon" style="background:' + career.color + '15; color:' + career.color + ';"><i class="fas ' + career.icon + '"></i></div><div class="career-match-info"><div class="career-match-name">' + careerName + '</div><div class="career-match-desc">' + careerDesc + '</div></div><div class="career-match-bar-wrap"><div class="career-match-bar"><div class="career-match-bar-fill" style="width:0%" data-target-width="' + career.matchPercentage + '%"></div></div><div class="career-match-pct">' + career.matchPercentage + '%</div></div></div>';
+            });
+            html += '<div class="career-insight-box"><p><i class="fas fa-lightbulb" style="color:#8b5cf6; margin-right:8px;"></i><strong>' + this.t('career_insight_prefix') + '</strong> ' + topDomainNames + '. ' + this.t('career_insight_suffix') + '</p></div>';
+            container.innerHTML = html;
+            setTimeout(() => {
+                container.querySelectorAll('.career-match-bar-fill').forEach(bar => {
+                    const target = bar.dataset.targetWidth;
+                    if (target) bar.style.width = target;
+                });
+            }, 100);
+        },
+
+        // ═══════════════════════════════════════════════════════════════
         // AGE-BASED DOMAIN HELPERS
         // ═══════════════════════════════════════════════════════════════
         getAssessmentDomainSet(assessment) {
@@ -2380,14 +3089,14 @@ showCloudResults(student, assessments) {
             const student = this.currentResultStudent;
             const assessment = this.currentResultAssessment;
             if (!student || !assessment) {
-                this.showToast('No results to download', 'error');
+                this.showToast(this.t('toast_no_results_download'), 'error');
                 return;
             }
 
             const btn = document.querySelector('#resultsView .btn-primary');
             const originalHTML = btn ? btn.innerHTML : '';
             if (btn) {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_generate_pdf');
                 btn.disabled = true;
             }
 
@@ -2423,11 +3132,11 @@ showCloudResults(student, assessments) {
                 };
 
                 await html2pdf().set(opt).from(el).save();
-                this.showToast('PDF downloaded successfully!', 'success');
+                this.showToast(this.t('toast_pdf_downloaded'), 'success');
 
             } catch (err) {
                 console.error('PDF Error:', err);
-                this.showToast('PDF generation failed. Please try again.', 'error');
+                this.showToast(this.t('toast_pdf_failed'), 'error');
             } finally {
                 // CRITICAL: Always remove PDF mode class
                 document.body.classList.remove('pdf-mode');
@@ -2552,6 +3261,8 @@ showCloudResults(student, assessments) {
     
     this.currentResultAssessment = selected;
     
+    this.renderCareerPredictions(selected.domains, 'careerMatchesList');
+
     // Scroll to top of results
     window.scrollTo({ top: 0, behavior: 'smooth' });
 },
@@ -2564,7 +3275,7 @@ showCloudResults(student, assessments) {
     const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
     const btn = document.getElementById('adminLoginBtn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_authenticating');
     btn.disabled = true;
     
     if (this.firebaseReady) {
@@ -2575,15 +3286,15 @@ showCloudResults(student, assessments) {
             // ✅ FIX: Direct redirect — don't wait for listener alone
             this.currentUser = userCredential.user;
             this.showSection('adminDashboard');
-            this.showToast('Welcome back, Counselor!', 'success');
+            this.showToast(this.t('toast_welcome_back'), 'success');
             
             // Reset button state
-            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
             btn.disabled = false;
             
         } catch (err) {
             this.showToast('Login failed: ' + err.message, 'error');
-            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
             btn.disabled = false;
         }
     } else {
@@ -2591,8 +3302,8 @@ showCloudResults(student, assessments) {
         setTimeout(() => {
             this.currentUser = { email, name: 'Subashini Sivalingam' };
             this.showSection('adminDashboard');
-            this.showToast('Demo mode: Logged in as Counselor', 'info');
-            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+            this.showToast(this.t('toast_demo_login'), 'info');
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
             btn.disabled = false;
         }, 800);
     }
@@ -2601,7 +3312,7 @@ showCloudResults(student, assessments) {
         async logout() {
     const btn = document.getElementById('adminLogoutBtn');
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_logging_out');
         btn.disabled = true;
     }
 
@@ -2638,7 +3349,7 @@ localStorage.removeItem('manasu_lastAdminPage');
     if (emailField) emailField.value = '';
     if (passField) passField.value = '';
     if (loginBtn) {
-        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In Securely';
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
         loginBtn.disabled = false;
     }
 
@@ -2652,11 +3363,11 @@ localStorage.removeItem('manasu_lastAdminPage');
     
     // ✅ Logout button-அ reset பண்ணி வை
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> <span>Logout</span>';
+        btn.innerHTML = '<i class="fas fa-sign-out-alt" style="color:var(--danger);"></i> <span>' + this.t('nav_logout') + '</span>';
         btn.disabled = false;
     }
     
-    this.showToast('Logged out successfully.', 'success');
+    this.showToast(this.t('toast_logged_out'), 'success');
 },
 
         // ═══════════════════════════════════════════════════════════════
@@ -2681,7 +3392,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             const recent = [...this.assessments].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
             const container = document.getElementById('dashRecentAssessments');
             if (recent.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h4>No assessments yet</h4><p>Create your first assessment to see data here</p></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h4 data-i18n="empty_no_assessments">No assessments yet</h4><p data-i18n="empty_create_first_assessment">Create your first assessment to see data here</p></div>';
             } else {
                 container.innerHTML = recent.map(a => {
                     const s = this.students.find(st => st.id === a.studentId);
@@ -2716,7 +3427,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             if (search) filtered = this.students.filter(s => s.name.toLowerCase().includes(search) || s.icNumber.includes(search) || s.class.toLowerCase().includes(search));
             
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">No students found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);" data-i18n="empty_no_students">No students found</td></tr>';
                 return;
             }
             tbody.innerHTML = filtered.map(s => `
@@ -2739,7 +3450,7 @@ localStorage.removeItem('manasu_lastAdminPage');
         openStudentModal(id = null) {
             document.getElementById('studentForm')?.reset();
             document.getElementById('studentEditId').value = '';
-            document.getElementById('studentModalTitle').textContent = id ? 'Edit Student' : 'Add New Student';
+            document.getElementById('studentModalTitle').textContent = id ? this.t('modal_edit_student') : this.t('modal_add_student');
             if (id) {
                 const s = this.students.find(st => st.id === id);
                 if (s) {
@@ -2771,12 +3482,12 @@ localStorage.removeItem('manasu_lastAdminPage');
             if (id) {
                 const idx = this.students.findIndex(s => s.id === id);
                 if (idx >= 0) this.students[idx] = { ...this.students[idx], ...data };
-                this.showToast('Student updated!', 'success');
+                this.showToast(this.t('toast_student_updated'), 'success');
             } else {
                 data.id = 'STU_' + Date.now();
                 data.createdAt = new Date().toISOString();
                 this.students.push(data);
-                this.showToast('Student added!', 'success');
+                this.showToast(this.t('toast_student_added'), 'success');
             }
             this.saveStudents();
             this.renderStudentsTable();
@@ -2796,19 +3507,19 @@ localStorage.removeItem('manasu_lastAdminPage');
                 this.assessments = this.assessments.filter(a => a.studentId !== this.deleteTarget.id);
                 this.saveStudents(); this.saveAssessments();
                 this.renderStudentsTable(); this.renderAssessmentsTable();
-                this.showToast('Student deleted', 'info');
+                this.showToast(this.t('toast_student_deleted'), 'info');
                 await this.deleteStudentFromFirebase(this.deleteTarget.id);
             } else if (this.deleteTarget.type === 'assessment') {
                 this.assessments = this.assessments.filter(a => a.id !== this.deleteTarget.id);
                 this.saveAssessments();
                 this.renderAssessmentsTable();
-                this.showToast('Assessment deleted', 'info');
+                this.showToast(this.t('toast_assessment_deleted'), 'info');
                 await this.deleteAssessmentFromFirebase(this.deleteTarget.id);
             } else if (this.deleteTarget.type === 'stemMission') {
                 this.stemMissions = this.stemMissions.filter(m => m.id !== this.deleteTarget.id);
                 this.saveStemMissions();
                 this.renderAdminStemMissions();
-                this.showToast('Mission deleted', 'info');
+                this.showToast(this.t('toast_mission_deleted'), 'info');
             }
 
             this.closeDeleteModal();
@@ -2818,16 +3529,13 @@ localStorage.removeItem('manasu_lastAdminPage');
                 populateStudentSelects() {
             const sel = document.getElementById('assStudent');
             if (sel) {
-                sel.innerHTML = '<option value="">Select Student</option>' + this.students.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
+                const sorted = [...this.students].sort((a, b) => a.name.localeCompare(b.name));
+                const tSelect = (this.i18n[this.currentLang] && this.i18n[this.currentLang]['form_select']) || 'Select Student';
+                sel.innerHTML = '<option value="">' + tSelect + '</option>' + sorted.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
             }
         },
 
-                populateStudentSelects() {
-            const sel = document.getElementById('assStudent');
-            if (sel) {
-                sel.innerHTML = '<option value="">Select Student</option>' + this.students.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
-            }
-        },
+                
 
         filterQRStudents() {
             const query = document.getElementById('qrSearchInput')?.value.toLowerCase().trim() || '';
@@ -2879,15 +3587,19 @@ localStorage.removeItem('manasu_lastAdminPage');
         renderAssessmentsTable() {
             const tbody = document.getElementById('assessmentsTableBody');
             const search = document.getElementById('assessmentSearch')?.value.toLowerCase() || '';
+            const severityFilter = document.getElementById('severityFilter')?.value || 'all';
             let filtered = this.assessments;
             if (search) {
-                filtered = this.assessments.filter(a => {
+                filtered = filtered.filter(a => {
                     const s = this.students.find(st => st.id === a.studentId);
                     return (s && s.name.toLowerCase().includes(search)) || a.date.includes(search);
                 });
             }
+            if (severityFilter !== 'all') {
+                filtered = filtered.filter(a => a.severity === severityFilter);
+            }
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">No assessments found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);" data-i18n="empty_no_assessments_found">No assessments found</td></tr>';
                 return;
             }
             tbody.innerHTML = filtered.map(a => {
@@ -2998,20 +3710,12 @@ localStorage.removeItem('manasu_lastAdminPage');
             else if (overall < this.settings.thresholds.normal) sev = 'mild';
             badgeEl.innerHTML = this.getSeverityBadge(sev);
         },
-        onStudentSelect() {
-            const studentId = document.getElementById('assStudent').value;
-            if (!studentId) return;
-            const student = this.students.find(s => s.id === studentId);
-            const age = student && student.age ? parseInt(student.age) : 0;
-            const isAge10 = age === 10;
-            console.log('Selected:', student?.name, 'Age:', age, 'isAge10:', isAge10);
-            this.generateAssessmentSliders(isAge10 ? 'age10' : 'standard');
-        },
+        
 
         saveAssessment(e) {
             e.preventDefault();
             const studentId = document.getElementById('assStudent').value;
-            if (!studentId) { this.showToast('Please select a student', 'error'); return; }
+            if (!studentId) { this.showToast(this.t('toast_select_student'), 'error'); return; }
             const student = this.students.find(s => s.id === studentId);
             const isAge10 = student && student.age === 10;
             const domainSet = isAge10 ? 'age10' : 'standard';
@@ -3052,12 +3756,12 @@ localStorage.removeItem('manasu_lastAdminPage');
             if (editId) {
                 const idx = this.assessments.findIndex(a => a.id === editId);
                 if (idx >= 0) this.assessments[idx] = { ...this.assessments[idx], ...data };
-                this.showToast('Assessment updated!', 'success');
+                this.showToast(this.t('toast_assessment_updated'), 'success');
             } else {
                 data.id = 'ASS_' + Date.now();
                 data.createdAt = new Date().toISOString();
                 this.assessments.push(data);
-                this.showToast('Assessment created!', 'success');
+                this.showToast(this.t('toast_assessment_added'), 'success');
             }
             this.saveAssessments();
             this.renderAssessmentsTable();
@@ -3102,7 +3806,13 @@ localStorage.removeItem('manasu_lastAdminPage');
                     <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Notes & Recommendations</h5>
                                         <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${this.getNotes(a)}</p>
                 </div>
-            `;
+            
+<div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(139,92,246,0.2); border-radius:16px;">
+                    <h5 style="margin-bottom:12px; color:#7c3aed;"><i class="fas fa-briefcase" style="margin-right:8px;"></i><span data-i18n="career_prediction_title">Career Path Prediction</span></h5>
+                    <div id="viewCareerMatches"></div>
+                </div>
+                            `;
+            this.renderCareerPredictions(a.domains, 'viewCareerMatches');
             document.getElementById('viewAssessmentModal').classList.add('show');
         },
 
@@ -3110,7 +3820,7 @@ localStorage.removeItem('manasu_lastAdminPage');
         // REPORTS & EXPORT
         // ═══════════════════════════════════════════════════════════════
         generateReport() {
-            this.showToast('Report generated! (Demo: check console)', 'info');
+            this.showToast(this.t('toast_report_generated'), 'info');
         },
                 exportReportExcel() {
             const data = this.assessments.map(a => {
@@ -3142,10 +3852,10 @@ localStorage.removeItem('manasu_lastAdminPage');
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Assessments');
                 XLSX.writeFile(wb, `MANASU_Assessments_${new Date().toISOString().split('T')[0]}.xlsx`);
-                this.showToast('Excel exported!', 'success');
+                this.showToast(this.t('toast_excel_exported'), 'success');
             } else {
                 this.downloadCSV(`MANASU_Assessments_${new Date().toISOString().split('T')[0]}.csv`, data, ['Class']);
-                this.showToast('CSV exported!', 'success');
+                this.showToast(this.t('toast_csv_exported'), 'success');
             }
         },
                                exportStudents() {
@@ -3158,18 +3868,18 @@ localStorage.removeItem('manasu_lastAdminPage');
                 'Parent Phone': s.parentPhone || ''
             }));
             this.downloadCSV(`MANASU_Students_${new Date().toISOString().split('T')[0]}.csv`, data, ['MyKid Number', 'Class']);
-            this.showToast('Students exported!', 'success');
+            this.showToast(this.t('toast_students_exported'), 'success');
         },
                         generateQR() {
             try {
                 const studentId = document.getElementById('qrStudentId').value;
                 if (!studentId) { 
-                    this.showToast('⚠️ Please select a student from the dropdown first', 'error'); 
+                    this.showToast(this.t('toast_select_student_qr'), 'error'); 
                     return; 
                 }
                 const s = this.students.find(st => st.id === studentId);
                 if (!s) {
-                    this.showToast('Student not found. Please search and select again.', 'error');
+                    this.showToast(this.t('toast_student_not_found_qr'), 'error');
                     return;
                 }
 
@@ -3203,12 +3913,12 @@ localStorage.removeItem('manasu_lastAdminPage');
                     } catch (err) {
                         console.error('QR render error:', err);
                         container.innerHTML = '<p style="color:var(--danger); text-align:center;">Failed to generate QR. Please try again.</p>';
-                        this.showToast('QR generation failed', 'error');
+                        this.showToast(this.t('toast_qr_failed'), 'error');
                     }
                 }, 500);
             } catch (err) {
                 console.error('generateQR error:', err);
-                this.showToast('Error generating QR: ' + err.message, 'error');
+                this.showToast(this.t('toast_qr_failed'), 'error');
             }
         },
 
@@ -3470,7 +4180,7 @@ localStorage.removeItem('manasu_lastAdminPage');
                 downloadIDCard() {
             const canvas = document.getElementById('idCardCanvas');
             if (!canvas) {
-                this.showToast('Generate card first!', 'error');
+                this.showToast(this.t('toast_generate_card_first'), 'error');
                 return;
             }
             const studentName = this.currentQRStudent?.name || 'Student';
@@ -3480,7 +4190,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            this.showToast('ID Card downloaded!', 'success');
+            this.showToast(this.t('toast_card_downloaded'), 'success');
         },
 
         // Helper for rounded rectangles with optional individual corners
@@ -3520,7 +4230,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `MANASU_Backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
-            this.showToast('Backup downloaded!', 'success');
+            this.showToast(this.t('toast_backup_downloaded'), 'success');
         },
         restoreData(input) {
             const file = input.files[0];
@@ -3533,8 +4243,8 @@ localStorage.removeItem('manasu_lastAdminPage');
                     if (data.assessments) { this.assessments = data.assessments; this.saveAssessments(); }
                     if (data.settings) { this.settings = data.settings; this.saveSettings(); }
                     this.renderStudentsTable(); this.renderAssessmentsTable(); this.populateStudentSelects(); this.updateHeroStats();
-                    this.showToast('Data restored!', 'success');
-                } catch (err) { this.showToast('Invalid backup file!', 'error'); }
+                    this.showToast(this.t('toast_data_restored'), 'success');
+                } catch (err) { this.showToast(this.t('toast_invalid_backup'), 'error'); }
             };
             reader.readAsText(file);
             input.value = '';
@@ -3554,22 +4264,14 @@ localStorage.removeItem('manasu_lastAdminPage');
         },
 
 
-                 showToast(msg, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            const icons = { success: 'check-circle', error: 'times-circle', info: 'info-circle' };
-            toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${msg}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        },
+                 
 
         // ═══════════════════════════════════════════════════════════════
         // UNIVERSAL CSV EXPORT HELPER
         // ═══════════════════════════════════════════════════════════════
         downloadCSV(filename, rows, textColumns = []) {
             if (!rows || rows.length === 0) {
-                this.showToast('No data to export!', 'error');
+                this.showToast(this.t('toast_no_data_export'), 'error');
                 return;
             }
             
@@ -3702,12 +4404,12 @@ localStorage.removeItem('manasu_lastAdminPage');
         searchStemMission() {
             const ic = document.getElementById('stemIcInput').value.trim().replace(/[-\s]/g, '').toUpperCase();
             if (!ic || ic.length < 6) {
-                this.showToast('Please enter a valid MyKid number', 'error');
+                this.showToast(this.t('toast_enter_valid_mykid'), 'error');
                 return;
             }
             const student = this.students.find(s => s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === ic);
             if (!student) {
-                this.showToast('Student not found. Please check your MyKid number.', 'error');
+                this.showToast(this.t('toast_no_student_mission'), 'error');
                 return;
             }
             this.currentStemStudent = student;
@@ -3822,7 +4524,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             const file = input.files[0];
             if (!file) return;
             if (file.size > 2 * 1024 * 1024) {
-                this.showToast('File too large! Max 2MB allowed.', 'error');
+                this.showToast(this.t('toast_file_too_large'), 'error');
                 input.value = '';
                 return;
             }
@@ -3833,7 +4535,7 @@ localStorage.removeItem('manasu_lastAdminPage');
                 document.getElementById('stemMissionFileData').value = base64;
                 document.getElementById('stemMissionFileName').value = file.name;
                 document.getElementById('stemMissionMimeType').value = mimeType;
-                this.showToast('File ready for upload!', 'success');
+                this.showToast(this.t('toast_file_ready'), 'success');
             };
             reader.readAsDataURL(file);
         },
@@ -3862,12 +4564,12 @@ localStorage.removeItem('manasu_lastAdminPage');
                     }
                     this.stemMissions[idx] = { ...this.stemMissions[idx], ...data };
                 }
-                this.showToast('Mission updated!', 'success');
+                this.showToast(this.t('toast_mission_updated'), 'success');
             } else {
                 data.id = 'MISSION_' + Date.now();
                 data.createdAt = new Date().toISOString();
                 this.stemMissions.push(data);
-                this.showToast('Mission published!', 'success');
+                this.showToast(this.t('toast_mission_added'), 'success');
             }
             this.saveStemMissions();
             this.renderAdminStemMissions();
@@ -3877,7 +4579,7 @@ localStorage.removeItem('manasu_lastAdminPage');
         renderAdminStemMissions() {
             const container = document.getElementById('stemMissionsList');
             if (this.stemMissions.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-rocket"></i><h4>No missions yet</h4><p>Create your first STEM mission</p></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-rocket"></i><h4 data-i18n="empty_no_missions">No missions yet</h4><p data-i18n="empty_create_first_mission">Create your first STEM mission</p></div>';
                 return;
             }
             let html = '<div style="display:flex; flex-direction:column; gap:16px;">';
