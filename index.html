@@ -9,12 +9,21 @@
     <meta name="apple-mobile-web-app-title" content="MANASU PsyCare">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="MANASU PsyCare">
+    <meta name="msapplication-TileColor" content="#0d9488">
+    <meta name="msapplication-TileImage" content="icon-192.png">
+    <meta name="msapplication-config" content="none">
+    <meta name="msapplication-navbutton-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MANASU PsyCare">
     <meta name="description" content="Secure psychometric wellness portal for SJKT TPG — Child psychology assessments for parents">
     
     <title>MANASU — Child Psychometric Wellness Portal</title>
     
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2913/2913465.png">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913465.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-32.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+    <meta name="msapplication-TileImage" content="icon-192.png">
     <link rel="manifest" href="manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -790,6 +799,7 @@ body.pdf-mode .timeline-content {
             line-height: 1.6;
             margin: 0;
         }
+
         .career-empty {
             text-align: center;
             padding: 30px;
@@ -805,6 +815,7 @@ body.pdf-mode .timeline-content {
 </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -815,7 +826,7 @@ body.pdf-mode .timeline-content {
 
     <nav class="top-nav" id="topNav">
         <div class="nav-brand" onclick="app.showSection('landing')" style="cursor:pointer">
-            <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
+            <div class="nav-brand-icon" style="background:transparent; box-shadow:none; padding:0; overflow:hidden;"><img src="icon-192.png" alt="MANASU" style="width:100%; height:100%; object-fit:contain; border-radius:10px;"></div>
             <div class="nav-brand-text">
                 <h1>MANASU</h1>
                 <span>Psychometric Wellness</span>
@@ -842,7 +853,7 @@ body.pdf-mode .timeline-content {
 <div class="mobile-menu" id="mobileMenu">
     <div class="mobile-menu-header">
         <div class="nav-brand">
-            <div class="nav-brand-icon"><i class="fas fa-brain"></i></div>
+            <div class="nav-brand-icon" style="background:transparent; box-shadow:none; padding:0; overflow:hidden;"><img src="icon-192.png" alt="MANASU" style="width:100%; height:100%; object-fit:contain; border-radius:10px;"></div>
             <div class="nav-brand-text">
                 <h1>MANASU</h1>
             </div>
@@ -994,7 +1005,7 @@ body.pdf-mode .timeline-content {
                         <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:16px; line-height:1.6;" data-i18n="career_prediction_desc">Based on the student's psychometric profile, here are the top career paths that align with their natural strengths and abilities.</p>
                         <div id="careerMatchesList">
                             <div class="career-empty">
-                                <i class="fas fa-brain"></i>
+                                <img src="icon-192.png" alt="MANASU" style="width:48px; height:48px; object-fit:contain; opacity:0.4; margin-bottom:12px;">
                                 <h4 data-i18n="career_no_data">No career data available</h4>
                             </div>
                         </div>
@@ -1080,7 +1091,7 @@ body.pdf-mode .timeline-content {
             <button class="admin-mobile-toggle" id="adminMobileToggle" onclick="app.toggleAdminSidebar()" aria-label="Menu"><i class="fas fa-bars"></i></button>
             <aside class="admin-sidebar" id="adminSidebar">
                 <div class="admin-sidebar-header">
-                    <h3><i class="fas fa-brain" style="color:var(--healing-teal)"></i> MANASU <span data-i18n="sidebar_admin">Admin</span></h3>
+                    <h3><img src="icon-192.png" alt="MANASU" style="width:22px; height:22px; object-fit:contain; border-radius:6px; vertical-align:middle; margin-right:6px;"> MANASU <span data-i18n="sidebar_admin">Admin</span></h3>
                     <p data-i18n="sidebar_control_center">Counselor Control Center</p>
                 </div>
                 <button class="admin-nav-item active" onclick="app.showAdminPage('dash')" data-admin-nav="dash"><i class="fas fa-chart-pie"></i> <span data-i18n="nav_dashboard">Dashboard</span></button>
@@ -2964,7 +2975,7 @@ showCloudResults(student, assessments) {
             const predictions = this.getCareerPredictions(domains);
             const lang = this.currentLang;
             if (predictions.length === 0) {
-                container.innerHTML = '<div class="career-empty"><i class="fas fa-brain"></i><h4>' + this.t('career_no_data') + '</h4></div>';
+                container.innerHTML = '<div class="career-empty"><img src="icon-192.png" alt="MANASU" style="width:48px;height:48px;object-fit:contain;opacity:0.4;margin-bottom:12px;"><h4>' + this.t('career_no_data') + '</h4></div>';
                 return;
             }
             const domainEntries = Object.entries(domains).sort((a, b) => b[1] - a[1]).slice(0, 2);
@@ -4630,9 +4641,14 @@ if ('serviceWorker' in navigator) {
 <!-- iOS Install Banner -->
 <div id="iosBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:var(--card-bg); border-top:1px solid var(--glass-border); padding:16px 20px; z-index:9999; backdrop-filter:blur(10px);">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:600px; margin:0 auto;">
-        <div style="font-size:0.9rem; color:var(--text-primary);">
-            <i class="fas fa-mobile-alt" style="color:var(--healing-teal); margin-right:8px;"></i>
-            <strong>Install MANASU</strong> — Tap <i class="fas fa-share-square" style="color:var(--malaysia-blue);"></i> then "Add to Home Screen"
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                <img src="icon-192.png" alt="MANASU" style="width:100%; height:100%; object-fit:contain; border-radius:10px;">
+            </div>
+            <div style="font-size:0.9rem; color:var(--text-primary);">
+                <strong>Install MANASU</strong><br>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Tap <i class="fas fa-share-square" style="color:var(--malaysia-blue);"></i> then "Add to Home Screen"</span>
+            </div>
         </div>
         <button onclick="document.getElementById('iosBanner').style.display='none'" style="background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
     </div>
