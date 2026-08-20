@@ -4425,7 +4425,7 @@ localStorage.removeItem('manasu_lastAdminPage');
             activeMissions.forEach((mission, idx) => {
                 const date = this.formatDate(mission.createdAt);
                 const whatsappText = `Hi Counselor, I am ${student.name} from Class ${student.class} (MyKid: ${student.icNumber}). I have completed the STEM Mission: "${mission.title}". Please find my attached work. Thank you!`;
-                const waLink = `https://wa.me/601125841706?text=${encodeURIComponent(whatsappText)}`;
+               
                 const fileLink = mission.fileData ? 
                     `data:${mission.mimeType || 'application/octet-stream'};base64,${mission.fileData}` : 
                     (mission.fileUrl || '#');
