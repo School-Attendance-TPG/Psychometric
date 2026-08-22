@@ -827,6 +827,8 @@ body.pdf-mode .timeline-content {
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -852,9 +854,9 @@ body.pdf-mode .timeline-content {
                 <button class="lang-btn" onclick="app.setLang('ta')" data-lang="ta">தமிழ்</button>
                 <button class="lang-btn" onclick="app.setLang('ms')" data-lang="ms">MS</button>
             </div>
-            <button class="nav-link" onclick="app.showSection('landing')" data-nav="landing"><i class="fas fa-home"></i> <span class="nav-text">Home</span></button>
-            <button class="nav-link" onclick="app.showSection('parentPortal')" data-nav="parentPortal"><i class="fas fa-user-shield"></i> <span class="nav-text">Parent Portal</span></button>
-            <button class="nav-link" onclick="app.showSection('stemMission')" data-nav="stemMission"><i class="fas fa-rocket"></i> <span class="nav-text">STEM Mission</span></button>
+            <button class="nav-link" onclick="app.showSection('landing')" data-nav="landing"><i class="fas fa-home"></i> <span class="nav-text" data-i18n="nav_home">Home</span></button>
+            <button class="nav-link" onclick="app.showSection('parentPortal')" data-nav="parentPortal"><i class="fas fa-user-shield"></i> <span class="nav-text" data-i18n="nav_parent_portal">Parent Portal</span></button>
+            <button class="nav-link" onclick="app.showSection('stemMission')" data-nav="stemMission"><i class="fas fa-rocket"></i> <span class="nav-text" data-i18n="nav_stem_mission">STEM Mission</span></button>
             
             
         </div>
@@ -873,9 +875,9 @@ body.pdf-mode .timeline-content {
         <button class="mobile-menu-close" onclick="app.closeMobileMenu()"><i class="fas fa-times"></i></button>
     </div>
     <div class="mobile-menu-body">
-        <button class="mobile-nav-link" onclick="app.showSection('landing');app.closeMobileMenu()" data-nav="landing"><i class="fas fa-home"></i> Home</button>
-        <button class="mobile-nav-link" onclick="app.showSection('parentPortal');app.closeMobileMenu()" data-nav="parentPortal"><i class="fas fa-user-shield"></i> Parent Portal</button>
-        <button class="mobile-nav-link" onclick="app.showSection('stemMission');app.closeMobileMenu()" data-nav="stemMission"><i class="fas fa-rocket"></i> STEM Mission</button>
+        <button class="mobile-nav-link" onclick="app.showSection('landing');app.closeMobileMenu()" data-nav="landing"><i class="fas fa-home"></i> <span data-i18n="nav_home">Home</span></button>
+        <button class="mobile-nav-link" onclick="app.showSection('parentPortal');app.closeMobileMenu()" data-nav="parentPortal"><i class="fas fa-user-shield"></i> <span data-i18n="nav_parent_portal">Parent Portal</span></button>
+        <button class="mobile-nav-link" onclick="app.showSection('stemMission');app.closeMobileMenu()" data-nav="stemMission"><i class="fas fa-rocket"></i> <span data-i18n="nav_stem_mission">STEM Mission</span></button>
         
         
     </div>
@@ -1043,7 +1045,7 @@ body.pdf-mode .timeline-content {
                     <form id="teacherLoginForm" onsubmit="app.teacherLogin(event)">
                         <div class="form-group">
                             <label>Email Address</label>
-                            <input type="email" id="teacherUsername" class="input-premium" placeholder="tpgsjkt@gmail.com" required autocomplete="off">
+                            <input type="email" id="teacherUsername" class="input-premium" placeholder="teacher@sjkt-tpg.edu.my" required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label data-i18n="label_password">Password</label>
@@ -1790,6 +1792,12 @@ body.pdf-mode .timeline-content {
                 detailed_analysis: 'Detailed Psychometric Analysis',
                 counselor_notes: 'Counselor Recommendations',
                 assessment_history: 'Assessment History',
+                label_assessment: 'Assessment',
+                label_score: 'Score',
+                label_current: 'CURRENT',
+                label_view: 'VIEW',
+                status_resolved_label: 'Resolved',
+                status_active_monitoring: 'Active Monitoring',
                 stem_badge: 'STEM Challenge',
                 stem_title: 'STEM Mission Portal',
                 stem_desc: 'Enter your MyKid number to access the latest STEM missions, download challenge files, and submit your completed work.',
@@ -1831,6 +1839,9 @@ body.pdf-mode .timeline-content {
                 nav_stem_missions: 'STEM Missions',
                 nav_settings: 'Settings',
                 nav_logout: 'Logout',
+                nav_home: 'Home',
+                nav_parent_portal: 'Parent Portal',
+                nav_stem_mission: 'STEM Mission',
                 secured_by: 'Secured by Firebase',
                 version: 'v3.0 Premium',
                 login_title: 'Counselor Portal',
@@ -2004,7 +2015,11 @@ body.pdf-mode .timeline-content {
                 filter_normal: 'Normal',
                 filter_mild: 'Mild Concern',
                 filter_moderate: 'Moderate Concern',
-                filter_severe: 'Severe Concern'
+                filter_severe: 'Severe Concern',
+                score_excellent: 'Excellent',
+                score_good: 'Good',
+                score_moderate_concern: 'Moderate Concern',
+                score_requires_attention: 'Requires Immediate Attention'
             },
                         ta: {
                 badge_secure: 'பாதுகாப்பானது & ரகசியமானது',
@@ -2024,6 +2039,12 @@ body.pdf-mode .timeline-content {
                 detailed_analysis: 'விரிவான உளவியல் பகுப்பாய்வு',
                 counselor_notes: 'ஆலோசகர் பரிந்துரைகள்',
                 assessment_history: 'மதிப்பீட்டு வரலாறு',
+                label_assessment: 'மதிப்பீடு',
+                label_score: 'மதிப்பெண்',
+                label_current: 'தற்போதைய',
+                label_view: 'காண்க',
+                status_resolved_label: 'தீர்க்கப்பட்டது',
+                status_active_monitoring: 'செயலில் உள்ள கண்காணிப்பு',
                 stem_badge: 'STEM சவால்',
                 stem_title: 'STEM பணி இணையதளம்',
                 stem_desc: 'சமீபத்திய STEM பணிகளை அணுக, சவால் கோப்புகளைப் பதிவிறக்கம் செய்ய மற்றும் உங்கள் முடிக்கப்பட்ட பணிகளைச் சமர்ப்பிக்க உங்கள் MyKid எண்ணை உள்ளிடவும்.',
@@ -2065,6 +2086,9 @@ body.pdf-mode .timeline-content {
                 nav_stem_missions: 'STEM பணிகள்',
                 nav_settings: 'அமைப்புகள்',
                 nav_logout: 'வெளியேறு',
+                nav_home: 'முகப்பு',
+                nav_parent_portal: 'பெற்றோர் இணையதளம்',
+                nav_stem_mission: 'STEM பணி',
                 secured_by: 'Firebase மூலம் பாதுகாக்கப்பட்டது',
                 version: 'v3.0 பிரீமியம்',
                 login_title: 'ஆலோசகர் இணையதளம்',
@@ -2238,7 +2262,11 @@ body.pdf-mode .timeline-content {
                 filter_normal: 'இயல்பான',
                 filter_mild: 'லேசான கவலை',
                 filter_moderate: 'மிதமான கவலை',
-                filter_severe: 'கடுமையான கவலை'
+                filter_severe: 'கடுமையான கவலை',
+                score_excellent: 'சிறந்தது',
+                score_good: 'நல்லது',
+                score_moderate_concern: 'மிதமான கவலை',
+                score_requires_attention: 'உடனடி கவனம் தேவை'
             },
             ms: {
                 badge_secure: 'Selamat & Sulit',
@@ -2258,6 +2286,12 @@ body.pdf-mode .timeline-content {
                 detailed_analysis: 'Analisis Psikometrik Terperinci',
                 counselor_notes: 'Cadangan Kaunselor',
                 assessment_history: 'Sejarah Penilaian',
+                label_assessment: 'Penilaian',
+                label_score: 'Skor',
+                label_current: 'SEMASA',
+                label_view: 'LIHAT',
+                status_resolved_label: 'Diselesaikan',
+                status_active_monitoring: 'Pemantauan Aktif',
                 stem_badge: 'Cabaran STEM',
                 stem_title: 'Portal Misi STEM',
                 stem_desc: 'Masukkan nombor MyKid anda untuk mengakses misi STEM terkini, memuat turun fail cabaran, dan menghantar kerja yang telah selesai.',
@@ -2299,6 +2333,9 @@ body.pdf-mode .timeline-content {
                 nav_stem_missions: 'Misi STEM',
                 nav_settings: 'Tetapan',
                 nav_logout: 'Log Keluar',
+                nav_home: 'Laman Utama',
+                nav_parent_portal: 'Portal Ibu Bapa',
+                nav_stem_mission: 'Misi STEM',
                 secured_by: 'Dilindungi oleh Firebase',
                 version: 'v3.0 Premium',
                 login_title: 'Portal Kaunselor',
@@ -2472,7 +2509,11 @@ body.pdf-mode .timeline-content {
                 filter_normal: 'Normal',
                 filter_mild: 'Kegelisahan Ringan',
                 filter_moderate: 'Kegelisahan Sederhana',
-                filter_severe: 'Kegelisahan Teruk'
+                filter_severe: 'Kegelisahan Teruk',
+                score_excellent: 'Cemerlang',
+                score_good: 'Baik',
+                score_moderate_concern: 'Kegelisahan Sederhana',
+                score_requires_attention: 'Memerlukan Perhatian Segera'
             }
         },
 
@@ -2705,10 +2746,10 @@ body.pdf-mode .timeline-content {
                 role: role
             };
             localStorage.setItem('manasu_currentUser', JSON.stringify(this.currentUser));
-        } else {
-            this.currentUser = null;
-            localStorage.removeItem('manasu_currentUser');
         }
+        // ✅ FIX: Don't clear localStorage when Firebase user is null
+        // Demo/local mode users are stored in localStorage and should persist
+        // Logout functions already handle clearing localStorage
     });
 },
 
@@ -2875,9 +2916,27 @@ body.pdf-mode .timeline-content {
                 const activePage = document.querySelector('.admin-page.active');
                 if (activePage) {
                     const pageId = activePage.id.replace('adminPage-', '');
-                    this.showAdminPage(pageId);
+                    // ✅ Force re-render on language change (bypass cache)
+                    if (pageId === 'dash') this.updateDashboard();
+                    if (pageId === 'students') this.renderStudentsTable();
+                    if (pageId === 'assessments') this.renderAssessmentsTable();
+                    if (pageId === 'reports') { /* no table to refresh */ }
+                    if (pageId === 'stemMissions') this.renderAdminStemMissions();
+                    if (pageId === 'settings') this.loadSettings();
                 }
                 this.updateDashboard();
+            }
+            // ✅ Teacher dashboard - force re-render on language change
+            if (document.getElementById('teacherDashboard').classList.contains('active')) {
+                const activePage = document.querySelector('#teacherDashboard .admin-page.active');
+                if (activePage) {
+                    const pageId = activePage.id.replace('teacherPage-', '');
+                    if (pageId === 'classResults') {
+                        this.renderTeacherStudentsTable();
+                        this.updateTeacherStats();
+                    }
+                    if (pageId === 'assessments') this.renderTeacherAssessmentsTable();
+                }
             }
             if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
                 this.refreshResultsView();
@@ -3087,7 +3146,14 @@ body.pdf-mode .timeline-content {
                 try {
                     const { signInWithEmailAndPassword } = window.fb;
                     const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-                    this.currentUser = { ...userCredential.user, role: 'teacher', name: 'Teacher' };
+                    // ✅ FIX: Store clean object instead of spreading Firebase user
+                    this.currentUser = {
+                        uid: userCredential.user.uid,
+                        email: userCredential.user.email,
+                        displayName: userCredential.user.displayName,
+                        role: 'teacher',
+                        name: 'Teacher'
+                    };
                     doTeacherLogin();
                     return;
                 } catch (err) {
@@ -3277,7 +3343,7 @@ body.pdf-mode .timeline-content {
                     '<td><strong>' + (s ? s.name : 'Unknown') + '</strong></td>' +
                     '<td><span style="font-weight:700; color:' + this.getScoreColor(a.overallScore) + ';">' + a.overallScore.toFixed(1) + '</span></td>' +
                     '<td>' + this.getSeverityBadge(a.severity) + '</td>' +
-                    '<td><span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:' + (a.status==='resolved'?'rgba(0,210,160,0.1)':'rgba(253,203,110,0.1)') + '; color:' + (a.status==='resolved'?'var(--success)':'var(--warning)') + ';">' + a.status + '</span></td>' +
+                    '<td><span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:' + (a.status==='resolved'?'rgba(0,210,160,0.1)':'rgba(253,203,110,0.1)') + '; color:' + (a.status==='resolved'?'var(--success)':'var(--warning)') + ';">' + (a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')) + '</span></td>' +
                     '<td><div class="table-actions">' +
                         '<button class="btn-table btn-table-view" onclick="app.viewTeacherAssessmentById(\'' + a.id + '\')" title="View"><i class="fas fa-eye"></i></button>' +
                     '</div></td>' +
@@ -3329,14 +3395,14 @@ body.pdf-mode .timeline-content {
                         '<div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ' + a.counselorName + '</div>' +
                     '</div>' +
                 '</div>' +
-                '<h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>Domain Scores</h5>' +
+                '<h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>' + this.t('domain_breakdown') + '</h5>' +
                 domainHtml +
                 '<div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">' +
-                    '<h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Notes & Recommendations</h5>' +
+                    '<h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>' + this.t('counselor_notes') + '</h5>' +
                     '<p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">' + this.getNotes(a) + '</p>' +
                 '</div>' +
                 '<div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(139,92,246,0.2); border-radius:16px;">' +
-                    '<h5 style="margin-bottom:12px; color:#7c3aed;"><i class="fas fa-briefcase" style="margin-right:8px;"></i><span data-i18n="career_prediction_title">Career Path Prediction</span></h5>' +
+                    '<h5 style="margin-bottom:12px; color:#7c3aed;"><i class="fas fa-briefcase" style="margin-right:8px;"></i>' + this.t('career_prediction_title') + '</h5>' +
                     '<div id="viewCareerMatches"></div>' +
                 '</div>';
             this.renderCareerPredictions(a.domains, 'viewCareerMatches');
@@ -3352,7 +3418,7 @@ showCloudResults(student, assessments) {
     const latest = assessments[0];
     
     document.getElementById('resChildName').textContent = student.name;
-    document.getElementById('resChildMeta').innerHTML = `Class ${student.class} • MyKid: ${student.icNumber} • Age ${student.age || '-'}`;
+    document.getElementById('resChildMeta').innerHTML = `${this.t('th_class')} ${student.class} • MyKid: ${student.icNumber} • ${this.t('th_age')} ${student.age || '-'}`;
     document.getElementById('resAvatar').innerHTML = '<i class="fas fa-child"></i>';
     
     const circumference = 2 * Math.PI * 85;
@@ -3429,10 +3495,10 @@ showCloudResults(student, assessments) {
                 <div class="timeline-date" style="${isLatest ? 'color:rgba(255,255,255,0.9);' : ''}">${this.formatDate(a.date)}</div>
                 <div class="timeline-content">
                     <h5 style="display:flex; justify-content:space-between; align-items:center;">
-                        Assessment #${assessments.length - idx} — Score: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10
-                        ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">CURRENT</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">VIEW</span>'}
+                        ${this.t('label_assessment')} #${assessments.length - idx} — ${this.t('label_score')}: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10
+                        ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">' + this.t('label_current') + '</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">' + this.t('label_view') + '</span>'}
                     </h5>
-                    <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
+                    <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> ' + this.t('status_resolved_label') : '<i class="fas fa-clock" style="color:var(--warning)"></i> ' + this.t('status_active_monitoring')}</p>
                 </div>
             </div>
         `;
@@ -3476,7 +3542,7 @@ showCloudResults(student, assessments) {
             const latest = assessments[0];
             
             document.getElementById('resChildName').textContent = student.name;
-            document.getElementById('resChildMeta').innerHTML = `Class ${student.class} • MyKid: ${student.icNumber} • Age ${student.age}`;
+            document.getElementById('resChildMeta').innerHTML = `${this.t('th_class')} ${student.class} • MyKid: ${student.icNumber} • ${this.t('th_age')} ${student.age}`;
             document.getElementById('resAvatar').innerHTML = '<i class="fas fa-child"></i>';
             
             // Ring chart
@@ -3559,10 +3625,10 @@ showCloudResults(student, assessments) {
                         <div class="timeline-date" style="${isLatest ? 'color:rgba(255,255,255,0.9);' : ''}">${this.formatDate(a.date)}</div>
                         <div class="timeline-content">
                             <h5 style="display:flex; justify-content:space-between; align-items:center;">
-                                Assessment #${assessments.length - idx} — Score: ${a.overallScore.toFixed(1)}/10
-                                ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">CURRENT</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">VIEW</span>'}
+                                ${this.t('label_assessment')} #${assessments.length - idx} — ${this.t('label_score')}: ${a.overallScore.toFixed(1)}/10
+                                ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">' + this.t('label_current') + '</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">' + this.t('label_view') + '</span>'}
                             </h5>
-                            <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
+                            <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> ' + this.t('status_resolved_label') : '<i class="fas fa-clock" style="color:var(--warning)"></i> ' + this.t('status_active_monitoring')}</p>
                         </div>
                     </div>
                 `;
@@ -3625,10 +3691,10 @@ showCloudResults(student, assessments) {
     getScoreLabel(score, max) {
             const m = max || 10;
             const pct = (score / m) * 100;
-            if (pct >= 70) return 'Excellent';
-            if (pct >= 50) return 'Good';
-            if (pct >= 30) return 'Moderate Concern';
-            return 'Requires Immediate Attention';
+            if (pct >= 70) return this.t('score_excellent');
+            if (pct >= 50) return this.t('score_good');
+            if (pct >= 30) return this.t('score_moderate_concern');
+            return this.t('score_requires_attention');
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -3776,12 +3842,28 @@ showCloudResults(student, assessments) {
         },
 
         getSeverityBadge(sev) {
-            const map = { normal: ['sev-normal', 'Normal'], mild: ['sev-mild', 'Mild Concern'], moderate: ['sev-moderate', 'Moderate Concern'], severe: ['sev-severe', 'Severe Concern'] };
+            const map = { 
+                normal: ['sev-normal', this.t('filter_normal')], 
+                mild: ['sev-mild', this.t('filter_mild')], 
+                moderate: ['sev-moderate', this.t('filter_moderate')], 
+                severe: ['sev-severe', this.t('filter_severe')] 
+            };
             const [cls, text] = map[sev] || map.normal;
             return `<span class="severity-badge ${cls}"><i class="fas fa-circle" style="font-size:0.5rem;"></i> ${text}</span>`;
         },
         formatDate(dateStr) {
             const d = new Date(dateStr);
+            const monthsMs = ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+            const monthsTa = ['ஜனவரி', 'பிப்ரவரி', 'மார்ச்', 'ஏப்ரல்', 'மே', 'ஜூன்', 'ஜூலை', 'ஆகஸ்ட்', 'செப்டம்பர்', 'அக்டோபர்', 'நவம்பர்', 'டிசம்பர்'];
+            const day = d.getDate();
+            const month = d.getMonth();
+            const year = d.getFullYear();
+            if (this.currentLang === 'ms') {
+                return `${day} ${monthsMs[month]} ${year}`;
+            }
+            if (this.currentLang === 'ta') {
+                return `${day} ${monthsTa[month]}, ${year}`;
+            }
             return d.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' });
         },
 
@@ -3866,6 +3948,14 @@ showCloudResults(student, assessments) {
             const assessments = this.currentResultAllAssessments;
             const lang = this.currentLang;
 
+            // Update meta header with current language
+            const metaEl = document.getElementById('resChildMeta');
+            if (metaEl) {
+                const dateMatch = metaEl.innerHTML.match(/<strong[^>]*>(.*?)<\/strong>/);
+                const datePart = dateMatch ? ` • <strong style="color:var(--healing-teal)">${dateMatch[1]}</strong>` : '';
+                metaEl.innerHTML = `${this.t('th_class')} ${student.class} • MyKid: ${student.icNumber} • ${this.t('th_age')} ${student.age || '-'}${datePart}`;
+            }
+
             // Re-render domain bars
             let barsHtml = '';
             if (latest.domains) {
@@ -3934,10 +4024,10 @@ showCloudResults(student, assessments) {
                         <div class="timeline-date" style="${isLatest ? 'color:rgba(255,255,255,0.9);' : ''}">${this.formatDate(a.date)}</div>
                         <div class="timeline-content">
                             <h5 style="display:flex; justify-content:space-between; align-items:center;">
-                                Assessment #${assessments.length - idx} — Score: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10
-                                ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">CURRENT</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">VIEW</span>'}
+                                ${this.t('label_assessment')} #${assessments.length - idx} — ${this.t('label_score')}: ${a.overallScore ? a.overallScore.toFixed(1) : '-'}/10
+                                ${isLatest ? '<span style="font-size:0.7rem; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">' + this.t('label_current') + '</span>' : '<span style="font-size:0.7rem; background:var(--healing-teal); color:white; padding:2px 8px; border-radius:12px;">' + this.t('label_view') + '</span>'}
                             </h5>
-                            <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> Resolved' : '<i class="fas fa-clock" style="color:var(--warning)"></i> Active Monitoring'}</p>
+                            <p>${sev} • ${a.status === 'resolved' ? '<i class="fas fa-check-circle" style="color:var(--success)"></i> ' + this.t('status_resolved_label') : '<i class="fas fa-clock" style="color:var(--warning)"></i> ' + this.t('status_active_monitoring')}</p>
                         </div>
                     </div>`;
                 });
@@ -3978,7 +4068,7 @@ showCloudResults(student, assessments) {
     
     // Update header
     document.getElementById('resChildName').textContent = student.name;
-    document.getElementById('resChildMeta').innerHTML = `Class ${student.class} • MyKid: ${student.icNumber} • Age ${student.age || '-'} • <strong style="color:var(--healing-teal)">${this.formatDate(selected.date)}</strong>`;
+    document.getElementById('resChildMeta').innerHTML = `${this.t('th_class')} ${student.class} • MyKid: ${student.icNumber} • ${this.t('th_age')} ${student.age || '-'} • <strong style="color:var(--healing-teal)">${this.formatDate(selected.date)}</strong>`;
     
     // Update score ring
     const circumference = 2 * Math.PI * 85;
@@ -4111,7 +4201,7 @@ showCloudResults(student, assessments) {
     } else {
         // Demo mode fallback
         setTimeout(() => {
-            this.currentUser = { email, name: 'Subashini Sivalingam' };
+            this.currentUser = { email, name: 'Subashini Sivalingam', role: 'admin' };
             this.showSection('adminDashboard');
             this.showToast(this.t('toast_demo_login'), 'info');
             btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
@@ -4422,7 +4512,7 @@ showCloudResults(student, assessments) {
                         <td><strong>${s ? s.name : 'Unknown'}</strong></td>
                         <td><span style="font-weight:700; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</span></td>
                         <td>${this.getSeverityBadge(a.severity)}</td>
-                        <td><span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:${a.status==='resolved'?'rgba(0,210,160,0.1)':'rgba(253,203,110,0.1)'}; color:${a.status==='resolved'?'var(--success)':'var(--warning)'};">${a.status}</span></td>
+                        <td><span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:${a.status==='resolved'?'rgba(0,210,160,0.1)':'rgba(253,203,110,0.1)'}; color:${a.status==='resolved'?'var(--success)':'var(--warning)'};">${a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')}</span></td>
                         <td><div class="table-actions">
                             <button class="btn-table btn-table-view" onclick="app.viewAssessment('${a.id}')" title="View"><i class="fas fa-eye"></i></button>
                             <button class="btn-table btn-table-edit" onclick="app.editAssessment('${a.id}')" title="Edit"><i class="fas fa-edit"></i></button>
@@ -4612,15 +4702,15 @@ showCloudResults(student, assessments) {
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ${a.counselorName}</div>
                     </div>
                 </div>
-                <h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>Domain Scores</h5>
+                <h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>${this.t('domain_breakdown')}</h5>
                 ${domainHtml}
                 <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">
-                    <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Notes & Recommendations</h5>
+                    <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>${this.t('counselor_notes')}</h5>
                                         <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${this.getNotes(a)}</p>
                 </div>
             
 <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(139,92,246,0.2); border-radius:16px;">
-                    <h5 style="margin-bottom:12px; color:#7c3aed;"><i class="fas fa-briefcase" style="margin-right:8px;"></i><span data-i18n="career_prediction_title">Career Path Prediction</span></h5>
+                    <h5 style="margin-bottom:12px; color:#7c3aed;"><i class="fas fa-briefcase" style="margin-right:8px;"></i>${this.t('career_prediction_title')}</h5>
                     <div id="viewCareerMatches"></div>
                 </div>
                             `;
