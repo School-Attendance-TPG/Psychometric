@@ -1367,7 +1367,7 @@ body.pdf-mode .timeline-content {
                         <div id="teacherClassBadge" style="display:none; animation:fadeInUp 0.4s ease;">
                             <div style="display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg, var(--healing-teal), var(--malaysia-blue)); color:white; padding:12px 24px; border-radius:14px; box-shadow:0 6px 20px rgba(13,148,136,0.25);">
                                 <i class="fas fa-school" style="font-size:1.1rem;"></i>
-                                <span style="font-size:1.2rem; font-weight:700;">Class <span id="teacherClassName">-</span></span>
+                                <span style="font-size:1.2rem; font-weight:700;"><span id="teacherClassLabel" data-i18n="th_class">Class</span> <span id="teacherClassName">-</span></span>
                             </div>
                         </div>
                     </div>
@@ -1868,7 +1868,7 @@ body.pdf-mode .timeline-content {
                 th_class: 'Class',
                 th_age: 'Age',
                 th_parent_contact: 'Parent Contact',
-                th_actions: 'Actions',
+                th_actions: 'Tindakan',
                 empty_no_students: 'No students found',
                 admin_assessments_title: 'Assessments',
                 admin_assessments_subtitle: 'Create and manage psychometric evaluations',
@@ -2937,6 +2937,9 @@ body.pdf-mode .timeline-content {
                     }
                     if (pageId === 'assessments') this.renderTeacherAssessmentsTable();
                 }
+                // ✅ Update class badge label
+                const classLabel = document.getElementById('teacherClassLabel');
+                if (classLabel) classLabel.textContent = this.t('th_class');
             }
             if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
                 this.refreshResultsView();
@@ -3281,12 +3284,12 @@ body.pdf-mode .timeline-content {
                     .filter(a => a.studentId === s.id)
                     .sort((a, b) => b.date.localeCompare(a.date))[0];
                 const score = latest ? latest.overallScore.toFixed(1) : '-';
-                const severity = latest ? this.getSeverityBadge(latest.severity) : '<span class="severity-badge sev-normal">No Data</span>';
+                const severity = latest ? this.getSeverityBadge(latest.severity) : '<span class="severity-badge sev-normal">' + this.t('empty_no_assessments') + '</span>';
                 const status = latest ? latest.status : '-';
                 const statusBadge = status === 'resolved' 
-                    ? '<span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:rgba(0,210,160,0.1); color:var(--success);">Resolved</span>'
+                    ? '<span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:rgba(0,210,160,0.1); color:var(--success);">' + this.t('status_resolved_label') + '</span>'
                     : status === 'active' 
-                        ? '<span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:rgba(253,203,110,0.1); color:var(--warning);">Active</span>'
+                        ? '<span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:rgba(253,203,110,0.1); color:var(--warning);">' + this.t('status_active_monitoring') + '</span>'
                         : '<span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:rgba(148,163,184,0.1); color:var(--text-muted);">-</span>';
 
                 return '<tr>' +
@@ -3387,11 +3390,11 @@ body.pdf-mode .timeline-content {
                 '<div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">' +
                     '<div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">' +
                         '<div style="font-size:2.5rem; font-weight:800; color:' + this.getScoreColor(a.overallScore) + ';">' + a.overallScore.toFixed(1) + '</div>' +
-                        '<div style="font-size:0.8rem; color:var(--text-muted);">Overall Score</div>' +
+                        '<div style="font-size:0.8rem; color:var(--text-muted);">' + this.t('th_overall') + '</div>' +
                     '</div>' +
                     '<div style="flex:1; min-width:200px; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">' +
                         '<div style="margin-bottom:8px;">' + this.getSeverityBadge(a.severity) + '</div>' +
-                        '<div style="font-size:0.85rem; color:var(--text-muted);">Status: <span style="color:var(--text-primary); font-weight:600;">' + a.status + '</span></div>' +
+                        '<div style="font-size:0.85rem; color:var(--text-muted);">' + this.t('th_status') + ': <span style="color:var(--text-primary); font-weight:600;">' + (a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')) + '</span></div>' +
                         '<div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ' + a.counselorName + '</div>' +
                     '</div>' +
                 '</div>' +
@@ -4694,11 +4697,11 @@ showCloudResults(student, assessments) {
                 <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
                         <div style="font-size:2.5rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted);">Overall Score</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">${this.t('th_overall')}</div>
                     </div>
                     <div style="flex:1; min-width:200px; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
                         <div style="margin-bottom:8px;">${this.getSeverityBadge(a.severity)}</div>
-                        <div style="font-size:0.85rem; color:var(--text-muted);">Status: <span style="color:var(--text-primary); font-weight:600;">${a.status}</span></div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">${this.t('th_status')}: <span style="color:var(--text-primary); font-weight:600;">${a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')}</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ${a.counselorName}</div>
                     </div>
                 </div>
