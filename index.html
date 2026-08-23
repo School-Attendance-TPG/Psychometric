@@ -17,6 +17,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MANASU PsyCare">
     <meta name="description" content="Secure psychometric wellness portal for SJKT TPG — Child psychology assessments for parents">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src https://*.firebaseio.com https://*.googleapis.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     
     <title>MANASU — Child Psychometric Wellness Portal</title>
     
@@ -75,6 +79,8 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
+        // SECURITY: Restrict this API key in Firebase Console → Project Settings → General → Restrict Key
+        // SECURITY: Restrict this API key in Firebase Console → Project Settings → Restrict Key
         const firebaseConfig = {
   apiKey: "AIzaSyD0PiMNIyVwKT8Lne6QOFE9PSBU5k0V0c0",
   authDomain: "psychosomatic-result.firebaseapp.com",
@@ -864,6 +870,10 @@ body.pdf-mode .timeline-content {
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -976,6 +986,10 @@ body.pdf-mode .timeline-content {
                         <div class="ic-input-wrap">
                             <i class="fas fa-id-card"></i>
                             <input type="text" class="input-premium" id="parentIcInput" placeholder="e.g. 100901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchByIC()">
+                        </div>
+                        <div class="ic-input-wrap" style="margin-top:12px;">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" class="input-premium" id="parentPinInput" placeholder="Enter 4-digit PIN" maxlength="4" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchByIC()">
                         </div>
                         <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="app.searchByIC()">
                             <i class="fas fa-search"></i> <span data-i18n="btn_view_results">View Results</span>
@@ -1512,6 +1526,7 @@ body.pdf-mode .timeline-content {
                     <div class="form-group"><label data-i18n="form_age">Age</label><input type="number" id="stuAge" class="input-premium" placeholder="e.g. 12" min="5" max="18"></div>
                     <div class="form-group"><label data-i18n="form_parent_name">Parent Name</label><input type="text" id="stuParent" class="input-premium" placeholder="e.g. Mr. Kumar"></div>
                     <div class="form-group"><label data-i18n="form_parent_phone">Parent Phone</label><input type="tel" id="stuPhone" class="input-premium" placeholder="e.g. 012-3456789"></div>
+                    <div class="form-group"><label>Parent PIN (4 digits)</label><input type="text" id="stuParentPin" class="input-premium" placeholder="e.g. 4829" maxlength="4" pattern="\d{4}"></div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
                     <button type="button" class="btn btn-outline" onclick="app.closeStudentModal()" data-i18n="btn_cancel">Cancel</button>
@@ -1712,6 +1727,8 @@ body.pdf-mode .timeline-content {
         stemMissions: [],
         currentStemStudent: null,
         viewSource: "parent",
+        pinAttempts: {},
+        pinLockUntil: {},
 
         settings: {
             counselorName: 'Subashini Sivalingam',
@@ -2596,14 +2613,8 @@ body.pdf-mode .timeline-content {
                 this.showSection('parentPortal');
 
                 if (source === 'qr') {
-                    // Auto-trigger search after parent sees the portal (1.5s delay)
-                    setTimeout(() => {
-                        const input = document.getElementById('parentIcInput');
-                        if (input && input.value === targetStudent.icNumber) {
-                            this.showToast('🔐 Verifying MyKid...', 'info');
-                            this.searchByIC();
-                        }
-                    }, 1500);
+                    // SECURITY: Never auto-login. Only pre-fill MyKid.
+                    // Parent must complete authentication (OTP/PIN) manually.
                 } else {
                     // Manual entry: just focus the input
                     setTimeout(() => {
@@ -2629,10 +2640,7 @@ body.pdf-mode .timeline-content {
     this.setLang('en');
 
     // ✅ RESTORE SESSION USER (so refresh doesn't logout)
-    const savedUser = localStorage.getItem('manasu_currentUser');
-    if (savedUser) {
-        try { this.currentUser = JSON.parse(savedUser); } catch(e) { this.currentUser = null; }
-    }
+    this.currentUser = null; // Auth from Firebase only
 
     // Set today's date for inputs
     const today = new Date().toISOString().split('T')[0];
@@ -2653,7 +2661,7 @@ body.pdf-mode .timeline-content {
         // ✅ RESTORE LAST SECTION AFTER REFRESH
     const lastSection = localStorage.getItem('manasu_lastSection');
     const lastAdminPage = localStorage.getItem('manasu_lastAdminPage');
-    const lastSearchedIC = localStorage.getItem('manasu_lastSearchedIC');
+    const lastSearchedIC = null;
     
     setTimeout(() => {
         // ✅ QR SCAN TAKES PRECEDENCE: Check URL params first
@@ -2780,7 +2788,7 @@ body.pdf-mode .timeline-content {
                 displayName: user.displayName,
                 role: role
             };
-            localStorage.setItem('manasu_currentUser', JSON.stringify(this.currentUser));
+            /* Auth state uses Firebase only, not localStorage */
         }
         // ✅ FIX: Don't clear localStorage when Firebase user is null
         // Demo/local mode users are stored in localStorage and should persist
@@ -2988,51 +2996,13 @@ body.pdf-mode .timeline-content {
         // DEMO DATA (LocalStorage Fallback)
         // ═══════════════════════════════════════════════════════════════
         loadDemoData() {
-            const savedStudents = localStorage.getItem('manasu_students');
-            const savedAssessments = localStorage.getItem('manasu_assessments');
-            if (savedStudents) this.students = JSON.parse(savedStudents);
-            if (savedAssessments) this.assessments = JSON.parse(savedAssessments);
-            
-            if (this.students.length === 0) {
-                // Seed demo data
-                this.students = [
-                    { id: 'STU_1', name: 'Arun Kumar', icNumber: '200901041234', class: '5 A', age: 12, parentName: 'Mr. Rajesh Kumar', parentPhone: '012-3456789', createdAt: new Date().toISOString() },
-                    { id: 'STU_2', name: 'Priya Devi', icNumber: '201002055678', class: '4 B', age: 11, parentName: 'Mrs. Lakshmi Devi', parentPhone: '013-9876543', createdAt: new Date().toISOString() },
-                    { id: 'STU_3', name: 'Kavin Raj', icNumber: '200812031111', class: '6 A', age: 13, parentName: 'Mr. Maniam Raj', parentPhone: '016-2233445', createdAt: new Date().toISOString() }
-                ];
-                this.saveStudents();
-            }
-            
-            if (this.assessments.length === 0) {
-                this.assessments = [
-                    {
-                        id: 'ASS_1', studentId: 'STU_1', date: new Date().toISOString().split('T')[0],
-                        domains: { verbal: 7, logical: 6, visual: 8, musical: 5, kinesthetic: 6, interpersonal: 7, intrapersonal: 6, naturalist: 7, existential: 6 },
-                        overallScore: 6.5, severity: 'mild', status: 'active',
-                        notes: 'Arun shows mild anxiety during mathematics exams. Recommended breathing exercises and weekly check-ins. Parents advised to maintain consistent study schedule and reduce screen time before bed.',
-                        followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 'ASS_2', studentId: 'STU_2', date: new Date().toISOString().split('T')[0],
-                        domains: { verbal: 8, logical: 9, visual: 7, musical: 8, kinesthetic: 8, interpersonal: 7, intrapersonal: 8, naturalist: 8, existential: 8 },
-                        overallScore: 8.0, severity: 'normal', status: 'resolved',
-                        notes: 'Priya is doing excellently. Previous social withdrawal concerns have resolved after group counseling sessions. Continue encouraging peer interaction.',
-                        followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
-                    },
-                    {
-                        id: 'ASS_3', studentId: 'STU_3', date: new Date().toISOString().split('T')[0],
-                        domains: { verbal: 4, logical: 5, visual: 6, musical: 4, kinesthetic: 3, interpersonal: 6, intrapersonal: 5, naturalist: 4, existential: 5 },
-                        overallScore: 4.5, severity: 'moderate', status: 'active',
-                        notes: 'Kavin presents with frequent psychometric complaints (stomach aches, headaches) especially on school days. Possible separation anxiety. Recommend gradual exposure therapy and parent counseling session.',
-                        followUpDate: '', counselorName: 'Subashini Sivalingam', createdAt: new Date().toISOString()
-                    }
-                ];
-                this.saveAssessments();
-            }
+            // SECURITY: No demo seed data in production.
+            this.students = [];
+            this.assessments = [];
         },
 
-        saveStudents() { localStorage.setItem('manasu_students', JSON.stringify(this.students)); },
-        saveAssessments() { localStorage.setItem('manasu_assessments', JSON.stringify(this.assessments)); },
+        saveStudents() { /* SECURITY: No localStorage persistence */ },
+        saveAssessments() { /* SECURITY: No localStorage persistence */ },
         saveSettings() { localStorage.setItem('manasu_settings', JSON.stringify(this.settings)); },
                 loadSettings() {
             const s = localStorage.getItem('manasu_settings');
@@ -3060,99 +3030,105 @@ body.pdf-mode .timeline-content {
         // PARENT PORTAL
         // ═══════════════════════════════════════════════════════════════
         async searchByIC() {
-    const icInput = document.getElementById('parentIcInput');
-    const ic = icInput.value.trim();
-    
-    if (!ic || ic.replace(/[-\s]/g, '').length < 6) {
-        this.showToast(this.t('toast_enter_valid_mykid'), 'error');
-        return;
-    }
-    
-    const btn = document.querySelector('#parentPortal .btn-teal');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_searching');
-    btn.disabled = true;
-    
-    const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
-    
-    try {
-        // ═══════════════════════════════════════════════════════
-        // STEP 1: Local data-ல search பண்ணு (fastest)
-        // ═══════════════════════════════════════════════════════
-        const localStudent = this.students.find(s => 
-            s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === cleanIc
-        );
-        
-        if (localStudent) {
-            this.showResults(localStudent);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        // ═══════════════════════════════════════════════════════
-        // STEP 2: Firestore-ல direct-ஆ query பண்ணு
-        // ═══════════════════════════════════════════════════════
-        if (this.firebaseReady && this.db) {
-            const { collection, query, where, getDocs } = window.fb;
-            
-            // Students collection-ல search
-            const stuQuery = query(
-                collection(this.db, 'students'), 
-                where('icNumber', '==', cleanIc)
-            );
-            const stuSnap = await getDocs(stuQuery);
-            
-            if (!stuSnap.empty) {
-                const studentData = stuSnap.docs[0].data();
-                studentData.id = stuSnap.docs[0].id;
-                
-                // Local-ல add பண்ணி வை (next time fast-ஆ load ஆகும்)
-                if (!this.students.find(s => s.id === studentData.id)) {
-                    this.students.push(studentData);
-                    this.saveStudents();
-                }
-                
-                // Assessments-அ Firestore-லிருந்து fetch பண்ணு
-                const assQuery = query(
-                    collection(this.db, 'assessments'),
-                    where('studentId', '==', studentData.id)
-                );
-                const assSnap = await getDocs(assQuery);
-                
-                const assessments = [];
-                assSnap.forEach(doc => {
-                    assessments.push({...doc.data(), id: doc.id});
-                });
-                
-                // Local-ல store பண்ணு
-                assessments.forEach(a => {
-                    if (!this.assessments.find(existing => existing.id === a.id)) {
-                        this.assessments.push(a);
-                    }
-                });
-                this.saveAssessments();
-                
-                this.showResults(studentData);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+            const icInput = document.getElementById('parentIcInput');
+            const pinInput = document.getElementById('parentPinInput');
+            const ic = icInput.value.trim();
+            const pin = pinInput ? pinInput.value.trim().replace(/\D/g,'') : '';
+
+            if (!ic || ic.replace(/[-\s]/g, '').length < 6) {
+                this.showToast(this.t('toast_enter_valid_mykid'), 'error');
                 return;
             }
-        }
-        
-        // ═══════════════════════════════════════════════════════
-        // STEP 3: Not found anywhere
-        // ═══════════════════════════════════════════════════════
-        this.showToast(this.t('toast_no_student_found'), 'error');
-        
-    } catch (err) {
-        console.error('Search error:', err);
-        this.showToast(this.t('toast_cloud_sync_failed'), 'error');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-},
+            if (!pin || pin.length !== 4) {
+                this.showToast('Please enter a valid 4-digit PIN', 'error');
+                return;
+            }
+
+            const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
+
+            // Check lock
+            const now = Date.now();
+            if (this.pinLockUntil[cleanIc] && now < this.pinLockUntil[cleanIc]) {
+                const mins = Math.ceil((this.pinLockUntil[cleanIc] - now) / 60000);
+                this.showToast(`Too many failed attempts. Try again in ${mins} minute(s).`, 'error');
+                return;
+            }
+
+            const btn = document.querySelector('#parentPortal .btn-teal');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_searching');
+            btn.disabled = true;
+
+            try {
+                let student = this.students.find(s => 
+                    s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === cleanIc
+                );
+
+                if (!student && this.firebaseReady && this.db) {
+                    const { collection, query, where, getDocs } = window.fb;
+                    const stuQuery = query(collection(this.db, 'students'), where('icNumber', '==', cleanIc));
+                    const stuSnap = await getDocs(stuQuery);
+                    if (!stuSnap.empty) {
+                        student = {...stuSnap.docs[0].data(), id: stuSnap.docs[0].id};
+                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                    }
+                }
+
+                if (!student) {
+                    this.showToast(this.t('toast_no_student_found'), 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // PIN Validation
+                if (student.parentPin && student.parentPin !== pin) {
+                    this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
+                    if (this.pinAttempts[cleanIc] >= 3) {
+                        this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
+                        this.pinAttempts[cleanIc] = 0;
+                        this.showToast('Too many failed attempts. Locked for 30 minutes.', 'error');
+                    } else {
+                        const remaining = 3 - this.pinAttempts[cleanIc];
+                        this.showToast(`Invalid PIN. ${remaining} attempt(s) remaining.`, 'error');
+                    }
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                this.pinAttempts[cleanIc] = 0;
+                delete this.pinLockUntil[cleanIc];
+
+                let assessments = this.assessments.filter(a => a.studentId === student.id).sort((a,b) => b.date.localeCompare(a.date));
+                if (assessments.length === 0 && this.firebaseReady && this.db) {
+                    const { collection, query, where, getDocs } = window.fb;
+                    const assQuery = query(collection(this.db, 'assessments'), where('studentId', '==', student.id));
+                    const assSnap = await getDocs(assQuery);
+                    assSnap.forEach(d => {
+                        const a = {...d.data(), id: d.id};
+                        if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
+                        assessments.push(a);
+                    });
+                    assessments.sort((a,b) => b.date.localeCompare(a.date));
+                }
+
+                if (assessments.length === 0) {
+                    this.showToast(this.t('toast_no_assessments_found'), 'info');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                this.showResults(student);
+
+            } catch (err) {
+                console.error('Search error:', err);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        },
 
 
         // ═══════════════════════════════════════════════════════════════
@@ -3170,7 +3146,7 @@ body.pdf-mode .timeline-content {
 
             const doTeacherLogin = () => {
                 this.currentUser = { role: 'teacher', name: 'Teacher', email: email };
-                localStorage.setItem('manasu_currentUser', JSON.stringify(this.currentUser));
+                /* Auth state uses Firebase only, not localStorage */
                 this.renderTeacherClassSelect();
                 this.showSection('teacherDashboard');
                 this.showTeacherPage('classResults');
@@ -3185,13 +3161,32 @@ body.pdf-mode .timeline-content {
                     const { signInWithEmailAndPassword } = window.fb;
                     const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
                     // ✅ FIX: Store clean object instead of spreading Firebase user
-                    this.currentUser = {
-                        uid: userCredential.user.uid,
-                        email: userCredential.user.email,
-                        displayName: userCredential.user.displayName,
-                        role: 'teacher',
-                        name: 'Teacher'
-                    };
+                    // SECURITY: Verify teacher role from Firestore before granting access
+                    try {
+                        const tDoc = await window.fb.getDoc(window.fb.doc(this.db, 'users', userCredential.user.uid));
+                        if (!tDoc.exists() || tDoc.data().role !== 'teacher') {
+                            await window.fb.signOut(this.auth);
+                            this.showToast('Access denied: Not a teacher account.', 'error');
+                            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
+                            btn.disabled = false;
+                            return;
+                        }
+                        const tData = tDoc.data();
+                        this.currentUser = {
+                            uid: userCredential.user.uid,
+                            email: userCredential.user.email,
+                            displayName: userCredential.user.displayName,
+                            role: 'teacher',
+                            name: tData.name || 'Teacher',
+                            assignedClass: tData.assignedClass || null
+                        };
+                    } catch (roleErr) {
+                        console.warn('Role check failed:', roleErr);
+                        this.showToast('Login failed: Unable to verify role.', 'error');
+                        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
+                        btn.disabled = false;
+                        return;
+                    }
                     doTeacherLogin();
                     return;
                 } catch (err) {
@@ -3243,9 +3238,16 @@ body.pdf-mode .timeline-content {
         renderTeacherClassSelect() {
             const select = document.getElementById('teacherClassSelect');
             if (!select) return;
+            // SECURITY: Teacher only sees their assigned class
+            if (this.currentUser && this.currentUser.assignedClass) {
+                select.innerHTML = '<option value="' + this.sanitizeHTML(this.currentUser.assignedClass) + '">' + this.sanitizeHTML(this.currentUser.assignedClass) + '</option>';
+                this.currentTeacherClass = this.currentUser.assignedClass;
+                this.onTeacherClassChange();
+                return;
+            }
             const classes = [...new Set(this.students.map(s => s.class).filter(Boolean))].sort();
             const defaultOpt = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
-            select.innerHTML = defaultOpt + classes.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+            select.innerHTML = defaultOpt + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
         },
 
         onTeacherClassChange() {
@@ -3324,7 +3326,7 @@ body.pdf-mode .timeline-content {
                 return '<tr>' +
                     '<td><strong>' + this.sanitizeHTML(s.name) + '</strong></td>' +
                     '<td><code style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:6px; font-size:0.85rem;">' + this.sanitizeHTML(s.icNumber) + '</code></td>' +
-                    '<td>' + (s.age || '-') + '</td>' +
+                    '<td>' + this.sanitizeHTML(String(s.age || '-')) + '</td>' +
                     '<td><span style="font-weight:700; color:' + (latest ? this.getScoreColor(latest.overallScore) : 'var(--text-muted)') + ';">' + score + '</span></td>' +
                     '<td>' + severity + '</td>' +
                     '<td>' + statusBadge + '</td>' +
@@ -3415,7 +3417,7 @@ body.pdf-mode .timeline-content {
             });
 
             document.getElementById('viewAssessmentContent').innerHTML = 
-                '<div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">' + (s ? s.name : 'Unknown') + '</h4><p style="color:var(--text-muted); font-size:0.9rem;">' + this.formatDate(a.date) + ' &bull; ' + (s ? s.class : '') + '</p></div>' +
+                '<div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">' + this.sanitizeHTML(s ? s.name : 'Unknown') + '</h4><p style="color:var(--text-muted); font-size:0.9rem;">' + this.formatDate(a.date) + ' &bull; ' + this.sanitizeHTML(s ? s.class : '') + '</p></div>' +
                 '<div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">' +
                     '<div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">' +
                         '<div style="font-size:2.5rem; font-weight:800; color:' + this.getScoreColor(a.overallScore) + ';">' + a.overallScore.toFixed(1) + '</div>' +
@@ -3543,24 +3545,27 @@ showCloudResults(student, assessments) {
        this.currentResultAllAssessments = assessments;
     
     // ✅ Save IC so refresh works
-    localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
+    /* SECURITY: MyKid NOT persisted */
     
     this.showSection('resultsView');
     this.toggleResultButtons();
     },
     getNotes(assessment) {
         if (!assessment || !assessment.notes) return 'No specific recommendations recorded.';
-        // Old format: plain string (backward compatibility)
-        if (typeof assessment.notes === 'string') return assessment.notes.replace(/\n/g, '<br>');
-        // New format: object with language keys
-        const notes = assessment.notes;
-        const lang = this.currentLang;
-        if (notes[lang] && notes[lang].trim()) return notes[lang].replace(/\n/g, '<br>');
-        if (notes.en && notes.en.trim()) return notes.en.replace(/\n/g, '<br>');
-        for (const key of ['ms', 'ta']) {
-            if (notes[key] && notes[key].trim()) return notes[key].replace(/\n/g, '<br>');
+        let raw = '';
+        if (typeof assessment.notes === 'string') {
+            raw = assessment.notes;
+        } else {
+            const notes = assessment.notes;
+            const lang = this.currentLang;
+            if (notes[lang] && notes[lang].trim()) raw = notes[lang];
+            else if (notes.en && notes.en.trim()) raw = notes.en;
+            else if (notes.ms && notes.ms.trim()) raw = notes.ms;
+            else if (notes.ta && notes.ta.trim()) raw = notes.ta;
         }
-        return 'No specific recommendations recorded.';
+        if (!raw) return 'No specific recommendations recorded.';
+        // SECURITY: Escape HTML first, then preserve line breaks
+        return this.sanitizeHTML(raw).replace(/\n/g, '<br>');
     },
 
     showResults(student) {
@@ -3574,7 +3579,7 @@ showCloudResults(student, assessments) {
             const latest = assessments[0];
             
             document.getElementById('resChildName').textContent = student.name;
-            document.getElementById('resChildMeta').innerHTML = `${this.t('th_class')} ${student.class} • MyKid: ${student.icNumber} • ${this.t('th_age')} ${student.age}`;
+            document.getElementById('resChildMeta').innerHTML = `${this.t('th_class')} ${this.sanitizeHTML(student.class)} • MyKid: ${this.sanitizeHTML(student.icNumber)} • ${this.t('th_age')} ${this.sanitizeHTML(String(student.age))}`;
             document.getElementById('resAvatar').innerHTML = '<i class="fas fa-child"></i>';
             
             // Ring chart
@@ -3673,7 +3678,7 @@ showCloudResults(student, assessments) {
                this.currentResultAllAssessments = assessments;
 
     // ✅ Save IC so refresh works
-    localStorage.setItem('manasu_lastSearchedIC', student.icNumber);
+    /* SECURITY: MyKid NOT persisted */
     
     this.showSection('resultsView');
 },
@@ -4211,13 +4216,32 @@ showCloudResults(student, assessments) {
             const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
             
             // ✅ FIX: Direct redirect — don't wait for listener alone
-            this.currentUser = {
-                uid: userCredential.user.uid,
-                email: userCredential.user.email,
-                displayName: userCredential.user.displayName,
-                role: 'admin'
-            };
-            localStorage.setItem('manasu_currentUser', JSON.stringify(this.currentUser));
+            // SECURITY: Verify admin role from Firestore
+            try {
+                const uDoc = await window.fb.getDoc(window.fb.doc(this.db, 'users', userCredential.user.uid));
+                if (!uDoc.exists() || uDoc.data().role !== 'admin') {
+                    await window.fb.signOut(this.auth);
+                    this.showToast('Access denied: Not an admin account.', 'error');
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
+                    btn.disabled = false;
+                    return;
+                }
+                const uData = uDoc.data();
+                this.currentUser = {
+                    uid: userCredential.user.uid,
+                    email: userCredential.user.email,
+                    displayName: userCredential.user.displayName,
+                    role: 'admin',
+                    name: uData.name || 'Admin'
+                };
+            } catch (roleErr) {
+                console.warn('Role check failed:', roleErr);
+                this.showToast('Login failed: Unable to verify role.', 'error');
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
+                btn.disabled = false;
+                return;
+            }
+            /* Auth state uses Firebase only, not localStorage */
             this.showSection('adminDashboard');
             this.showToast(this.t('toast_welcome_back'), 'success');
             
@@ -4231,14 +4255,9 @@ showCloudResults(student, assessments) {
             btn.disabled = false;
         }
     } else {
-        // Demo mode fallback
-        setTimeout(() => {
-            this.currentUser = { email, name: 'Subashini Sivalingam', role: 'admin' };
-            this.showSection('adminDashboard');
-            this.showToast(this.t('toast_demo_login'), 'info');
-            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
-            btn.disabled = false;
-        }, 800);
+        this.showToast('System not configured. Contact IT.', 'error');
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
+        btn.disabled = false;
     }
 },
 
@@ -4249,10 +4268,21 @@ showCloudResults(student, assessments) {
         btn.disabled = true;
     }
 
+    // SECURITY: Purge sensitive data from memory
+    this.students = [];
+    this.assessments = [];
+    this.currentUser = null;
+    this.currentResultStudent = null;
+    this.currentResultAssessment = null;
+    this.currentResultAllAssessments = null;
+
     // Clear saved sections on logout
     localStorage.removeItem('manasu_currentUser');
     localStorage.removeItem('manasu_lastSection');
     localStorage.removeItem('manasu_lastAdminPage');
+    localStorage.removeItem('manasu_lastSearchedIC');
+    localStorage.removeItem('manasu_lastTeacherClass');
+    localStorage.removeItem('manasu_lastTeacherPage');
     
     // ✅ Firebase-லிருந்து proper-ஆ sign out
     if (this.firebaseReady && this.auth) {
@@ -4334,7 +4364,7 @@ showCloudResults(student, assessments) {
                         <div style="display:flex; align-items:center; padding:14px; border-bottom:1px solid var(--glass-border); animation:fadeInUp 0.3s ease;">
                             <div style="width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg, var(--healing-teal), var(--malaysia-blue)); display:flex; align-items:center; justify-content:center; margin-right:14px; color:white; font-weight:700;">${a.overallScore.toFixed(1)}</div>
                             <div style="flex:1;">
-                                <div style="font-weight:600; color:var(--text-primary);">${s ? s.name : 'Unknown'}</div>
+                                <div style="font-weight:600; color:var(--text-primary);">${this.sanitizeHTML(s ? s.name : 'Unknown')}</div>
                                 <div style="font-size:0.8rem; color:var(--text-muted);">${this.formatDate(a.date)} • ${s ? s.class : '-'}</div>
                             </div>
                             ${this.getSeverityBadge(a.severity)}
@@ -4366,20 +4396,37 @@ showCloudResults(student, assessments) {
             }
             tbody.innerHTML = filtered.map(s => `
                 <tr>
-                    <td><strong>${s.name}</strong></td>
-                    <td><code style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:6px; font-size:0.85rem;">${s.icNumber}</code></td>
-                    <td><span class="severity-badge sev-normal" style="background:rgba(0,184,148,0.1); color:var(--healing-teal); border:none;">${s.class}</span></td>
-                    <td>${s.age || '-'}</td>
-                    <td>${s.parentPhone || '-'}</td>
+                    <td><strong>${this.sanitizeHTML(s.name)}</strong></td>
+                    <td><code style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:6px; font-size:0.85rem;">${this.sanitizeHTML(s.icNumber)}</code></td>
+                    <td><span class="severity-badge sev-normal" style="background:rgba(0,184,148,0.1); color:var(--healing-teal); border:none;">${this.sanitizeHTML(s.class)}</span></td>
+                    <td>${this.sanitizeHTML(String(s.age || '-'))}</td>
+                    <td>${this.sanitizeHTML(s.parentPhone || '-')}<br><small style="color:var(--text-muted); font-size:0.75rem;">PIN: ${s.parentPin ? '****' : '<span style="color:var(--danger)">Not set</span>'}</small></td>
                     <td><div class="table-actions">
                         <button class="btn-table btn-table-edit" onclick="app.editStudent('${s.id}')" title="Edit"><i class="fas fa-edit"></i></button>
                         <button class="btn-table btn-table-del" onclick="app.deleteStudent('${s.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        ${s.parentPhone ? `<button class="btn-table" style="background:rgba(37,211,102,0.1); color:#25d366;" onclick="app.sharePinWhatsApp('${s.id}')" title="Share PIN"><i class="fab fa-whatsapp"></i></button>` : ''}
                     </div></td>
                 </tr>
             `).join('');
         },
 
         filterStudents() { this.renderStudentsTable(); },
+
+        sharePinWhatsApp(studentId) {
+            const s = this.students.find(st => st.id === studentId);
+            if (!s) return;
+            if (!s.parentPhone) {
+                this.showToast('No parent phone number set.', 'error');
+                return;
+            }
+            if (!s.parentPin) {
+                this.showToast('PIN not set for this student.', 'error');
+                return;
+            }
+            const phone = s.parentPhone.replace(/\D/g, '');
+            const msg = `Hi Parent,\n\nYour child *${s.name}* (${s.class}) result is ready.\n\nMyKid: *${s.icNumber}*\nPIN: *${s.parentPin}*\n\nPlease keep this confidential.\n\nLogin: ${window.location.origin}${window.location.pathname}`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        },
 
         openStudentModal(id = null) {
             document.getElementById('studentForm')?.reset();
@@ -4395,6 +4442,7 @@ showCloudResults(student, assessments) {
                     document.getElementById('stuAge').value = s.age || '';
                     document.getElementById('stuParent').value = s.parentName || '';
                     document.getElementById('stuPhone').value = s.parentPhone || '';
+                    document.getElementById('stuParentPin').value = s.parentPin || '';
                 }
             }
             document.getElementById('studentModal').classList.add('show');
@@ -4411,6 +4459,7 @@ showCloudResults(student, assessments) {
                 age: parseInt(document.getElementById('stuAge').value) || null,
                 parentName: document.getElementById('stuParent').value,
                 parentPhone: document.getElementById('stuPhone').value,
+                parentPin: document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4),
                 updatedAt: new Date().toISOString()
             };
             if (id) {
@@ -4427,6 +4476,7 @@ showCloudResults(student, assessments) {
             this.renderStudentsTable();
             this.populateStudentSelects();
             this.closeStudentModal();
+            document.getElementById('stuParentPin').value = '';
             this.updateHeroStats();
             const finalStudent = id ? this.students.find(s => s.id === id) : this.students[this.students.length - 1];
             this.saveStudentToFirebase(finalStudent);
@@ -4465,7 +4515,7 @@ showCloudResults(student, assessments) {
             if (sel) {
                 const sorted = [...this.students].sort((a, b) => a.name.localeCompare(b.name));
                 const tSelect = (this.i18n[this.currentLang] && this.i18n[this.currentLang]['form_select']) || 'Select Student';
-                sel.innerHTML = '<option value="">' + tSelect + '</option>' + sorted.map(s => `<option value="${s.id}">${s.name} (${s.class})</option>`).join('');
+                sel.innerHTML = '<option value="">' + tSelect + '</option>' + sorted.map(s => `<option value="${this.sanitizeHTML(s.id)}">${this.sanitizeHTML(s.name)} (${this.sanitizeHTML(s.class)})</option>`).join('');
             }
         },
 
@@ -4541,7 +4591,7 @@ showCloudResults(student, assessments) {
                 return `
                     <tr>
                         <td>${this.formatDate(a.date)}</td>
-                        <td><strong>${s ? s.name : 'Unknown'}</strong></td>
+                        <td><strong>${this.sanitizeHTML(s ? s.name : 'Unknown')}</strong></td>
                         <td><span style="font-weight:700; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</span></td>
                         <td>${this.getSeverityBadge(a.severity)}</td>
                         <td><span style="font-size:0.8rem; padding:4px 10px; border-radius:20px; background:${a.status==='resolved'?'rgba(0,210,160,0.1)':'rgba(253,203,110,0.1)'}; color:${a.status==='resolved'?'var(--success)':'var(--warning)'};">${a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')}</span></td>
@@ -4722,7 +4772,7 @@ showCloudResults(student, assessments) {
                 domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
-                <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${s ? s.name : 'Unknown'}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
+                <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${this.sanitizeHTML(s ? s.name : 'Unknown')}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
                 <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
                         <div style="font-size:2.5rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
@@ -5193,6 +5243,10 @@ showCloudResults(student, assessments) {
             div.textContent = str;
             return div.innerHTML;
         },
+        stripHTML(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/<[^>]*>?/gm, '');
+        },
 
         // ═══════════════════════════════════════════════════════════════
         // UTILITIES
@@ -5294,7 +5348,7 @@ showCloudResults(student, assessments) {
                 this.checkUrlParams();
             } catch(e) {
                 console.error('Firebase sync error', e);
-                this.showToast('Cloud sync failed, using local data', 'error');
+                console.warn('Cloud sync failed, using local data');
             }
         },
 
@@ -5343,16 +5397,10 @@ showCloudResults(student, assessments) {
         // STEM MISSIONS MODULE
         // ═══════════════════════════════════════════════════════════════
         loadStemMissions() {
-            const saved = localStorage.getItem('manasu_stem_missions');
-            if (saved) {
-                this.stemMissions = JSON.parse(saved);
-            } else {
-                this.stemMissions = [];
-            }
+            // SECURITY: Mission data NOT loaded from localStorage
+            this.stemMissions = [];
         },
-        saveStemMissions() {
-            localStorage.setItem('manasu_stem_missions', JSON.stringify(this.stemMissions));
-        },
+        saveStemMissions() { /* SECURITY: No localStorage persistence */ },
 
         searchStemMission() {
             const ic = document.getElementById('stemIcInput').value.trim().replace(/[-\s]/g, '').toUpperCase();
@@ -5393,7 +5441,7 @@ showCloudResults(student, assessments) {
                             <i class="fas fa-user-astronaut"></i>
                         </div>
                         <div>
-                            <div style="font-weight:700; color:var(--text-primary);">${student.name}</div>
+                            <div style="font-weight:700; color:var(--text-primary);">${this.sanitizeHTML(student.name)}</div>
                             <div style="font-size:0.8rem; color:var(--text-secondary);">Class ${student.class} • MyKid: ${student.icNumber}</div>
                         </div>
                     </div>
