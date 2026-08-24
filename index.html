@@ -45,20 +45,38 @@
          rules_version = '2';
          service cloud.firestore {
            match /databases/{database}/documents {
+             function isAuthenticated() {
+               return request.auth != null;
+             }
+             function isAdmin() {
+               return isAuthenticated() &&
+                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+             }
+             function isTeacher() {
+               return isAuthenticated() &&
+                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+             }
+             match /users/{uid} {
+               allow read: if isAuthenticated() && request.auth.uid == uid;
+               allow write: if isAdmin();
+             }
+             match /teachers/{uid} {
+               allow read: if isAuthenticated() && request.auth.uid == uid;
+               allow write: if isAdmin();
+             }
              match /students/{myKid} {
-               allow get: if true;           // Parents: exact MyKid only
-               allow list: if request.auth != null;  // Admin: list all
-               allow create, update, delete: if request.auth != null;
+               allow get: if true;           // Parent: direct MyKid access
+               allow list: if isAdmin();     // NO public bulk listing
+               allow create, update, delete: if isAdmin();
              }
-             match /students/{myKid}/assessments/{assId} {
-               allow read: if true;          // Parents: their child only
-               allow write: if request.auth != null;   // Admin only
+             match /assessments/{assId} {
+               allow get: if true;           // Parent: direct assessment ID
+               allow list: if isAdmin() || isTeacher();
+               allow create, update, delete: if isAdmin();
              }
-             match /riskAlerts/{alertId} {
-               allow read, write: if request.auth != null;
-             }
-             match /calendarEvents/{eventId} {
-               allow read, write: if request.auth != null;
+             match /stemMissions/{missionId} {
+               allow read: if isAuthenticated();
+               allow write: if isAdmin();
              }
              match /{document=**} {
                allow read, write: if false;
@@ -860,6 +878,7 @@ body.pdf-mode .timeline-content {
         }
 
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -1729,6 +1748,17 @@ body.pdf-mode .timeline-content {
         viewSource: "parent",
         pinAttempts: {},
         pinLockUntil: {},
+
+        // ═══════════════════════════════════════════════════════════════
+        // PIN HASHING — SECURITY FIX
+        // ═══════════════════════════════════════════════════════════════
+        async hashPin(pin) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pin);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        },
 
         settings: {
             counselorName: 'Subashini Sivalingam',
@@ -3084,7 +3114,8 @@ body.pdf-mode .timeline-content {
                 }
 
                 // PIN Validation
-                if (student.parentPin && student.parentPin !== pin) {
+                const hashedInputPin = await this.hashPin(pin);
+                if (student.parentPin && student.parentPin !== hashedInputPin) {
                     this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
                     if (this.pinAttempts[cleanIc] >= 3) {
                         this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
@@ -4461,7 +4492,7 @@ showCloudResults(student, assessments) {
                 age: parseInt(document.getElementById('stuAge').value) || null,
                 parentName: document.getElementById('stuParent').value,
                 parentPhone: document.getElementById('stuPhone').value,
-                parentPin: document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4),
+                parentPin: this.hashPin(document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4)),
                 updatedAt: new Date().toISOString()
             };
             if (id) {
