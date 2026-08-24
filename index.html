@@ -1638,6 +1638,32 @@ body.pdf-mode .timeline-content {
         </div>
     </div>
     
+    
+    <!-- PIN Share Modal -->
+    <div class="modal-overlay" id="pinShareModal">
+        <div class="modal" style="max-width:450px; text-align:center;">
+            <div style="width:60px; height:60px; background:rgba(37,211,102,0.1); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                <i class="fab fa-whatsapp" style="font-size:1.6rem; color:#25d366;"></i>
+            </div>
+            <h3 style="margin-bottom:8px;">PIN Set Successfully!</h3>
+            <p style="color:var(--text-secondary); margin-bottom:16px; font-size:0.9rem;">Share this 4-digit PIN with the parent securely.</p>
+            <div style="background:#f8fafc; border:2px dashed var(--healing-teal); border-radius:16px; padding:20px; margin-bottom:20px;">
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Parent PIN</div>
+                <div style="font-size:2.2rem; font-weight:800; color:var(--text-primary); letter-spacing:8px;" id="sharePinValue">----</div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button class="btn btn-outline" onclick="app.closePinShareModal()">Close</button>
+                <button class="btn" style="background:#25d366; color:white;" onclick="app.sharePinFromModal()">
+                    <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                </button>
+            </div>
+            <p style="margin-top:16px; font-size:0.75rem; color:var(--text-muted);">
+                <i class="fas fa-lock" style="margin-right:4px;"></i>
+                This PIN is encrypted in Firebase. You cannot see it again after closing.
+            </p>
+        </div>
+    </div>
+
     <!-- STEM Mission Modal -->
     <div class="modal-overlay" id="stemMissionModal">
         <div class="modal modal-lg">
@@ -1746,6 +1772,8 @@ body.pdf-mode .timeline-content {
         assessments: [],
         stemMissions: [],
         currentStemStudent: null,
+        pinShareStudent: null,
+        pinShareValue: null,
         viewSource: "parent",
         pinAttempts: {},
         pinLockUntil: {},
@@ -4457,9 +4485,40 @@ showCloudResults(student, assessments) {
                 this.showToast('PIN not set for this student.', 'error');
                 return;
             }
+            // If PIN is hashed (64 hex chars), cannot retrieve original
+            if (s.parentPin.length >= 32 && /^[a-f0-9]+$/.test(s.parentPin)) {
+                this.showToast('PIN is encrypted. Edit student to set a new PIN and share immediately.', 'error');
+                return;
+            }
             const phone = s.parentPhone.replace(/\D/g, '');
             const msg = `Hi Parent,\n\nYour child *${s.name}* (${s.class}) result is ready.\n\nMyKid: *${s.icNumber}*\nPIN: *${s.parentPin}*\n\nPlease keep this confidential.\n\nLogin: ${window.location.origin}${window.location.pathname}`;
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        },
+
+        showPinShareModal(student, plainPin) {
+            this.pinShareStudent = student;
+            this.pinShareValue = plainPin;
+            document.getElementById('sharePinValue').textContent = plainPin;
+            document.getElementById('pinShareModal').classList.add('show');
+        },
+
+        closePinShareModal() {
+            document.getElementById('pinShareModal').classList.remove('show');
+            this.pinShareStudent = null;
+            this.pinShareValue = null;
+        },
+
+        sharePinFromModal() {
+            if (!this.pinShareStudent || !this.pinShareValue) return;
+            const s = this.pinShareStudent;
+            const phone = s.parentPhone ? s.parentPhone.replace(/\D/g, '') : '';
+            if (!phone) {
+                this.showToast('No parent phone number set.', 'error');
+                return;
+            }
+            const msg = `Hi Parent,\n\nYour child *${s.name}* (${s.class}) result is ready.\n\nMyKid: *${s.icNumber}*\nPIN: *${this.pinShareValue}*\n\nPlease keep this confidential.\n\nLogin: ${window.location.origin}${window.location.pathname}`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            this.closePinShareModal();
         },
 
         openStudentModal(id = null) {
@@ -4489,6 +4548,7 @@ showCloudResults(student, assessments) {
         async saveStudent(e) {
             e.preventDefault();
             const id = document.getElementById('studentEditId').value;
+            const plainPinInput = document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4);
             const data = {
                 name: document.getElementById('stuName').value,
                 icNumber: document.getElementById('stuIc').value.replace(/[-\s]/g, ''),
@@ -4496,8 +4556,8 @@ showCloudResults(student, assessments) {
                 age: parseInt(document.getElementById('stuAge').value) || null,
                 parentName: document.getElementById('stuParent').value,
                 parentPhone: document.getElementById('stuPhone').value,
-                parentPin: (document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4)) 
-                    ? await this.hashPin(document.getElementById('stuParentPin').value.replace(/\D/g,'').substring(0,4))
+                parentPin: plainPinInput 
+                    ? await this.hashPin(plainPinInput)
                     : (id ? this.students.find(s => s.id === id)?.parentPin : undefined),
                 updatedAt: new Date().toISOString()
             };
@@ -4520,6 +4580,12 @@ showCloudResults(student, assessments) {
             document.getElementById('stuParentPin').value = '';
             this.updateHeroStats();
             const finalStudent = id ? this.students.find(s => s.id === id) : this.students[this.students.length - 1];
+
+            // Show share modal immediately if new PIN was set and parent phone exists
+            if (plainPinInput && finalStudent && finalStudent.parentPhone) {
+                this.showPinShareModal(finalStudent, plainPinInput);
+            }
+
             this.saveStudentToFirebase(finalStudent);
         },
         editStudent(id) { this.openStudentModal(id); },
