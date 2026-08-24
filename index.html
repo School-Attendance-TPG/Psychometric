@@ -1546,7 +1546,7 @@ body.pdf-mode .timeline-content {
                     <div class="form-group"><label data-i18n="form_age">Age</label><input type="number" id="stuAge" class="input-premium" placeholder="e.g. 12" min="5" max="18"></div>
                     <div class="form-group"><label data-i18n="form_parent_name">Parent Name</label><input type="text" id="stuParent" class="input-premium" placeholder="e.g. Mr. Kumar"></div>
                     <div class="form-group"><label data-i18n="form_parent_phone">Parent Phone</label><input type="tel" id="stuPhone" class="input-premium" placeholder="e.g. 012-3456789"></div>
-                    <div class="form-group"><label>Parent PIN (4 digits)</label><input type="text" id="stuParentPin" class="input-premium" placeholder="e.g. 4829" maxlength="4" pattern="\d{4}"></div>
+                    <div class="form-group"><label>Parent PIN (4 digits)</label><input type="password" id="stuParentPin" class="input-premium" placeholder="e.g. 4829" maxlength="4" pattern="\d{4}" autocomplete="new-password"></div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
                     <button type="button" class="btn btn-outline" onclick="app.closeStudentModal()" data-i18n="btn_cancel">Cancel</button>
@@ -4434,7 +4434,7 @@ showCloudResults(student, assessments) {
                     <td><code style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:6px; font-size:0.85rem;">${this.sanitizeHTML(s.icNumber)}</code></td>
                     <td><span class="severity-badge sev-normal" style="background:rgba(0,184,148,0.1); color:var(--healing-teal); border:none;">${this.sanitizeHTML(s.class)}</span></td>
                     <td>${this.sanitizeHTML(String(s.age || '-'))}</td>
-                    <td>${this.sanitizeHTML(s.parentPhone || '-')}<br><small style="color:var(--text-muted); font-size:0.75rem;">PIN: ${s.parentPin ? '****' : '<span style="color:var(--danger)">Not set</span>'}</small></td>
+                    <td>${this.sanitizeHTML(s.parentPhone || '-')}<br><small style="color:var(--text-muted); font-size:0.75rem;">PIN: ${s.parentPin ? '<span style="color:var(--success)">**** (secured)</span>' : '<span style="color:var(--danger)">Not set</span>'}</small></td>
                     <td><div class="table-actions">
                         <button class="btn-table btn-table-edit" onclick="app.editStudent('${s.id}')" title="Edit"><i class="fas fa-edit"></i></button>
                         <button class="btn-table btn-table-del" onclick="app.deleteStudent('${s.id}')" title="Delete"><i class="fas fa-trash"></i></button>
@@ -4466,6 +4466,7 @@ showCloudResults(student, assessments) {
             document.getElementById('studentForm')?.reset();
             document.getElementById('studentEditId').value = '';
             document.getElementById('studentModalTitle').textContent = id ? this.t('modal_edit_student') : this.t('modal_add_student');
+            // If editing and PIN field is empty, retain existing hashed PIN
             if (id) {
                 const s = this.students.find(st => st.id === id);
                 if (s) {
@@ -4476,7 +4477,9 @@ showCloudResults(student, assessments) {
                     document.getElementById('stuAge').value = s.age || '';
                     document.getElementById('stuParent').value = s.parentName || '';
                     document.getElementById('stuPhone').value = s.parentPhone || '';
-                    document.getElementById('stuParentPin').value = s.parentPin || '';
+                    // SECURITY: Never pre-fill hashed PIN. Admin must re-enter to change.
+                    document.getElementById('stuParentPin').value = '';
+                    document.getElementById('stuParentPin').placeholder = 'Enter new 4-digit PIN (leave empty to keep existing)';
                 }
             }
             document.getElementById('studentModal').classList.add('show');
@@ -4498,6 +4501,7 @@ showCloudResults(student, assessments) {
                     : (id ? this.students.find(s => s.id === id)?.parentPin : undefined),
                 updatedAt: new Date().toISOString()
             };
+            // If editing and PIN field is empty, retain existing hashed PIN
             if (id) {
                 const idx = this.students.findIndex(s => s.id === id);
                 if (idx >= 0) this.students[idx] = { ...this.students[idx], ...data };
@@ -4653,6 +4657,7 @@ showCloudResults(student, assessments) {
             if (assDateEl) assDateEl.value = new Date().toISOString().split('T')[0];
             let domainSet = 'standard';
             let existingValues = null;
+            // If editing and PIN field is empty, retain existing hashed PIN
             if (id) {
                 const a = this.assessments.find(as => as.id === id);
                 if (a) {
@@ -5542,6 +5547,7 @@ showCloudResults(student, assessments) {
             document.getElementById('stemMissionFileName').value = '';
             document.getElementById('stemMissionMimeType').value = '';
             
+            // If editing and PIN field is empty, retain existing hashed PIN
             if (id) {
                 const m = this.stemMissions.find(x => x.id === id);
                 if (m) {
@@ -5591,6 +5597,7 @@ showCloudResults(student, assessments) {
                 updatedAt: new Date().toISOString()
             };
             
+            // If editing and PIN field is empty, retain existing hashed PIN
             if (id) {
                 const idx = this.stemMissions.findIndex(m => m.id === id);
                 if (idx >= 0) {
