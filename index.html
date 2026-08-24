@@ -2733,7 +2733,7 @@ body.pdf-mode .timeline-content {
                     this.db = window.firebaseDb;
                     this.firebaseReady = true;
                     this.setupAuthListener();
-                    // Sync moved to auth state listener (after login)
+                    // Sync runs after admin login (auth state listener)
                 } else {
                     setTimeout(check, 500);
                 }
@@ -2788,7 +2788,7 @@ body.pdf-mode .timeline-content {
                 role: role
             };
             /* Auth state uses Firebase only, not localStorage */
-            // ✅ Sync from Firebase AFTER successful login
+            // ✅ Sync from Firebase AFTER admin login
             this.syncFromFirebase().catch(err => {
                 console.warn('Post-login sync failed:', err);
             });
@@ -3067,13 +3067,11 @@ body.pdf-mode .timeline-content {
                 );
 
                 if (!student && this.firebaseReady && this.db) {
-                    // ✅ Use getDoc (single doc) instead of getDocs (list query)
-                    // Document ID = MyKid number (secure, no listing needed)
-                    const { doc, getDoc } = window.fb;
-                    const stuRef = doc(this.db, 'students', cleanIc);
-                    const stuSnap = await getDoc(stuRef);
-                    if (stuSnap.exists()) {
-                        student = {...stuSnap.data(), id: stuSnap.id};
+                    const { collection, query, where, getDocs } = window.fb;
+                    const stuQuery = query(collection(this.db, 'students'), where('icNumber', '==', cleanIc));
+                    const stuSnap = await getDocs(stuQuery);
+                    if (!stuSnap.empty) {
+                        student = {...stuSnap.docs[0].data(), id: stuSnap.docs[0].id};
                         if (!this.students.find(s => s.id === student.id)) this.students.push(student);
                     }
                 }
@@ -3106,10 +3104,9 @@ body.pdf-mode .timeline-content {
 
                 let assessments = this.assessments.filter(a => a.studentId === student.id).sort((a,b) => b.date.localeCompare(a.date));
                 if (assessments.length === 0 && this.firebaseReady && this.db) {
-                    // ✅ Use subcollection path (secure, parent can read their child's assessments)
-                    const { collection, getDocs } = window.fb;
-                    const assRef = collection(this.db, 'students', student.id, 'assessments');
-                    const assSnap = await getDocs(assRef);
+                    const { collection, query, where, getDocs } = window.fb;
+                    const assQuery = query(collection(this.db, 'assessments'), where('studentId', '==', student.id));
+                    const assSnap = await getDocs(assQuery);
                     assSnap.forEach(d => {
                         const a = {...d.data(), id: d.id};
                         if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
@@ -5321,12 +5318,9 @@ showCloudResults(student, assessments) {
                 const fbStudents = [];
                 stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
 
-                // ✅ Read assessments from subcollections for security
+                const assSnap = await getDocs(collection(this.db, 'assessments'));
                 const fbAssessments = [];
-                for (const s of fbStudents) {
-                    const assSnap = await getDocs(collection(this.db, 'students', s.id, 'assessments'));
-                    assSnap.forEach(d => fbAssessments.push({...d.data(), id: d.id}));
-                }
+                assSnap.forEach(d => fbAssessments.push({...d.data(), id: d.id}));
 
                 // If cloud has data, use it (cloud wins over local)
                 if (fbStudents.length > 0) {
@@ -5364,9 +5358,8 @@ showCloudResults(student, assessments) {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { doc, setDoc } = window.fb;
-                // Document ID = cleaned MyKid (secure, predictable)
-                const docId = student.icNumber.replace(/[-\s]/g, '').toUpperCase();
-                await setDoc(doc(this.db, 'students', docId), student);
+                // ✅ Use existing student.id (STU_...) as document ID
+                await setDoc(doc(this.db, 'students', student.id), student);
             } catch(e) { console.error('Firebase save student failed', e); }
         },
 
@@ -5374,7 +5367,7 @@ showCloudResults(student, assessments) {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { doc, setDoc } = window.fb;
-                // ✅ Save under student's subcollection (secure path-based access)
+                // Save under student's subcollection (secure path)
                 const studentDocId = (assessment.studentId || '').replace(/[-\s]/g, '').toUpperCase();
                 if (!studentDocId) return;
                 await setDoc(doc(this.db, 'students', studentDocId, 'assessments', assessment.id), assessment);
@@ -5393,7 +5386,7 @@ showCloudResults(student, assessments) {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { doc, deleteDoc } = window.fb;
-                // ✅ Delete from student's subcollection (secure path)
+                // Find studentId from local data to know subcollection path
                 const localAss = this.assessments.find(a => a.id === id);
                 const studentDocId = localAss ? (localAss.studentId || '').replace(/[-\s]/g, '').toUpperCase() : '';
                 if (!studentDocId) return;
