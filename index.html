@@ -3343,15 +3343,15 @@ body.pdf-mode .timeline-content {
             document.getElementById('teacherSidebar').classList.toggle('open');
         },
 
-        showTeacherPage(page) {
+        async showTeacherPage(page) {
             localStorage.setItem('manasu_lastTeacherPage', page);
             document.querySelectorAll('#teacherDashboard .admin-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('#teacherDashboard .admin-nav-item').forEach(n => n.classList.remove('active'));
             const target = document.getElementById('teacherPage-' + page);
             if (target) target.classList.add('active');
             document.querySelectorAll('[data-teacher-nav="' + page + '"]').forEach(el => el.classList.add('active'));
-            if (page === 'classResults') this.renderTeacherStudentsTable();
-            if (page === 'assessments') this.renderTeacherAssessmentsTable();
+            if (page === 'classResults') await this.renderTeacherStudentsTable();
+            if (page === 'assessments') await this.renderTeacherAssessmentsTable();
         },
 
         renderTeacherClassSelect() {
@@ -3366,7 +3366,7 @@ body.pdf-mode .timeline-content {
                 return;
             }
 
-            const classes = [...new Set(this.students.map(s => s.class).filter(Boolean))].sort();
+            const classes = [...new Set(this.students.map(s => s.class?.trim()).filter(Boolean))].sort();
 
             if (classes.length === 0) {
                 // No students loaded yet — show placeholder only
@@ -3404,7 +3404,8 @@ body.pdf-mode .timeline-content {
         updateTeacherStats() {
             const cls = this.currentTeacherClass;
             if (!cls) return;
-            const classStudents = this.students.filter(s => s.class === cls);
+            const clsTrimmed = cls.trim();
+            const classStudents = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
             const studentIds = classStudents.map(s => s.id);
             const classAssessments = this.assessments.filter(a => studentIds.includes(a.studentId));
             const flagged = classAssessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
@@ -3418,7 +3419,7 @@ body.pdf-mode .timeline-content {
             document.getElementById('teacherStatAvg').textContent = avg;
         },
 
-        renderTeacherStudentsTable() {
+        async renderTeacherStudentsTable() {
             const tbody = document.getElementById('teacherStudentsTableBody');
             const search = document.getElementById('teacherStudentSearch')?.value.toLowerCase() || '';
             const cls = this.currentTeacherClass;
@@ -3428,7 +3429,13 @@ body.pdf-mode .timeline-content {
                 return;
             }
 
-            let filtered = this.students.filter(s => s.class === cls);
+            // Load students from Firebase if local array is empty
+            if (this.students.length === 0) {
+                await this.loadStudentsFromFirebase();
+            }
+
+            const clsTrimmed = cls.trim();
+            let filtered = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
             if (search) {
                 filtered = filtered.filter(s => s.name.toLowerCase().includes(search) || s.icNumber.includes(search));
             }
@@ -3469,7 +3476,7 @@ body.pdf-mode .timeline-content {
             this.renderTeacherStudentsTable();
         },
 
-        renderTeacherAssessmentsTable() {
+        async renderTeacherAssessmentsTable() {
             const tbody = document.getElementById('teacherAssessmentsTableBody');
             const search = document.getElementById('teacherAssessmentSearch')?.value.toLowerCase() || '';
             const severityFilter = document.getElementById('teacherSeverityFilter')?.value || 'all';
@@ -3480,7 +3487,13 @@ body.pdf-mode .timeline-content {
                 return;
             }
 
-            const classStudentIds = this.students.filter(s => s.class === cls).map(s => s.id);
+            // Load students from Firebase if local array is empty
+            if (this.students.length === 0) {
+                await this.loadStudentsFromFirebase();
+            }
+
+            const clsTrimmed = cls.trim();
+            const classStudentIds = this.students.filter(s => s.class && s.class.trim() === clsTrimmed).map(s => s.id);
             let filtered = this.assessments.filter(a => classStudentIds.includes(a.studentId));
 
             if (search) {
