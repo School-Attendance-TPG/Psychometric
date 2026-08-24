@@ -2820,6 +2820,21 @@ body.pdf-mode .timeline-content {
             }
         },
 
+        async loadStudentsFromFirebase() {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { collection, getDocs } = window.fb;
+                const stuSnap = await getDocs(collection(this.db, 'students'));
+                const fbStudents = [];
+                stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
+                if (fbStudents.length > 0) {
+                    this.students = fbStudents;
+                }
+            } catch (e) {
+                console.warn('Load students failed:', e);
+            }
+        },
+
         async updatePublicStats() {
             if (!this.firebaseReady || !this.db) return;
             try {
@@ -3247,9 +3262,10 @@ body.pdf-mode .timeline-content {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_authenticating');
             btn.disabled = true;
 
-            const doTeacherLogin = () => {
-                this.currentUser = { role: 'teacher', name: 'Teacher', email: email };
-                /* Auth state uses Firebase only, not localStorage */
+            const doTeacherLogin = async () => {
+                // Load students from Firebase first (teacher needs class data)
+                await this.loadStudentsFromFirebase();
+
                 this.renderTeacherClassSelect();
                 this.showSection('teacherDashboard');
                 this.showTeacherPage('classResults');
@@ -3290,7 +3306,7 @@ body.pdf-mode .timeline-content {
                         btn.disabled = false;
                         return;
                     }
-                    doTeacherLogin();
+                    await doTeacherLogin();
                     return;
                 } catch (err) {
                     console.warn('Firebase auth failed:', err.code, err.message);
@@ -3341,6 +3357,7 @@ body.pdf-mode .timeline-content {
         renderTeacherClassSelect() {
             const select = document.getElementById('teacherClassSelect');
             if (!select) return;
+
             // SECURITY: Teacher only sees their assigned class
             if (this.currentUser && this.currentUser.assignedClass) {
                 select.innerHTML = '<option value="' + this.sanitizeHTML(this.currentUser.assignedClass) + '">' + this.sanitizeHTML(this.currentUser.assignedClass) + '</option>';
@@ -3348,7 +3365,15 @@ body.pdf-mode .timeline-content {
                 this.onTeacherClassChange();
                 return;
             }
+
             const classes = [...new Set(this.students.map(s => s.class).filter(Boolean))].sort();
+
+            if (classes.length === 0) {
+                // No students loaded yet — show placeholder only
+                select.innerHTML = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
+                return;
+            }
+
             const defaultOpt = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
             select.innerHTML = defaultOpt + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
         },
