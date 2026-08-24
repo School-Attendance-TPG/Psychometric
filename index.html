@@ -1190,6 +1190,10 @@ body.pdf-mode .timeline-content {
                             <i class="fas fa-id-card"></i>
                             <input type="text" class="input-premium" id="stemIcInput" placeholder="e.g. 100901041234" maxlength="14" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
                         </div>
+                        <div class="ic-input-wrap" style="margin-top:12px;">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" class="input-premium" id="stemPinInput" placeholder="Enter 4-digit PIN" maxlength="4" autocomplete="off" onkeydown="if(event.key==='Enter') app.searchStemMission()">
+                        </div>
                         <button class="btn" style="width:100%; margin-bottom:12px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; box-shadow: 0 4px 20px rgba(139,92,246,0.35);" onclick="app.searchStemMission()">
                             <i class="fas fa-search"></i> <span data-i18n="stem_access_btn">Access Missions</span>
                         </button>
@@ -1774,6 +1778,7 @@ body.pdf-mode .timeline-content {
         currentStemStudent: null,
         pinShareStudent: null,
         pinShareValue: null,
+        publicStats: { totalStudents: 0, totalAssessments: 0, flaggedCases: 0 },
         viewSource: "parent",
         pinAttempts: {},
         pinLockUntil: {},
@@ -2792,12 +2797,48 @@ body.pdf-mode .timeline-content {
                     this.db = window.firebaseDb;
                     this.firebaseReady = true;
                     this.setupAuthListener();
-                    // Sync runs after admin login (auth state listener)
+                    // Load public stats immediately (no login required)
+                    this.loadPublicStats();
                 } else {
                     setTimeout(check, 500);
                 }
             };
             check();
+        },
+
+        async loadPublicStats() {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { doc, getDoc } = window.fb;
+                const statsDoc = await getDoc(doc(this.db, 'stats', 'public'));
+                if (statsDoc.exists()) {
+                    this.publicStats = statsDoc.data();
+                    this.updateHeroStats();
+                }
+            } catch (e) {
+                console.warn('Public stats load failed:', e);
+            }
+        },
+
+        async updatePublicStats() {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const totalStudents = this.students.length;
+                const totalAssessments = this.assessments.length;
+                const flaggedCases = this.assessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
+                const stats = {
+                    totalStudents,
+                    totalAssessments,
+                    flaggedCases,
+                    updatedAt: new Date().toISOString()
+                };
+                const { doc, setDoc } = window.fb;
+                await setDoc(doc(this.db, 'stats', 'public'), stats);
+                this.publicStats = stats;
+                this.updateHeroStats();
+            } catch (e) {
+                console.error('Update public stats failed:', e);
+            }
         },
 
                 setupHistoryNavigation() {
@@ -4437,9 +4478,16 @@ showCloudResults(student, assessments) {
         },
 
         updateHeroStats() {
-            document.getElementById('heroStatStudents').textContent = this.students.length;
-            document.getElementById('heroStatAssessments').textContent = this.assessments.length;
-            const flagged = this.assessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
+            // Use public stats for public visitors (no login required)
+            // If admin is logged in, local arrays may have fresher data
+            const students = this.students.length > 0 ? this.students.length : (this.publicStats.totalStudents || 0);
+            const assessments = this.assessments.length > 0 ? this.assessments.length : (this.publicStats.totalAssessments || 0);
+            const flagged = this.assessments.length > 0 
+                ? this.assessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length 
+                : (this.publicStats.flaggedCases || 0);
+
+            document.getElementById('heroStatStudents').textContent = students;
+            document.getElementById('heroStatAssessments').textContent = assessments;
             document.getElementById('heroStatFlagged').textContent = flagged;
         },
 
@@ -4587,6 +4635,7 @@ showCloudResults(student, assessments) {
             }
 
             this.saveStudentToFirebase(finalStudent);
+            this.updatePublicStats();
         },
         editStudent(id) { this.openStudentModal(id); },
         deleteStudent(id) { this.deleteTarget = { type: 'student', id }; document.getElementById('deleteModal').classList.add('show'); },
@@ -4600,12 +4649,14 @@ showCloudResults(student, assessments) {
                 this.renderStudentsTable(); this.renderAssessmentsTable();
                 this.showToast(this.t('toast_student_deleted'), 'info');
                 await this.deleteStudentFromFirebase(this.deleteTarget.id);
+                this.updatePublicStats();
             } else if (this.deleteTarget.type === 'assessment') {
                 this.assessments = this.assessments.filter(a => a.id !== this.deleteTarget.id);
                 this.saveAssessments();
                 this.renderAssessmentsTable();
                 this.showToast(this.t('toast_assessment_deleted'), 'info');
                 await this.deleteAssessmentFromFirebase(this.deleteTarget.id);
+                this.updatePublicStats();
             } else if (this.deleteTarget.type === 'stemMission') {
                 this.stemMissions = this.stemMissions.filter(m => m.id !== this.deleteTarget.id);
                 this.saveStemMissions();
@@ -4861,6 +4912,7 @@ showCloudResults(student, assessments) {
             this.updateHeroStats();
             const finalAssessment = editId ? this.assessments.find(a => a.id === editId) : this.assessments[this.assessments.length - 1];
             this.saveAssessmentToFirebase(finalAssessment);
+            this.updatePublicStats();
         },
 
 
@@ -5509,19 +5561,87 @@ showCloudResults(student, assessments) {
         },
         saveStemMissions() { /* SECURITY: No localStorage persistence */ },
 
-        searchStemMission() {
-            const ic = document.getElementById('stemIcInput').value.trim().replace(/[-\s]/g, '').toUpperCase();
-            if (!ic || ic.length < 6) {
+        async searchStemMission() {
+            const icInput = document.getElementById('stemIcInput');
+            const pinInput = document.getElementById('stemPinInput');
+            const ic = icInput.value.trim();
+            const pin = pinInput ? pinInput.value.trim().replace(/\D/g,'') : '';
+
+            if (!ic || ic.replace(/[-\s]/g, '').length < 6) {
                 this.showToast(this.t('toast_enter_valid_mykid'), 'error');
                 return;
             }
-            const student = this.students.find(s => s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === ic);
-            if (!student) {
-                this.showToast(this.t('toast_no_student_mission'), 'error');
+            if (!pin || pin.length !== 4) {
+                this.showToast('Please enter a valid 4-digit PIN', 'error');
                 return;
             }
-            this.currentStemStudent = student;
-            this.renderStemMissions();
+
+            const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
+
+            // Check lockout (shared with parent portal)
+            const now = Date.now();
+            if (this.pinLockUntil[cleanIc] && now < this.pinLockUntil[cleanIc]) {
+                const mins = Math.ceil((this.pinLockUntil[cleanIc] - now) / 60000);
+                this.showToast(`Too many failed attempts. Try again in ${mins} minute(s).`, 'error');
+                return;
+            }
+
+            const btn = document.querySelector('#stemMission .btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            btn.disabled = true;
+
+            try {
+                let student = this.students.find(s => 
+                    s.icNumber && s.icNumber.replace(/[-\s]/g, '').toUpperCase() === cleanIc
+                );
+
+                if (!student && this.firebaseReady && this.db) {
+                    const { collection, query, where, getDocs } = window.fb;
+                    const stuQuery = query(collection(this.db, 'students'), where('icNumber', '==', cleanIc));
+                    const stuSnap = await getDocs(stuQuery);
+                    if (!stuSnap.empty) {
+                        student = {...stuSnap.docs[0].data(), id: stuSnap.docs[0].id};
+                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                    }
+                }
+
+                if (!student) {
+                    this.showToast(this.t('toast_no_student_mission'), 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // PIN Validation (same as parent portal)
+                const hashedInputPin = await this.hashPin(pin);
+                if (student.parentPin && student.parentPin !== hashedInputPin) {
+                    this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
+                    if (this.pinAttempts[cleanIc] >= 3) {
+                        this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
+                        this.pinAttempts[cleanIc] = 0;
+                        this.showToast('Too many failed attempts. Locked for 30 minutes.', 'error');
+                    } else {
+                        const remaining = 3 - this.pinAttempts[cleanIc];
+                        this.showToast(`Invalid PIN. ${remaining} attempt(s) remaining.`, 'error');
+                    }
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                this.pinAttempts[cleanIc] = 0;
+                delete this.pinLockUntil[cleanIc];
+
+                this.currentStemStudent = student;
+                this.renderStemMissions();
+
+            } catch (err) {
+                console.error('STEM search error:', err);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         },
 
         renderStemMissions() {
