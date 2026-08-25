@@ -894,6 +894,7 @@ body.pdf-mode .timeline-content {
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -2759,11 +2760,11 @@ body.pdf-mode .timeline-content {
         if (lastSection === 'teacherDashboard') {
             if (this.currentUser && this.currentUser.role === 'teacher') {
                 this.showSection('teacherDashboard');
-                this.renderTeacherClassSelect();
                 const lastTeacherPage = localStorage.getItem('manasu_lastTeacherPage') || 'classResults';
                 this.showTeacherPage(lastTeacherPage);
-                // Restore selected class after DOM update
+                // Render dropdown and restore selected class
                 setTimeout(() => {
+                    this.renderTeacherClassSelect();
                     const savedClass = localStorage.getItem('manasu_lastTeacherClass');
                     const select = document.getElementById('teacherClassSelect');
                     if (savedClass && select) {
@@ -2824,6 +2825,7 @@ body.pdf-mode .timeline-content {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { collection, getDocs } = window.fb;
+                // Load ALL students (dropdown will filter by selected class)
                 const stuSnap = await getDocs(collection(this.db, 'students'));
                 const fbStudents = [];
                 stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
@@ -2889,21 +2891,54 @@ body.pdf-mode .timeline-content {
         setupAuthListener() {
     if (!this.firebaseReady) return;
     const { onAuthStateChanged } = window.fb;
-    onAuthStateChanged(this.auth, (user) => {
+    onAuthStateChanged(this.auth, async (user) => {
         if (user) {
-            const saved = localStorage.getItem('manasu_currentUser');
+            // Fetch full user profile from Firestore (source of truth for assignedClass)
             let role = 'admin';
-            if (saved) {
-                try { role = JSON.parse(saved).role || 'admin'; } catch(e) {}
+            let assignedClass = null;
+            let userName = user.displayName || user.email || 'User';
+            try {
+                const uDoc = await window.fb.getDoc(window.fb.doc(this.db, 'users', user.uid));
+                if (uDoc.exists()) {
+                    const uData = uDoc.data();
+                    role = uData.role || 'admin';
+                    assignedClass = uData.assignedClass || null;
+                    userName = uData.name || user.displayName || user.email || 'User';
+                }
+            } catch (e) {
+                console.warn('Auth listener: failed to fetch user doc:', e);
             }
+
             this.currentUser = {
                 uid: user.uid,
                 email: user.email,
-                displayName: user.displayName,
-                role: role
+                displayName: userName,
+                role: role,
+                assignedClass: assignedClass
             };
-            /* Auth state uses Firebase only, not localStorage */
-            // ✅ Sync from Firebase AFTER admin login
+
+            // Post-refresh redirect for teachers
+            if (role === 'teacher') {
+                const lastSection = localStorage.getItem('manasu_lastSection');
+                const lastTeacherPage = localStorage.getItem('manasu_lastTeacherPage') || 'classResults';
+                if (lastSection === 'teacherDashboard' || document.getElementById('teacherLogin')?.classList.contains('active')) {
+                    this.showSection('teacherDashboard');
+                    setTimeout(() => {
+                        this.renderTeacherClassSelect();
+                        this.showTeacherPage(lastTeacherPage);
+                    }, 100);
+                }
+            }
+            // Post-refresh redirect for admins
+            if (role === 'admin') {
+                const lastSection = localStorage.getItem('manasu_lastSection');
+                const lastAdminPage = localStorage.getItem('manasu_lastAdminPage') || 'dash';
+                if (lastSection === 'adminDashboard' || document.getElementById('adminLogin')?.classList.contains('active')) {
+                    this.showSection('adminDashboard');
+                    this.showAdminPage(lastAdminPage);
+                }
+            }
+
             this.syncFromFirebase().catch(err => {
                 console.warn('Post-login sync failed:', err);
             });
@@ -3358,24 +3393,28 @@ body.pdf-mode .timeline-content {
             const select = document.getElementById('teacherClassSelect');
             if (!select) return;
 
-            // SECURITY: Teacher only sees their assigned class
-            if (this.currentUser && this.currentUser.assignedClass) {
-                select.innerHTML = '<option value="' + this.sanitizeHTML(this.currentUser.assignedClass) + '">' + this.sanitizeHTML(this.currentUser.assignedClass) + '</option>';
-                this.currentTeacherClass = this.currentUser.assignedClass;
-                this.onTeacherClassChange();
-                return;
-            }
-
+            // Get ALL unique classes from all students
             const classes = [...new Set(this.students.map(s => s.class?.trim()).filter(Boolean))].sort();
 
             if (classes.length === 0) {
-                // No students loaded yet — show placeholder only
                 select.innerHTML = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
                 return;
             }
 
             const defaultOpt = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
             select.innerHTML = defaultOpt + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
+
+            // ✅ Pre-select teacher's assigned class if available
+            if (this.currentUser && this.currentUser.assignedClass) {
+                const assigned = this.currentUser.assignedClass.trim();
+                // Check if assigned class exists in the dropdown options
+                const optionExists = Array.from(select.options).some(opt => opt.value === assigned);
+                if (optionExists) {
+                    select.value = assigned;
+                    this.currentTeacherClass = assigned;
+                    this.onTeacherClassChange();
+                }
+            }
         },
 
         onTeacherClassChange() {
@@ -5507,9 +5546,9 @@ showCloudResults(student, assessments) {
         async syncFromFirebase() {
             if (!this.firebaseReady || !this.db) return;
             try {
-                
                 const { getDocs, collection } = window.fb;
 
+                // Load ALL students (teachers can view any class via dropdown selection)
                 const stuSnap = await getDocs(collection(this.db, 'students'));
                 const fbStudents = [];
                 stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
@@ -5540,7 +5579,6 @@ showCloudResults(student, assessments) {
                 this.renderStudentsTable();
                 this.renderAssessmentsTable();
                 this.populateStudentSelects();
-                
 
                 // Re-check QR params after real data loaded
                 this.checkUrlParams();
@@ -5548,9 +5586,7 @@ showCloudResults(student, assessments) {
                 console.error('Firebase sync error', e);
                 console.warn('Cloud sync failed, using local data');
             }
-        },
-
-        async saveStudentToFirebase(student) {
+        },        async saveStudentToFirebase(student) {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { doc, setDoc } = window.fb;
