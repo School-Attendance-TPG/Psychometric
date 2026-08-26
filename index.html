@@ -155,6 +155,13 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           DEFAULT ZOOM — Desktop 95% for consistent tight layout
+        ═══════════════════════════════════════════════════════════════ */
+        @media (min-width: 968px) {
+            html { zoom: 0.9; }
+        }
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--deep-space); color: var(--text-primary);
             overflow-x: hidden; min-height: 100vh; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
