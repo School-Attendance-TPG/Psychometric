@@ -3190,7 +3190,7 @@ body.pdf-mode .timeline-content {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 this.deferredPrompt = e;
-                this.showToast('📲 Tap "Add to Home Screen" to install MANASU app', 'info');
+                /* install toast disabled */
             });
             
             window.addEventListener('appinstalled', () => {
