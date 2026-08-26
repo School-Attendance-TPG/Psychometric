@@ -1884,7 +1884,7 @@ body.pdf-mode .timeline-content {
             </div>
             <h3 style="margin-bottom:8px;">PIN Set Successfully!</h3>
             <p style="color:var(--text-secondary); margin-bottom:16px; font-size:0.9rem;">Share this 4-digit PIN with the parent securely.</p>
-            <div style="background:#f8fafc; border:2px dashed var(--healing-teal); border-radius:16px; padding:20px; margin-bottom:20px;">
+            <div style="background:var(--card-bg); border:2px dashed var(--healing-teal); border-radius:16px; padding:20px; margin-bottom:20px;">
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Parent PIN</div>
                 <div style="font-size:2.2rem; font-weight:800; color:var(--text-primary); letter-spacing:8px;" id="sharePinValue">----</div>
             </div>
@@ -3832,17 +3832,17 @@ body.pdf-mode .timeline-content {
                 const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
-                domainHtml += '<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:10px;"><span><i class="fas ' + dIcon + '" style="color:' + dColor + '; margin-right:8px;"></i>' + dName + '</span><strong style="color:' + this.getScoreColor(val) + '">' + val + '/10</strong></div>';
+                domainHtml += '<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span style="color:var(--text-primary);"><i class="fas ' + dIcon + '" style="color:' + dColor + '; margin-right:8px;"></i>' + dName + '</span><strong style="color:' + this.getScoreColor(val) + '">' + val + '/10</strong></div>';
             });
 
             document.getElementById('viewAssessmentContent').innerHTML = 
                 '<div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">' + this.sanitizeHTML(s ? s.name : 'Unknown') + '</h4><p style="color:var(--text-muted); font-size:0.9rem;">' + this.formatDate(a.date) + ' &bull; ' + this.sanitizeHTML(s ? s.class : '') + '</p></div>' +
                 '<div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">' +
-                    '<div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">' +
+                    '<div style="flex:1; min-width:200px; text-align:center; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">' +
                         '<div style="font-size:2.5rem; font-weight:800; color:' + this.getScoreColor(a.overallScore) + ';">' + a.overallScore.toFixed(1) + '</div>' +
                         '<div style="font-size:0.8rem; color:var(--text-muted);">' + this.t('th_overall') + '</div>' +
                     '</div>' +
-                    '<div style="flex:1; min-width:200px; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">' +
+                    '<div style="flex:1; min-width:200px; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">' +
                         '<div style="margin-bottom:8px;">' + this.getSeverityBadge(a.severity) + '</div>' +
                         '<div style="font-size:0.85rem; color:var(--text-muted);">' + this.t('th_status') + ': <span style="color:var(--text-primary); font-weight:600;">' + (a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')) + '</span></div>' +
                         '<div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ' + this.sanitizeHTML(a.counselorName) + '</div>' +
@@ -3850,7 +3850,7 @@ body.pdf-mode .timeline-content {
                 '</div>' +
                 '<h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>' + this.t('domain_breakdown') + '</h5>' +
                 domainHtml +
-                '<div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">' +
+                '<div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(13,148,136,0.2); border-radius:16px;">' +
                     '<h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>' + this.t('counselor_notes') + '</h5>' +
                     '<p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">' + this.getNotes(a) + '</p>' +
                 '</div>' +
@@ -3900,7 +3900,7 @@ showCloudResults(student, assessments) {
             barsHtml += `
                 <div style="margin-bottom:14px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                        <span style="color:var(--text-primary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                        <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                         <span style="font-weight:700; color:${color}">${val}/10</span>
                     </div>
                     <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -4029,7 +4029,7 @@ showCloudResults(student, assessments) {
                 barsHtml += `
                     <div style="margin-bottom:14px;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                            <span style="color:var(--text-primary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                            <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                              <span style="font-weight:700; color:${color}">${val}/${max}</span>
                         </div>
                         <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -4425,7 +4425,7 @@ showCloudResults(student, assessments) {
                     const dColor = d ? d.color : '#94a3b8';
                     barsHtml += `<div style="margin-bottom:14px;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                            <span style="color:var(--text-primary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                            <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                             <span style="font-weight:700; color:${color}">${val}/${max}</span>
                         </div>
                         <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -4553,7 +4553,7 @@ showCloudResults(student, assessments) {
             barsHtml += `
                 <div style="margin-bottom:14px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
-                        <span style="color:var(--text-primary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
+                        <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
                         <span style="font-weight:700; color:${color}">${val}/10</span>
                     </div>
                     <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
@@ -5245,16 +5245,16 @@ showCloudResults(student, assessments) {
                 const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
-                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span style="color:var(--text-primary);"><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span></span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${this.sanitizeHTML(s ? s.name : 'Unknown')}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
                 <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; text-align:center; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">
                         <div style="font-size:2.5rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
                         <div style="font-size:0.8rem; color:var(--text-muted);">${this.t('th_overall')}</div>
                     </div>
-                    <div style="flex:1; min-width:200px; padding:20px; background:#f8fafc; border:1px solid rgba(0,0,0,0.06); border-radius:16px;">
+                    <div style="flex:1; min-width:200px; padding:20px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:16px;">
                         <div style="margin-bottom:8px;">${this.getSeverityBadge(a.severity)}</div>
                         <div style="font-size:0.85rem; color:var(--text-muted);">${this.t('th_status')}: <span style="color:var(--text-primary); font-weight:600;">${a.status==='resolved' ? this.t('status_resolved_label') : this.t('status_active_monitoring')}</span></div>
                         <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">By: ${a.counselorName}</div>
@@ -5262,7 +5262,7 @@ showCloudResults(student, assessments) {
                 </div>
                 <h5 style="margin-bottom:12px; color:var(--healing-teal);"><i class="fas fa-brain" style="margin-right:8px;"></i>${this.t('domain_breakdown')}</h5>
                 ${domainHtml}
-                <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,0,128,0.08)); border:1px solid rgba(0,184,148,0.2); border-radius:16px;">
+                <div style="margin-top:20px; padding:16px; background:linear-gradient(135deg, rgba(0,184,148,0.08), rgba(37,99,235,0.08)); border:1px solid rgba(13,148,136,0.2); border-radius:16px;">
                     <h5 style="margin-bottom:8px; color:var(--healing-teal);"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>${this.t('counselor_notes')}</h5>
                                         <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem;">${this.getNotes(a)}</p>
                 </div>
