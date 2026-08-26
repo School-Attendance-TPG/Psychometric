@@ -3049,7 +3049,7 @@ body.pdf-mode .timeline-content {
                     this.updateHeroStats();
                 }
             } catch (e) {
-                console.warn('Public stats load failed:', e);
+                console.warn('Public stats load failed');
             }
         },
 
@@ -3065,7 +3065,7 @@ body.pdf-mode .timeline-content {
                     this.students = fbStudents;
                 }
             } catch (e) {
-                console.warn('Load students failed:', e);
+                console.warn('Load students failed');
             }
         },
 
@@ -3086,7 +3086,7 @@ body.pdf-mode .timeline-content {
                 this.publicStats = stats;
                 this.updateHeroStats();
             } catch (e) {
-                console.error('Update public stats failed:', e);
+                console.error('Update public stats failed');
             }
         },
 
@@ -3138,7 +3138,7 @@ body.pdf-mode .timeline-content {
                     userName = uData.name || user.displayName || user.email || 'User';
                 }
             } catch (e) {
-                console.warn('Auth listener: failed to fetch user doc:', e);
+                console.warn('Auth listener: failed to fetch user doc');
             }
 
             this.currentUser = {
@@ -3172,7 +3172,7 @@ body.pdf-mode .timeline-content {
             }
 
             this.syncFromFirebase().catch(err => {
-                console.warn('Post-login sync failed:', err);
+                console.warn('Post-login sync failed');
             });
         } else {
             this.currentUser = null;
@@ -3514,7 +3514,7 @@ body.pdf-mode .timeline-content {
                 this.showResults(student);
 
             } catch (err) {
-                console.error('Search error:', err);
+                console.error('Search error');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -3573,7 +3573,7 @@ body.pdf-mode .timeline-content {
                             assignedClass: tData.assignedClass || null
                         };
                     } catch (roleErr) {
-                        console.warn('Role check failed:', roleErr);
+                        console.warn('Role check failed');
                         this.showToast('Login failed: Unable to verify role.', 'error');
                         btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
                         btn.disabled = false;
@@ -3582,7 +3582,7 @@ body.pdf-mode .timeline-content {
                     await doTeacherLogin();
                     return;
                 } catch (err) {
-                    console.warn('Firebase auth failed:', err.code, err.message);
+                    console.warn('Firebase auth failed');
                 }
             }
 
@@ -4267,7 +4267,7 @@ showCloudResults(student, assessments) {
             const student = this.students.find(s => s.id === studentId);
             const age = student ? parseInt(student.age) : 0;
             const isAge10 = age === 10;
-            console.log('Student selected:', student?.name, 'Age:', age, 'isAge10:', isAge10);
+            /* student data logging removed for security */
             this.generateAssessmentSliders(isAge10 ? 'age10' : 'standard');
         },
 
@@ -4372,7 +4372,7 @@ showCloudResults(student, assessments) {
                 this.showToast(this.t('toast_pdf_downloaded'), 'success');
 
             } catch (err) {
-                console.error('PDF Error:', err);
+                console.error('PDF generation failed');
                 this.showToast(this.t('toast_pdf_failed'), 'error');
             } finally {
                 // CRITICAL: Always remove PDF mode class
@@ -4653,7 +4653,7 @@ showCloudResults(student, assessments) {
                     name: uData.name || 'Admin'
                 };
             } catch (roleErr) {
-                console.warn('Role check failed:', roleErr);
+                console.warn('Role check failed');
                 this.showToast('Login failed: Unable to verify role.', 'error');
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + this.t('btn_sign_in');
                 btn.disabled = false;
@@ -4708,7 +4708,7 @@ showCloudResults(student, assessments) {
             const { signOut } = window.fb;
             await signOut(this.auth);
         } catch (err) {
-            console.error('Firebase logout error:', err);
+            console.error('Firebase logout error');
         }
     }
     
@@ -5353,7 +5353,7 @@ showCloudResults(student, assessments) {
                 document.body.appendChild(qrBox);
 
                 const url = `${window.location.origin}${window.location.pathname}?ic=${s.icNumber}`;
-                console.log('QR URL:', url);
+                /* QR URL logging removed for security */
 
                 new QRCode(qrBox, { 
                     text: url, 
@@ -5370,13 +5370,13 @@ showCloudResults(student, assessments) {
                         this.drawIDCard(s, container);
                         if (qrBox.parentNode) qrBox.parentNode.removeChild(qrBox);
                     } catch (err) {
-                        console.error('QR render error:', err);
+                        console.error('QR render failed');
                         container.innerHTML = '<p style="color:var(--danger); text-align:center;">Failed to generate QR. Please try again.</p>';
                         this.showToast(this.t('toast_qr_failed'), 'error');
                     }
                 }, 500);
             } catch (err) {
-                console.error('generateQR error:', err);
+                console.error('QR generation failed');
                 this.showToast(this.t('toast_qr_failed'), 'error');
             }
         },
@@ -5853,7 +5853,7 @@ showCloudResults(student, assessments) {
                 // Re-check QR params after real data loaded
                 this.checkUrlParams();
             } catch(e) {
-                console.error('Firebase sync error', e);
+                console.error('Firebase sync error');
                 console.warn('Cloud sync failed, using local data');
             }
         },        async saveStudentToFirebase(student) {
@@ -5862,7 +5862,7 @@ showCloudResults(student, assessments) {
                 const { doc, setDoc } = window.fb;
                 // ✅ Use existing student.id (STU_...) as document ID
                 await setDoc(doc(this.db, 'students', student.id), student);
-            } catch(e) { console.error('Firebase save student failed', e); }
+            } catch(e) { console.error('Firebase save student failed'); }
         },
 
         async saveAssessmentToFirebase(assessment) {
@@ -5873,7 +5873,7 @@ showCloudResults(student, assessments) {
                 const studentDocId = (assessment.studentId || '').replace(/[-\s]/g, '').toUpperCase();
                 if (!studentDocId) return;
                 await setDoc(doc(this.db, 'students', studentDocId, 'assessments', assessment.id), assessment);
-            } catch(e) { console.error('Firebase save assessment failed', e); }
+            } catch(e) { console.error('Firebase save assessment failed'); }
         },
 
         async deleteStudentFromFirebase(id) {
@@ -5881,7 +5881,7 @@ showCloudResults(student, assessments) {
             try {
                 const { doc, deleteDoc } = window.fb;
                 await deleteDoc(doc(this.db, 'students', id));
-            } catch(e) { console.error('Firebase delete student failed', e); }
+            } catch(e) { console.error('Firebase delete student failed'); }
         },
 
         async deleteAssessmentFromFirebase(id) {
@@ -5893,7 +5893,7 @@ showCloudResults(student, assessments) {
                 const studentDocId = localAss ? (localAss.studentId || '').replace(/[-\s]/g, '').toUpperCase() : '';
                 if (!studentDocId) return;
                 await deleteDoc(doc(this.db, 'students', studentDocId, 'assessments', id));
-            } catch(e) { console.error('Firebase delete assessment failed', e); }
+            } catch(e) { console.error('Firebase delete assessment failed'); }
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -5981,7 +5981,7 @@ showCloudResults(student, assessments) {
                 this.renderStemMissions();
 
             } catch (err) {
-                console.error('STEM search error:', err);
+                console.error('STEM search failed');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -6236,7 +6236,7 @@ if ('serviceWorker' in navigator) {
     
     navigator.serviceWorker.register(swUrl)
         .then(reg => console.log('MANASU SW registered'))
-        .catch(err => console.log('SW failed', err));
+        .catch(err => console.log('SW failed'));
 }
 </script>
 
