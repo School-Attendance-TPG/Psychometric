@@ -153,9 +153,9 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             --shadow-glow: 0 0 40px rgba(13,148,136,0.12);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         body {
-            font-family: 'Poppins', sans-serif; background: var(--deep-space); color: var(--text-primary);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--deep-space); color: var(--text-primary);
             overflow-x: hidden; min-height: 100vh; -webkit-font-smoothing: antialiased;
         }
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
@@ -877,24 +877,218 @@ body.pdf-mode .timeline-content {
             color: #8b5cf6;
         }
 
-</style>
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
+
+
+/* ═══════════════════════════════════════════════════════════════
+           DARK MODE — PREMIUM NIGHT THEME
+        ═══════════════════════════════════════════════════════════════ */
+        body.dark-mode {
+            --deep-space: #0a0e1a;
+            --midnight: #0f172a;
+            --glass-bg: rgba(15, 23, 42, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-highlight: rgba(255, 255, 255, 0.10);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --card-bg: rgba(15, 23, 42, 0.92);
+            --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0a0e1a 100%);
+            --shadow-soft: 0 8px 32px rgba(0,0,0,0.35);
+            --shadow-glow: 0 0 40px rgba(13,148,136,0.18);
+        }
+        body.dark-mode .top-nav {
+            background: rgba(10, 14, 26, 0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .top-nav.scrolled {
+            background: rgba(15, 23, 42, 0.95);
+        }
+        body.dark-mode .admin-sidebar {
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .admin-sidebar-header {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .admin-sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .admin-nav-item:hover, 
+        body.dark-mode .admin-nav-item.active {
+            background: rgba(255,255,255,0.04);
+        }
+        body.dark-mode .admin-nav-item.active {
+            background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(13,148,136,0.10));
+            border: 1px solid rgba(13,148,136,0.20);
+        }
+        body.dark-mode .input-premium,
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group select,
+        body.dark-mode .form-group textarea,
+        body.dark-mode .search-box input,
+        body.dark-mode .filter-box select {
+            background: rgba(30, 41, 59, 0.85);
+            border-color: rgba(255,255,255,0.08);
+            color: var(--text-primary);
+        }
+        body.dark-mode .input-premium:focus,
+        body.dark-mode .form-group input:focus,
+        body.dark-mode .form-group select:focus,
+        body.dark-mode .form-group textarea:focus {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: var(--healing-teal);
+            box-shadow: 0 0 0 4px rgba(13,148,136,0.15);
+        }
+        body.dark-mode .data-table th {
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .data-table td {
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+        }
+        body.dark-mode .data-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+        body.dark-mode .modal {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-color: rgba(255,255,255,0.08);
+        }
+        body.dark-mode .modal-close {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+        }
+        body.dark-mode .mobile-menu {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+        body.dark-mode .mobile-menu-header,
+        body.dark-mode .mobile-menu-footer {
+            border-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode .mobile-menu-overlay {
+            background: rgba(0,0,0,0.6);
+        }
+        body.dark-mode .lang-toggle {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode .lang-btn.active {
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--healing-teal);
+        }
+        body.dark-mode .nav-link:hover, 
+        body.dark-mode .nav-link.active {
+            background: rgba(255,255,255,0.04);
+        }
+        body.dark-mode .hero-stat {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+        }
+        body.dark-mode .domain-item {
+            background: rgba(30, 41, 59, 0.50);
+        }
+        body.dark-mode .timeline-content {
+            background: rgba(30, 41, 59, 0.70);
+        }
+        body.dark-mode .recommendation-box {
+            background: linear-gradient(135deg, rgba(13,148,136,0.08), rgba(37,99,235,0.08));
+        }
+        body.dark-mode .career-match-item {
+            background: rgba(30, 41, 59, 0.50);
+        }
+        body.dark-mode .career-insight-box {
+            background: rgba(30, 41, 59, 0.40);
+        }
+        body.dark-mode .qr-dropdown {
+            background: #1e293b;
+            border-color: rgba(255,255,255,0.08);
+        }
+        body.dark-mode .qr-dropdown-item:hover {
+            background: rgba(13,148,136,0.10);
+        }
+        body.dark-mode .portal-card-visual {
+            background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(13,148,136,0.06));
+        }
+        body.dark-mode .security-badges .sec-badge {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode .score-slider input[type="range"] {
+            background: rgba(255,255,255,0.08);
+        }
+        body.dark-mode .empty-state {
+            color: var(--text-muted);
+        }
+        body.dark-mode .btn-outline {
+            border-color: rgba(255,255,255,0.10);
+            color: var(--text-primary);
+        }
+        body.dark-mode .btn-outline:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--healing-teal);
+        }
+        body.dark-mode .severity-badge.sev-normal {
+            background: rgba(16,185,129,0.08);
+            border-color: rgba(16,185,129,0.15);
+        }
+        body.dark-mode .severity-badge.sev-mild {
+            background: rgba(245,158,11,0.08);
+            border-color: rgba(245,158,11,0.15);
+        }
+        body.dark-mode .severity-badge.sev-moderate {
+            background: rgba(249,115,22,0.08);
+            border-color: rgba(249,115,22,0.15);
+        }
+        body.dark-mode .severity-badge.sev-severe {
+            background: rgba(239,68,68,0.08);
+            border-color: rgba(239,68,68,0.15);
+        }
+        body.dark-mode .admin-stat-card::before { opacity: 0.8; }
+
+
+
+        
+
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(0,0,0,0.04);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .dark-mode-toggle:hover {
+            background: rgba(0,0,0,0.08);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+        body.dark-mode .dark-mode-toggle {
+            background: rgba(255,255,255,0.06);
+            color: #fbbf24;
+        }
+        body.dark-mode .dark-mode-toggle:hover {
+            background: rgba(255,255,255,0.10);
+            color: #f59e0b;
+            transform: scale(1.1);
+        }
+
+        /* Smooth theme transition */
+        body, body * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        /* Exclude from transition: particles, animations */
+        .orb, .progress-fill, .ring-progress, .brain-glow, .brain-icon, .ring, .p-bar-fill, .career-match-bar-fill, .toast, .modal-overlay, canvas {
+            transition: none !important;
+        }
+    </style>
 <base target="_blank">
 </head>
 <body>
@@ -916,6 +1110,9 @@ body.pdf-mode .timeline-content {
             <i class="fas fa-bars"></i>
         </button>
         <div class="nav-actions">
+            <button class="dark-mode-toggle" id="darkModeToggle" onclick="app.toggleDarkMode()" data-i18n-title="dark_mode_tooltip" title="Toggle Dark Mode">
+                <i class="fas fa-moon" id="darkModeIcon"></i>
+            </button>
             <div class="lang-toggle">
                 <button class="lang-btn active" onclick="app.setLang('en')" data-lang="en">EN</button>
                 <button class="lang-btn" onclick="app.setLang('ta')" data-lang="ta">தமிழ்</button>
@@ -949,6 +1146,11 @@ body.pdf-mode .timeline-content {
         
     </div>
     <div class="mobile-menu-footer">
+        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:12px;">
+            <button class="dark-mode-toggle" onclick="app.toggleDarkMode();app.closeMobileMenu()" data-i18n-title="dark_mode_tooltip" title="Toggle Dark Mode">
+                <i class="fas fa-moon" id="mobileDarkModeIcon"></i>
+            </button>
+        </div>
         <div class="lang-toggle" style="justify-content:center;">
             <button class="lang-btn active" onclick="app.setLang('en');app.closeMobileMenu()" data-lang="en">EN</button>
             <button class="lang-btn" onclick="app.setLang('ta');app.closeMobileMenu()" data-lang="ta">தமிழ்</button>
@@ -1225,6 +1427,9 @@ body.pdf-mode .timeline-content {
                 
                 <div class="admin-sidebar-footer">
     <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; padding:0 12px;">
+        <button class="dark-mode-toggle" onclick="app.toggleDarkMode()" data-i18n-title="dark_mode_tooltip" title="Toggle Dark Mode" style="width:40px; flex-shrink:0;">
+            <i class="fas fa-moon" id="adminDarkModeIcon"></i>
+        </button>
         <div class="lang-toggle" style="width:100%; justify-content:center;">
             <button class="lang-btn active" onclick="app.setLang('en')" data-lang="en">EN</button>
             <button class="lang-btn" onclick="app.setLang('ms')" data-lang="ms">MS</button>
@@ -1415,6 +1620,9 @@ body.pdf-mode .timeline-content {
                 <button class="admin-nav-item" onclick="app.showTeacherPage('assessments')" data-teacher-nav="assessments"><i class="fas fa-clipboard-check"></i> <span data-i18n="nav_class_assessments">Assessments</span></button>
                 <div class="admin-sidebar-footer">
                     <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; padding:0 12px;">
+                        <button class="dark-mode-toggle" onclick="app.toggleDarkMode()" data-i18n-title="dark_mode_tooltip" title="Toggle Dark Mode" style="width:40px; flex-shrink:0;">
+                            <i class="fas fa-moon" id="teacherDarkModeIcon"></i>
+                        </button>
                         <div class="lang-toggle" style="width:100%; justify-content:center;">
                             <button class="lang-btn active" onclick="app.setLang('en')" data-lang="en">EN</button>
                             <button class="lang-btn" onclick="app.setLang('ms')" data-lang="ms">MS</button>
@@ -2692,6 +2900,7 @@ body.pdf-mode .timeline-content {
         },
 
             async init() {
+    this.initDarkMode();
     this.loadSettings();
     this.loadDemoData();
     this.loadStemMissions();
@@ -3089,6 +3298,12 @@ body.pdf-mode .timeline-content {
                 const key = el.dataset.i18n;
                 if (this.i18n[lang] && this.i18n[lang][key]) {
                     el.innerHTML = this.i18n[lang][key];
+                }
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.dataset.i18nTitle;
+                if (this.i18n[lang] && this.i18n[lang][key]) {
+                    el.title = this.i18n[lang][key];
                 }
             });
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
@@ -5489,6 +5704,38 @@ showCloudResults(student, assessments) {
         // ═══════════════════════════════════════════════════════════════
         // UTILITIES
         // ═══════════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════════
+        // DARK MODE
+        // ═══════════════════════════════════════════════════════════════
+        initDarkMode() {
+            const saved = localStorage.getItem('manasu_darkMode');
+            if (saved === 'true') {
+                document.body.classList.add('dark-mode');
+                this.updateDarkModeIcons(true);
+            }
+        },
+
+        toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('manasu_darkMode', isDark);
+            this.updateDarkModeIcons(isDark);
+            this.showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'info');
+        },
+
+        updateDarkModeIcons(isDark) {
+            const icons = [
+                document.getElementById('darkModeIcon'),
+                document.getElementById('adminDarkModeIcon'),
+                document.getElementById('teacherDarkModeIcon'),
+                document.getElementById('mobileDarkModeIcon')
+            ];
+            icons.forEach(icon => {
+                if (icon) {
+                    icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            });
+        },
+
         showToast(msg, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
