@@ -30,7 +30,8 @@
     <meta name="msapplication-TileImage" content="icon-192.png">
     <link rel="manifest" href="manifest.json">
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFfjz8ldW5g.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -152,11 +153,25 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             --shadow-soft: 0 8px 32px rgba(0,0,0,0.08);
             --shadow-glow: 0 0 40px rgba(13,148,136,0.12);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--deep-space); color: var(--text-primary);
-            overflow-x: hidden; min-height: 100vh; -webkit-font-smoothing: antialiased;
+            overflow-x: hidden; min-height: 100vh; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           RENDERING NORMALIZATION — Local vs Hosted Consistency Fix
+        ═══════════════════════════════════════════════════════════════ */
+        h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, select, label, div {
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @supports (font-size-adjust: 1) {
+            body { font-size-adjust: 0.5; }
         }
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
         .bg-orbs { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; pointer-events: none; }
