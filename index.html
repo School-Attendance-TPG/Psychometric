@@ -157,10 +157,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
         /* ═══════════════════════════════════════════════════════════════
-           DEFAULT ZOOM — Desktop 95% for consistent tight layout
+           DEFAULT ZOOM — Front pages only (Home, Parent, STEM)
         ═══════════════════════════════════════════════════════════════ */
         @media (min-width: 968px) {
-            html { zoom: 0.95; }
+            html.front-page-zoom { zoom: 0.95; }
         }
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--deep-space); color: var(--text-primary);
@@ -3209,6 +3209,14 @@ body.pdf-mode .timeline-content {
     }
     if (id === 'adminLogin' && this.currentUser && this.currentUser.role === 'admin') {
         id = 'adminDashboard';
+    }
+
+    // ✅ Front pages get 95% zoom, Admin/Teacher pages stay at 100%
+    const frontPages = ['landing', 'parentPortal', 'stemMission'];
+    if (frontPages.includes(id)) {
+        document.documentElement.classList.add('front-page-zoom');
+    } else {
+        document.documentElement.classList.remove('front-page-zoom');
     }
 
     // ✅ Save current section to localStorage
