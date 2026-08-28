@@ -5169,202 +5169,249 @@ showCloudResults(student, assessments) {
     const btn = document.querySelector('#resultsView .btn-primary');
     const originalHTML = btn ? btn.innerHTML : '';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_generate_pdf');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing PDF...';
         btn.disabled = true;
     }
 
-    const wasDarkMode = document.body.classList.contains('dark-mode');
-
     try {
-        if (wasDarkMode) document.body.classList.remove('dark-mode');
-        document.body.classList.add('pdf-mode');
-
-        await document.fonts.ready;
-
         // ═══════════════════════════════════════════════════════════════
-        // BUILD PREMIUM PDF DOM — Render on-screen, cover with overlay
+        // BULLETPROOF PDF: Render full-screen, capture, then remove
         // ═══════════════════════════════════════════════════════════════
-
-        // 1. Create full-screen loading overlay
-        const overlay = document.createElement('div');
-        overlay.id = 'pdfGenOverlay';
-        overlay.style.cssText = 'position:fixed; inset:0; background:#ffffff; z-index:99998; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;';
-        overlay.innerHTML = `
-            <div style="width:60px; height:60px; border:4px solid #e2e8f0; border-top-color:#0d9488; border-radius:50%; animation:spin 1s linear infinite;"></div>
-            <div style="font-family:Poppins,sans-serif; font-size:1rem; color:#475569; font-weight:600;">Preparing your PDF report...</div>
-            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-        `;
-        document.body.appendChild(overlay);
-
-        // 2. Create PDF container — render at top-left, behind overlay
-        const pdfContainer = document.createElement('div');
-        pdfContainer.id = 'pdfExportContainer';
-        pdfContainer.style.cssText = 'position:absolute; top:0; left:0; width:210mm; background:#ffffff; color:#111827; font-family:"Poppins",sans-serif; z-index:1; overflow:visible;';
 
         const lang = this.currentLang;
+        const sevColors = { normal: '#10b981', mild: '#f59e0b', moderate: '#f97316', severe: '#ef4444' };
+        const sevLabels = { normal: 'Normal', mild: 'Mild Concern', moderate: 'Moderate Concern', severe: 'Severe Concern' };
+        const sev = assessment.severity || 'normal';
 
-        // Premium Header
-        const headerHtml = `
-            <div class="pdf-header">
-                <div class="pdf-header-inner">
-                    <div class="pdf-header-brand">
-                        <div class="pdf-header-logo"><i class="fas fa-brain"></i></div>
-                        <div class="pdf-header-titles">
-                            <div class="pdf-header-title">MANASU</div>
-                            <div class="pdf-header-subtitle">Psychometric Wellness Portal</div>
-                        </div>
-                    </div>
-                    <div class="pdf-header-school">
-                        <i class="fas fa-school"></i> SJKT Telok Panglima Garang
-                    </div>
-                    <div class="pdf-header-badge">Secure & Confidential Assessment Report</div>
-                </div>
-            </div>
-        `;
-
-        // Student info bar
-        const studentInfoHtml = `
-            <div class="pdf-student-bar">
-                <div class="pdf-student-avatar"><i class="fas fa-child"></i></div>
-                <div class="pdf-student-info">
-                    <div class="pdf-student-name">${this.sanitizeHTML(student.name)}</div>
-                    <div class="pdf-student-meta">Class ${this.sanitizeHTML(student.class)} &bull; MyKid: ${this.sanitizeHTML(student.icNumber)} &bull; Age: ${student.age || '-'}</div>
-                </div>
-                <div class="pdf-student-score">
-                    <div class="pdf-score-value" style="color:${this.getScoreColor(assessment.overallScore)};">${assessment.overallScore.toFixed(1)}<span class="pdf-score-max">/10</span></div>
-                    <div class="pdf-score-label">Overall Score</div>
-                </div>
-            </div>
-        `;
-
-        // Severity badge
-        const sevBadge = this.getSeverityBadge(assessment.severity);
-        const sevHtml = `<div class="pdf-severity-wrap">${sevBadge}</div>`;
-
-        // Domain cards
-        let domainsHtml = '';
+        // Build domain rows
+        let domainRows = '';
         if (assessment.domains) {
-            domainsHtml += `<div class="pdf-section-title"><i class="fas fa-brain" style="margin-right:8px; color:#0d9488;"></i>Detailed Psychometric Analysis</div>`;
             Object.entries(assessment.domains).forEach(([key, val]) => {
                 const d = this.getDomainInfo(key);
                 const max = d.max || 10;
+                const pct = (val / max) * 100;
                 const color = this.getScoreColor(val, max);
                 const level = this.getScoreLabel(val, max);
                 const dName = d && typeof d.name === 'object' ? (d.name[lang] || d.name.en) : (d ? d.name : key);
                 const dDesc = d && typeof d.desc === 'object' ? (d.desc[lang] || d.desc.en) : (d ? d.desc : '');
-                const pct = (val / max) * 100;
-                domainsHtml += `
-                    <div class="pdf-domain-card">
-                        <div class="pdf-domain-header">
-                            <div class="pdf-domain-name">
-                                <span class="pdf-domain-icon" style="background:${d.color}15; color:${d.color};"><i class="fas ${d.icon}"></i></span>
+                domainRows += `
+                    <tr>
+                        <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0;">
+                            <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">
+                                <span style="display:inline-flex; width:28px; height:28px; border-radius:8px; background:${d.color}15; color:${d.color}; align-items:center; justify-content:center; margin-right:8px; font-size:0.85rem;"><i class="fas ${d.icon}"></i></span>
                                 ${dName}
                             </div>
-                            <div class="pdf-domain-score" style="color:${color};">${val}<span class="pdf-domain-max">/${max}</span></div>
-                        </div>
-                        <div class="pdf-domain-desc">${dDesc}</div>
-                        <div class="pdf-domain-bar-track"><div class="pdf-domain-bar-fill" style="width:${pct}%; background:${color};"></div></div>
-                        <div class="pdf-domain-level" style="background:${color}12; color:${color};">${level}</div>
-                    </div>
+                            <div style="font-size:0.82rem; color:#64748b; margin-top:4px; padding-left:36px;">${dDesc}</div>
+                        </td>
+                        <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:800; color:${color}; font-size:1.1rem; white-space:nowrap;">${val}<span style="font-size:0.8rem; color:#94a3b8;">/${max}</span></td>
+                        <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; text-align:center;">
+                            <span style="display:inline-block; padding:4px 14px; border-radius:50px; font-size:0.75rem; font-weight:700; background:${color}12; color:${color};">${level}</span>
+                        </td>
+                        <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; width:140px;">
+                            <div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
+                                <div style="height:100%; width:${pct}%; background:${color}; border-radius:10px;"></div>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             });
         }
 
-        // Counselor notes
-        const notesHtml = `
-            <div class="pdf-notes-box">
-                <div class="pdf-notes-title"><i class="fas fa-clipboard-list"></i> Counselor Recommendations</div>
-                <div class="pdf-notes-body">${this.getNotes(assessment)}</div>
-                <div class="pdf-counselor-sig">
-                    <div class="pdf-counselor-avatar">S</div>
-                    <div class="pdf-counselor-info">
-                        <div class="pdf-counselor-name">Subashini Sivalingam</div>
-                        <div class="pdf-counselor-role">Guidance & Counseling Teacher, SJKT TPG</div>
-                    </div>
-                </div>
-            </div>
-        `;
-
         // Career predictions
         const predictions = this.getCareerPredictions(assessment.domains);
-        let careerHtml = '';
+        let careerRows = '';
         if (predictions.length > 0) {
-            careerHtml += `<div class="pdf-career-box"><div class="pdf-career-title"><i class="fas fa-briefcase"></i> Career Path Prediction</div>`;
             predictions.forEach((career, idx) => {
                 const careerName = career.name[lang] || career.name.en;
                 const careerDesc = career.desc[lang] || career.desc.en;
                 const rankColors = ['#f59e0b', '#64748b', '#ea580c', '#8b5cf6', '#3b82f6'];
                 const rankColor = rankColors[idx] || '#8b5cf6';
-                careerHtml += `
-                    <div class="pdf-career-item">
-                        <div class="pdf-career-rank" style="background:${rankColor};">${idx+1}</div>
-                        <div class="pdf-career-icon" style="background:${career.color}15; color:${career.color};"><i class="fas ${career.icon}"></i></div>
-                        <div class="pdf-career-info">
-                            <div class="pdf-career-name">${careerName}</div>
-                            <div class="pdf-career-desc">${careerDesc}</div>
-                        </div>
-                        <div class="pdf-career-pct">${career.matchPercentage}%</div>
-                    </div>
+                careerRows += `
+                    <tr>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="width:28px; height:28px; border-radius:50%; background:${rankColor}; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; flex-shrink:0;">${idx+1}</span>
+                                <span style="display:inline-flex; width:32px; height:32px; border-radius:8px; background:${career.color}15; color:${career.color}; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0;"><i class="fas ${career.icon}"></i></span>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a; font-size:0.9rem;">${careerName}</div>
+                                    <div style="font-size:0.78rem; color:#64748b;">${careerDesc}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; text-align:right; font-weight:800; color:#7c3aed; white-space:nowrap;">${career.matchPercentage}%</td>
+                    </tr>
                 `;
             });
-            careerHtml += `</div>`;
         }
 
         // Timeline
         const assessments = this.currentResultAllAssessments || [];
-        let timelineHtml = '';
+        let timelineRows = '';
         if (assessments.length > 0) {
-            timelineHtml += `<div class="pdf-section-title"><i class="fas fa-history" style="margin-right:8px; color:#0d9488;"></i>Assessment History</div>`;
             assessments.forEach((a, idx) => {
-                const sevColors = { normal: '#10b981', mild: '#f59e0b', moderate: '#f97316', severe: '#ef4444' };
-                const sevColor = sevColors[a.severity] || '#10b981';
-                timelineHtml += `
-                    <div class="pdf-timeline-item" style="border-left-color:${sevColor};">
-                        <div class="pdf-timeline-dot" style="background:${sevColor};"></div>
-                        <div class="pdf-timeline-content">
-                            <div class="pdf-timeline-header">
-                                <span class="pdf-timeline-title">Assessment #${assessments.length - idx}</span>
-                                <span class="pdf-timeline-score" style="color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}/10</span>
-                            </div>
-                            <div class="pdf-timeline-meta">${this.formatDate(a.date)} &bull; ${a.severity.toUpperCase()}</div>
-                        </div>
-                    </div>
+                const sc = sevColors[a.severity] || '#10b981';
+                timelineRows += `
+                    <tr>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; color:#64748b; font-size:0.85rem; white-space:nowrap;">${this.formatDate(a.date)}</td>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; font-weight:700; color:#0f172a;">#${assessments.length - idx}</td>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</td>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0;">
+                            <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; background:${sc}10; color:${sc}; border:1px solid ${sc}25;">
+                                <span style="width:6px; height:6px; border-radius:50%; background:${sc};"></span>
+                                ${sevLabels[a.severity] || a.severity}
+                            </span>
+                        </td>
+                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; font-size:0.85rem; color:#64748b;">${a.status === 'resolved' ? 'Resolved' : 'Active Monitoring'}</td>
+                    </tr>
                 `;
             });
         }
 
-        // Footer
-        const footerHtml = `
-            <div class="pdf-footer">
-                <div class="pdf-footer-brand">MANASU Psychometric Wellness Portal</div>
-                <div class="pdf-footer-school">SJKT Telok Panglima Garang</div>
-                <div class="pdf-footer-note">This report is confidential and intended solely for the parents/guardians of the named student.</div>
-                <div class="pdf-footer-date">Generated on ${new Date().toLocaleDateString('en-MY', {day:'numeric', month:'long', year:'numeric'})}</div>
-            </div>
-        `;
+        const notesText = this.getNotes(assessment);
+        const genDate = new Date().toLocaleDateString('en-MY', {day:'numeric', month:'long', year:'numeric'});
 
-        pdfContainer.innerHTML = `
-            <div class="pdf-page">
-                ${headerHtml}
-                ${studentInfoHtml}
-                ${sevHtml}
-                <div class="pdf-body">
-                    ${domainsHtml}
-                    ${notesHtml}
-                    ${careerHtml}
-                    ${timelineHtml}
+        // Build full HTML for PDF
+        const pdfHtml = `
+            <div style="width:210mm; min-height:297mm; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+
+                <!-- HEADER -->
+                <div style="background:linear-gradient(135deg,#0d9488 0%,#14b8a6 50%,#2563eb 100%); padding:28px 30px 22px; text-align:center; border-bottom:4px solid #f59e0b;">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:10px;">
+                        <div style="width:56px; height:56px; border-radius:14px; background:#ffffff; display:flex; align-items:center; justify-content:center; color:#0d9488; font-size:1.6rem; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:#ffffff; line-height:1.2; letter-spacing:1px;">MANASU</div>
+                            <div style="font-size:0.75rem; color:rgba(255,255,255,0.95); letter-spacing:3px; text-transform:uppercase; font-weight:600;">Psychometric Wellness Portal</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.95rem; color:#ffffff; font-weight:700; margin-top:10px; text-shadow:0 1px 3px rgba(0,0,0,0.2);">
+                        <i class="fas fa-school" style="margin-right:6px; color:#fbbf24;"></i> SJKT Telok Panglima Garang
+                    </div>
+                    <div style="display:inline-block; margin-top:8px; padding:4px 18px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); border-radius:50px; font-size:0.7rem; color:#ffffff; letter-spacing:2px; text-transform:uppercase; font-weight:600;">
+                        Secure & Confidential Assessment Report
+                    </div>
                 </div>
-                ${footerHtml}
+
+                <!-- STUDENT BAR -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; margin:16px 10mm 12px; display:flex; align-items:center; gap:16px;">
+                    <div style="width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:1.4rem; flex-shrink:0;">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:1.25rem; font-weight:700; color:#0f172a;">${this.sanitizeHTML(student.name)}</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Class ${this.sanitizeHTML(student.class)} &bull; MyKid: ${this.sanitizeHTML(student.icNumber)} &bull; Age: ${student.age || '-'}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.8rem; font-weight:800; line-height:1; color:${this.getScoreColor(assessment.overallScore)};">${assessment.overallScore.toFixed(1)}<span style="font-size:0.9rem; color:#94a3b8; font-weight:500;">/10</span></div>
+                        <div style="font-size:0.65rem; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-top:2px;">Overall Score</div>
+                    </div>
+                </div>
+
+                <!-- SEVERITY -->
+                <div style="margin:0 10mm 16px; text-align:right;">
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:50px; font-size:0.85rem; font-weight:700; background:${sevColors[sev]}10; color:${sevColors[sev]}; border:1px solid ${sevColors[sev]}25;">
+                        <span style="width:8px; height:8px; border-radius:50%; background:${sevColors[sev]};"></span>
+                        ${sevLabels[sev]}
+                    </span>
+                </div>
+
+                <!-- BODY -->
+                <div style="padding:0 10mm 10mm;">
+
+                    <!-- DOMAIN TABLE -->
+                    <div style="font-weight:700; color:#475569; font-size:0.85rem; text-transform:uppercase; letter-spacing:1.5px; margin:20px 0 12px;">
+                        <i class="fas fa-brain" style="margin-right:8px; color:#0d9488;"></i>Detailed Psychometric Analysis
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="padding:12px 16px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0;">Domain</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:90px;">Score</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:140px;">Level</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:160px;">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>${domainRows}</tbody>
+                    </table>
+
+                    <!-- NOTES -->
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:18px 20px; margin:20px 0;">
+                        <div style="font-weight:700; color:#0d9488; font-size:1rem; margin-bottom:10px;">
+                            <i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Counselor Recommendations
+                        </div>
+                        <div style="font-size:0.9rem; color:#334155; line-height:1.7;">${notesText}</div>
+                        <div style="margin-top:16px; padding-top:16px; border-top:1px solid #bbf7d0; display:flex; align-items:center; gap:12px;">
+                            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#ef4444); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.1rem; flex-shrink:0;">S</div>
+                            <div>
+                                <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">Subashini Sivalingam</div>
+                                <div style="font-size:0.8rem; color:#64748b;">Guidance & Counseling Teacher, SJKT TPG</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAREER -->
+                    ${predictions.length > 0 ? `
+                    <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px; padding:18px 20px; margin:20px 0;">
+                        <div style="font-weight:700; color:#7c3aed; font-size:1rem; margin-bottom:14px;">
+                            <i class="fas fa-briefcase" style="margin-right:8px;"></i>Career Path Prediction
+                        </div>
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tbody>${careerRows}</tbody>
+                        </table>
+                    </div>
+                    ` : ''}
+
+                    <!-- TIMELINE -->
+                    ${assessments.length > 0 ? `
+                    <div style="font-weight:700; color:#475569; font-size:0.85rem; text-transform:uppercase; letter-spacing:1.5px; margin:20px 0 12px;">
+                        <i class="fas fa-history" style="margin-right:8px; color:#0d9488;"></i>Assessment History
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="padding:12px 16px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0;">Date</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:80px;">#</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:90px;">Score</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:140px;">Severity</th>
+                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:140px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>${timelineRows}</tbody>
+                    </table>
+                    ` : ''}
+                </div>
+
+                <!-- FOOTER -->
+                <div style="text-align:center; padding:20px 30px; border-top:2px solid #e2e8f0; margin-top:20px; background:#f8fafc;">
+                    <div style="font-weight:700; color:#0d9488; font-size:0.9rem; letter-spacing:1px;">MANASU Psychometric Wellness Portal</div>
+                    <div style="font-size:0.8rem; color:#475569; font-weight:600; margin-top:4px;">SJKT Telok Panglima Garang</div>
+                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:6px; line-height:1.5;">This report is confidential and intended solely for the parents/guardians of the named student.</div>
+                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">Generated on ${genDate}</div>
+                </div>
             </div>
         `;
 
-        document.body.appendChild(pdfContainer);
+        // Create visible full-screen container
+        const pdfWrap = document.createElement('div');
+        pdfWrap.id = 'pdfGenWrap';
+        pdfWrap.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; overflow-y:auto; z-index:99999; padding:20px; box-sizing:border-box;';
+        pdfWrap.innerHTML = `<div id="pdfExportContainer" style="max-width:210mm; margin:0 auto;">${pdfHtml}</div>`;
+        document.body.appendChild(pdfWrap);
 
-        // 3. Force layout calculation + wait for images
-        pdfContainer.offsetHeight; // force reflow
-        await new Promise(r => setTimeout(r, 1200));
+        // Show loading message
+        const loading = document.createElement('div');
+        loading.id = 'pdfLoadingMsg';
+        loading.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:12px 24px; border-radius:12px; font-family:Poppins,sans-serif; font-size:0.9rem; font-weight:600; z-index:100000; box-shadow:0 10px 40px rgba(0,0,0,0.2);';
+        loading.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Generating PDF...';
+        document.body.appendChild(loading);
 
-        // 4. Generate PDF from the visible container
+        // Wait for fonts + render
+        await document.fonts.ready;
+        await new Promise(r => setTimeout(r, 1500));
+
+        const container = document.getElementById('pdfExportContainer');
+
         const opt = {
             margin: [5, 5, 5, 5],
             filename: `MANASU_Report_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
@@ -5379,7 +5426,7 @@ showCloudResults(student, assessments) {
                 scrollX: 0,
                 scrollY: 0,
                 windowWidth: 794,
-                windowHeight: pdfContainer.scrollHeight
+                windowHeight: container.scrollHeight
             },
             jsPDF: {
                 unit: 'mm',
@@ -5389,25 +5436,22 @@ showCloudResults(student, assessments) {
             },
             pagebreak: {
                 mode: ['css', 'legacy'],
-                avoid: ['.pdf-domain-card', '.pdf-career-item', '.pdf-timeline-item', '.pdf-notes-box', '.pdf-career-box']
+                avoid: 'tr'
             }
         };
 
-        await html2pdf().set(opt).from(pdfContainer).save();
+        await html2pdf().set(opt).from(container).save();
         this.showToast(this.t('toast_pdf_downloaded'), 'success');
 
     } catch (err) {
         console.error('PDF generation failed', err);
         this.showToast(this.t('toast_pdf_failed'), 'error');
     } finally {
-        // Cleanup
-        const pdfContainer = document.getElementById('pdfExportContainer');
-        const overlay = document.getElementById('pdfGenOverlay');
-        if (pdfContainer && pdfContainer.parentNode) pdfContainer.parentNode.removeChild(pdfContainer);
-        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-
-        document.body.classList.remove('pdf-mode');
-        if (wasDarkMode) document.body.classList.add('dark-mode');
+        // Cleanup everything
+        const wrap = document.getElementById('pdfGenWrap');
+        const load = document.getElementById('pdfLoadingMsg');
+        if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        if (load && load.parentNode) load.parentNode.removeChild(load);
         if (btn) {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
