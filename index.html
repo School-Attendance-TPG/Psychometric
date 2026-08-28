@@ -1946,6 +1946,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -5180,8 +5181,49 @@ async downloadPDF() {
         const sevColors = { normal: '#10b981', mild: '#f59e0b', moderate: '#f97316', severe: '#ef4444' };
         const sevLabels = { normal: 'Normal', mild: 'Mild Concern', moderate: 'Moderate Concern', severe: 'Severe Concern' };
         const sev = assessment.severity || 'normal';
+        const overallScore = assessment.overallScore;
 
-        // Build domain cards
+        // SVG Icons as data URIs / inline
+        const svgBrain = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="url(#brainGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d9488"/><stop offset="100%" stop-color="#2563eb"/></linearGradient></defs><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.04z"/></svg>`;
+
+        const svgSchool = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V8l-8-6-8 6v12a2 2 0 0 0 2 2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+
+        const svgChild = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+        const svgClipboard = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>`;
+
+        const svgBriefcase = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`;
+
+        const svgHistory = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+
+        const svgLock = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+
+        // Domain SVG icons map
+        const domainSvgs = {
+            'fa-book': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+            'fa-calculator': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>`,
+            'fa-images': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+            'fa-music': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+            'fa-running': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M15 22a2 2 0 0 1-2-2l1.5-3.5L11 14l-3 8"/><path d="M9 22h6"/><path d="M18 13l-3-3 2-4-5 2-2 4"/></svg>`,
+            'fa-users': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+            'fa-user': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+            'fa-leaf': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.6C13.4 5.5 17 7.5 20 11c0-3.5-2-6.5-5-8.5A7 7 0 0 0 4 12c0 4.5 3.5 8 7 8z"/></svg>`,
+            'fa-lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7A7 7 0 0 0 12 22a7 7 0 0 0 4-7.3A7 7 0 0 0 12 2z"/></svg>`,
+            'fa-brain': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.04z"/></svg>`,
+            'fa-comments': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+            'fa-comment-dots': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="12" y1="8" x2="12.01" y2="8"/><line x1="8" y1="12" x2="8.01" y2="12"/><line x1="16" y1="12" x2="16.01" y2="12"/></svg>`,
+            'fa-eye': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+            'fa-puzzle-piece': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11h-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3a2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2a2 2 0 0 0-2-2 2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H2a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2z"/></svg>`,
+            'fa-font': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>`,
+            'fa-question-circle': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        };
+
+        const getDomainSvg = (iconClass) => {
+            const key = iconClass.replace('fas ', '').trim();
+            return domainSvgs[key] || domainSvgs['fa-question-circle'];
+        };
+
+        // Build domain cards with inline SVG
         let domainCards = '';
         if (assessment.domains) {
             Object.entries(assessment.domains).forEach(([key, val]) => {
@@ -5192,24 +5234,25 @@ async downloadPDF() {
                 const level = this.getScoreLabel(val, max);
                 const dName = d && typeof d.name === 'object' ? (d.name[lang] || d.name.en) : (d ? d.name : key);
                 const dDesc = d && typeof d.desc === 'object' ? (d.desc[lang] || d.desc.en) : (d ? d.desc : '');
-                const dIcon = d ? d.icon : 'fa-brain';
+                const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#0d9488';
+                const iconSvg = getDomainSvg(dIcon);
 
                 domainCards += `
                     <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="width:36px; height:36px; border-radius:10px; background:${dColor}15; display:flex; align-items:center; justify-content:center; color:${dColor}; font-size:0.9rem;">
-                                    <i class="fas ${dIcon}"></i>
+                                <div style="width:36px; height:36px; border-radius:10px; background:${dColor}15; display:flex; align-items:center; justify-content:center; color:${dColor}; flex-shrink:0;">
+                                    ${iconSvg}
                                 </div>
                                 <div>
-                                    <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">${dName}</div>
-                                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">${dDesc}</div>
+                                    <div style="font-weight:700; color:#0f172a; font-size:0.95rem; line-height:1.3;">${dName}</div>
+                                    <div style="font-size:0.78rem; color:#64748b; line-height:1.4; margin-top:2px;">${dDesc}</div>
                                 </div>
                             </div>
-                            <div style="text-align:right;">
-                                <div style="font-size:1.2rem; font-weight:800; color:${color};">${val}<span style="font-size:0.8rem; color:#94a3b8;">/${max}</span></div>
-                                <div style="font-size:0.7rem; font-weight:700; color:${color}; background:${color}12; padding:2px 10px; border-radius:50px; display:inline-block; margin-top:4px;">${level}</div>
+                            <div style="text-align:right; flex-shrink:0; margin-left:8px;">
+                                <div style="font-size:1.2rem; font-weight:800; color:${color}; line-height:1;">${val}<span style="font-size:0.8rem; color:#94a3b8;">/${max}</span></div>
+                                <div style="font-size:0.7rem; font-weight:700; color:${color}; background:${color}12; padding:2px 10px; border-radius:50px; display:inline-block; margin-top:4px; line-height:1.3;">${level}</div>
                             </div>
                         </div>
                         <div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
@@ -5232,14 +5275,11 @@ async downloadPDF() {
                 careerHtml += `
                     <div style="display:flex; align-items:center; gap:12px; padding:14px; background:#ffffff; border:1px solid #f3e8ff; border-radius:12px; margin-bottom:10px;">
                         <div style="width:36px; height:36px; border-radius:50%; background:${rankColor}; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0;">${idx+1}</div>
-                        <div style="width:40px; height:40px; border-radius:10px; background:${career.color}15; display:flex; align-items:center; justify-content:center; color:${career.color}; font-size:1rem; flex-shrink:0;">
-                            <i class="fas ${career.icon}"></i>
-                        </div>
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:700; color:#0f172a; font-size:0.9rem;">${careerName}</div>
-                            <div style="font-size:0.78rem; color:#64748b;">${careerDesc}</div>
+                            <div style="font-weight:700; color:#0f172a; font-size:0.9rem; line-height:1.3;">${careerName}</div>
+                            <div style="font-size:0.78rem; color:#64748b; line-height:1.4; margin-top:2px;">${careerDesc}</div>
                         </div>
-                        <div style="font-weight:800; color:#7c3aed; font-size:1rem; white-space:nowrap;">${career.matchPercentage}%</div>
+                        <div style="font-weight:800; color:#7c3aed; font-size:1rem; white-space:nowrap; flex-shrink:0;">${career.matchPercentage}%</div>
                     </div>
                 `;
             });
@@ -5259,12 +5299,12 @@ async downloadPDF() {
                         <div style="background:${isLatest ? '#f0fdf4' : '#ffffff'}; border:1px solid ${isLatest ? '#bbf7d0' : '#e2e8f0'}; border-radius:10px; padding:12px 14px;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
-                                    <div style="font-weight:700; color:#0f172a; font-size:0.85rem;">Assessment #${assessments.length - idx}</div>
-                                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">${this.formatDate(a.date)}</div>
+                                    <div style="font-weight:700; color:#0f172a; font-size:0.85rem; line-height:1.3;">Assessment #${assessments.length - idx}</div>
+                                    <div style="font-size:0.75rem; color:#64748b; line-height:1.4; margin-top:2px;">${this.formatDate(a.date)}</div>
                                 </div>
                                 <div style="text-align:right;">
-                                    <div style="font-size:1.1rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
-                                    <div style="font-size:0.7rem; font-weight:600; color:${sc};">${sevLabels[a.severity] || a.severity}</div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:${this.getScoreColor(a.overallScore)}; line-height:1;">${a.overallScore.toFixed(1)}</div>
+                                    <div style="font-size:0.7rem; font-weight:600; color:${sc}; line-height:1.3;">${sevLabels[a.severity] || a.severity}</div>
                                 </div>
                             </div>
                         </div>
@@ -5275,13 +5315,13 @@ async downloadPDF() {
 
         const notesText = this.getNotes(assessment);
         const genDate = new Date().toLocaleDateString('en-MY', {day:'numeric', month:'long', year:'numeric'});
-        const overallScore = assessment.overallScore;
         const ringColor = this.getScoreColor(overallScore);
         const circumference = 2 * Math.PI * 70;
         const offset = circumference - (overallScore / 10) * circumference;
 
+        // Build the complete report HTML
         const reportHTML = `
-            <div id="imgReport" style="width:800px; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-font-smoothing:antialiased;">
+            <div id="imgReport" style="width:800px; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-font-smoothing:antialiased; line-height:1.5;">
 
                 <!-- PREMIUM HEADER -->
                 <div style="background:linear-gradient(135deg,#0d9488 0%,#14b8a6 40%,#2563eb 100%); padding:40px 40px 32px; text-align:center; position:relative; overflow:hidden;">
@@ -5290,21 +5330,21 @@ async downloadPDF() {
 
                     <div style="position:relative; z-index:2;">
                         <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px;">
-                            <div style="width:64px; height:64px; border-radius:16px; background:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 30px rgba(0,0,0,0.2);">
-                                <i class="fas fa-brain" style="font-size:1.8rem; background:linear-gradient(135deg,#0d9488,#2563eb); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i>
+                            <div style="width:64px; height:64px; border-radius:16px; background:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 30px rgba(0,0,0,0.2); flex-shrink:0;">
+                                ${svgBrain}
                             </div>
                             <div style="text-align:left;">
-                                <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:#ffffff; letter-spacing:1px; line-height:1;">MANASU</div>
-                                <div style="font-size:0.8rem; color:rgba(255,255,255,0.95); letter-spacing:4px; text-transform:uppercase; font-weight:600; margin-top:4px;">Psychometric Wellness Portal</div>
+                                <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:#ffffff; letter-spacing:1px; line-height:1.1;">MANASU</div>
+                                <div style="font-size:0.8rem; color:rgba(255,255,255,0.95); letter-spacing:4px; text-transform:uppercase; font-weight:600; margin-top:4px; line-height:1.3;">Psychometric Wellness Portal</div>
                             </div>
                         </div>
 
                         <div style="display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:50px; padding:8px 24px; margin-top:8px;">
-                            <i class="fas fa-school" style="color:#fbbf24; font-size:1rem;"></i>
-                            <span style="color:#ffffff; font-weight:700; font-size:0.95rem;">SJKT Telok Panglima Garang</span>
+                            ${svgSchool}
+                            <span style="color:#ffffff; font-weight:700; font-size:0.95rem; line-height:1.3;">SJKT Telok Panglima Garang</span>
                         </div>
 
-                        <div style="margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.85); letter-spacing:3px; text-transform:uppercase; font-weight:600;">
+                        <div style="margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.85); letter-spacing:3px; text-transform:uppercase; font-weight:600; line-height:1.3;">
                             Secure & Confidential Assessment Report
                         </div>
                     </div>
@@ -5314,22 +5354,22 @@ async downloadPDF() {
 
                 <!-- STUDENT PROFILE BAR -->
                 <div style="background:linear-gradient(135deg,#f8fafc,#f0f9ff); border-bottom:1px solid #e2e8f0; padding:24px 40px; display:flex; align-items:center; gap:18px;">
-                    <div style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:1.5rem; box-shadow:0 4px 15px rgba(13,148,136,0.25);">
-                        <i class="fas fa-child"></i>
+                    <div style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 15px rgba(13,148,136,0.25); flex-shrink:0;">
+                        ${svgChild}
                     </div>
-                    <div style="flex:1;">
-                        <div style="font-size:1.3rem; font-weight:700; color:#0f172a;">${this.sanitizeHTML(student.name)}</div>
-                        <div style="font-size:0.85rem; color:#64748b; margin-top:3px;">
-                            <span style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px;">Class ${this.sanitizeHTML(student.class)}</span>
-                            <span style="display:inline-block; background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px;">MyKid: ${this.sanitizeHTML(student.icNumber)}</span>
-                            <span style="display:inline-block; background:#f0fdf4; color:#166534; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem;">Age: ${student.age || '-'}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:1.3rem; font-weight:700; color:#0f172a; line-height:1.2;">${this.sanitizeHTML(student.name)}</div>
+                        <div style="font-size:0.85rem; color:#64748b; margin-top:3px; line-height:1.4;">
+                            <span style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px; line-height:1.3;">Class ${this.sanitizeHTML(student.class)}</span>
+                            <span style="display:inline-block; background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px; line-height:1.3;">MyKid: ${this.sanitizeHTML(student.icNumber)}</span>
+                            <span style="display:inline-block; background:#f0fdf4; color:#166534; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; line-height:1.3;">Age: ${student.age || '-'}</span>
                         </div>
                     </div>
-                    <div style="text-align:center; background:#ffffff; border-radius:16px; padding:14px 20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border:1px solid #e2e8f0;">
+                    <div style="text-align:center; background:#ffffff; border-radius:16px; padding:14px 20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border:1px solid #e2e8f0; flex-shrink:0;">
                         <div style="position:relative; width:100px; height:100px; margin:0 auto;">
                             <svg width="100" height="100" style="transform:rotate(-90deg);">
                                 <circle cx="50" cy="50" r="42" fill="none" stroke="#e2e8f0" stroke-width="8"/>
-                                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-linecap="round" 
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-linecap="round"
                                     stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
                                 <defs>
                                     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -5340,11 +5380,11 @@ async downloadPDF() {
                             </svg>
                             <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;">
                                 <div style="font-size:1.6rem; font-weight:800; color:${ringColor}; line-height:1;">${overallScore.toFixed(1)}</div>
-                                <div style="font-size:0.65rem; color:#94a3b8; font-weight:600;">/ 10</div>
+                                <div style="font-size:0.65rem; color:#94a3b8; font-weight:600; line-height:1.3;">/ 10</div>
                             </div>
                         </div>
                         <div style="margin-top:6px;">
-                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 14px; border-radius:50px; font-size:0.8rem; font-weight:700; background:${sevColors[sev]}12; color:${sevColors[sev]}; border:1px solid ${sevColors[sev]}25;">
+                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 14px; border-radius:50px; font-size:0.8rem; font-weight:700; background:${sevColors[sev]}12; color:${sevColors[sev]}; border:1px solid ${sevColors[sev]}25; line-height:1.3;">
                                 <span style="width:7px; height:7px; border-radius:50%; background:${sevColors[sev]};"></span>
                                 ${sevLabels[sev]}
                             </span>
@@ -5357,25 +5397,25 @@ async downloadPDF() {
 
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
-                                <i class="fas fa-brain"></i>
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; flex-shrink:0;">
+                                ${svgBrain}
                             </div>
-                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Detailed Psychometric Analysis</div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem; line-height:1.2;">Detailed Psychometric Analysis</div>
                         </div>
                         ${domainCards}
                     </div>
 
                     <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; border-radius:16px; padding:22px 24px; margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                            <i class="fas fa-clipboard-list" style="color:#0d9488; font-size:1rem;"></i>
-                            <div style="font-weight:700; color:#0d9488; font-size:1rem;">Counselor Recommendations</div>
+                            ${svgClipboard}
+                            <div style="font-weight:700; color:#0d9488; font-size:1rem; line-height:1.2;">Counselor Recommendations</div>
                         </div>
                         <div style="font-size:0.9rem; color:#334155; line-height:1.8;">${notesText}</div>
                         <div style="margin-top:16px; padding-top:16px; border-top:1px solid #bbf7d0; display:flex; align-items:center; gap:12px;">
-                            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#ef4444); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.1rem;">S</div>
+                            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#ef4444); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.1rem; flex-shrink:0;">S</div>
                             <div>
-                                <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">Subashini Sivalingam</div>
-                                <div style="font-size:0.8rem; color:#64748b;">Guidance & Counseling Teacher, SJKT TPG</div>
+                                <div style="font-weight:700; color:#0f172a; font-size:0.95rem; line-height:1.2;">Subashini Sivalingam</div>
+                                <div style="font-size:0.8rem; color:#64748b; line-height:1.3;">Guidance & Counseling Teacher, SJKT TPG</div>
                             </div>
                         </div>
                     </div>
@@ -5383,10 +5423,10 @@ async downloadPDF() {
                     ${predictions.length > 0 ? `
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
-                                <i class="fas fa-briefcase"></i>
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); display:flex; align-items:center; justify-content:center; color:white; flex-shrink:0;">
+                                ${svgBriefcase}
                             </div>
-                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Career Path Prediction</div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem; line-height:1.2;">Career Path Prediction</div>
                         </div>
                         <div style="background:linear-gradient(135deg,#faf5ff,#f5f3ff); border:1px solid #e9d5ff; border-radius:16px; padding:20px;">
                             ${careerHtml}
@@ -5397,10 +5437,10 @@ async downloadPDF() {
                     ${assessments.length > 0 ? `
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#f59e0b,#f97316); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
-                                <i class="fas fa-history"></i>
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#f59e0b,#f97316); display:flex; align-items:center; justify-content:center; color:white; flex-shrink:0;">
+                                ${svgHistory}
                             </div>
-                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Assessment History</div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem; line-height:1.2;">Assessment History</div>
                         </div>
                         <div style="background:#f8fafc; border-radius:16px; padding:20px;">
                             ${timelineHtml}
@@ -5414,29 +5454,43 @@ async downloadPDF() {
                     <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#0d9488,#2563eb,#f59e0b);"></div>
                     <div style="position:relative; z-index:2;">
                         <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px;">
-                            <i class="fas fa-brain" style="color:#0d9488; font-size:1.2rem;"></i>
-                            <span style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#f1f5f9; letter-spacing:1px;">MANASU</span>
+                            <div style="width:24px; height:24px; display:flex; align-items:center; justify-content:center;">${svgBrain}</div>
+                            <span style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#f1f5f9; letter-spacing:1px; line-height:1.2;">MANASU</span>
                         </div>
-                        <div style="font-size:0.85rem; color:#94a3b8; font-weight:600;">SJKT Telok Panglima Garang</div>
+                        <div style="font-size:0.85rem; color:#94a3b8; font-weight:600; line-height:1.3;">SJKT Telok Panglima Garang</div>
                         <div style="font-size:0.75rem; color:#64748b; margin-top:8px; line-height:1.6; max-width:500px; margin-left:auto; margin-right:auto;">
-                            This report is confidential and intended solely for the parents/guardians of the named student.
+                            ${svgLock} This report is confidential and intended solely for the parents/guardians of the named student.
                         </div>
-                        <div style="font-size:0.7rem; color:#475569; margin-top:8px;">Generated on ${genDate}</div>
+                        <div style="font-size:0.7rem; color:#475569; margin-top:8px; line-height:1.3;">Generated on ${genDate}</div>
                     </div>
                 </div>
             </div>
         `;
 
-        // Create hidden container
+        // Create visible overlay for rendering
+        const overlay = document.createElement('div');
+        overlay.id = 'imgGenOverlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.85); z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;';
+        overlay.innerHTML = `
+            <div style="color:white; font-size:1.2rem; font-weight:600; display:flex; align-items:center; gap:12px;">
+                <svg class="spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                Generating Premium Report...
+            </div>
+            <div style="color:rgba(255,255,255,0.6); font-size:0.85rem;">Please wait, this may take a few seconds</div>
+            <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+        `;
+        document.body.appendChild(overlay);
+
+        // Create the report container (hidden but in DOM flow)
         const wrapper = document.createElement('div');
         wrapper.id = 'imgGenWrapper';
-        wrapper.style.cssText = 'position:absolute; top:0; left:0; width:800px; opacity:0; pointer-events:none; z-index:-1;';
+        wrapper.style.cssText = 'position:absolute; top:0; left:0; width:800px; opacity:0.001; pointer-events:none; z-index:1; visibility:hidden;';
         wrapper.innerHTML = reportHTML;
         document.body.appendChild(wrapper);
 
-        // Wait for fonts and layout
+        // Wait for fonts, SVGs, and layout to settle
         await document.fonts.ready;
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(r => setTimeout(r, 2000));
 
         const element = document.getElementById('imgReport');
         if (!element) {
@@ -5454,7 +5508,14 @@ async downloadPDF() {
             scrollX: 0,
             scrollY: 0,
             width: 800,
-            windowWidth: 800
+            windowWidth: 800,
+            onclone: (clonedDoc) => {
+                const clonedReport = clonedDoc.getElementById('imgReport');
+                if (clonedReport) {
+                    clonedReport.style.visibility = 'visible';
+                    clonedReport.style.opacity = '1';
+                }
+            }
         });
 
         // Download as PNG
@@ -5469,6 +5530,8 @@ async downloadPDF() {
         console.error('Image generation failed', err);
         this.showToast('Download failed. Please try again.', 'error');
     } finally {
+        const overlay = document.getElementById('imgGenOverlay');
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
         const wrapper = document.getElementById('imgGenWrapper');
         if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
         if (btn) {
