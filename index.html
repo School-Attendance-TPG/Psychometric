@@ -581,7 +581,14 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         left: auto !important; 
     }
 }
-
+    .recommendation-box {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111827 !important;
+    }
+    .recommendation-box h4 {
+        color: #0d9488 !important;
+    }
     .recommendation-box p {
         color: #374151 !important;
     }
@@ -644,6 +651,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         left: auto !important; 
     }
 
+/* ═══════════════════════════════════════════════════════════════
+   PDF GENERATION MODE — Professional Print-Ready Styling
+   Overrides ALL themes (light/dark) for clean A4 output
+═══════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════
    PDF GENERATION MODE — Professional Print-Ready Styling
    Overrides ALL themes (light/dark) for clean A4 output
@@ -1642,6 +1653,11 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
         }
     </style>
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -1796,9 +1812,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
                 
                 <div class="result-actions no-print">
                     <button class="btn btn-sm btn-outline" onclick="app.goBackFromResults()"><i class="fas fa-arrow-left"></i> Back</button>
-                    <button class="btn btn-sm btn-primary" onclick="app.downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-                </div>
-            </div>
+                    <button class="btn btn-sm btn-primary" onclick="app.downloadPDF()"><i class="fas fa-file-pdf"></i> PDF<
             <!-- PDF HEADER — Hidden in normal view, shown in PDF mode -->
             <div class="pdf-header" id="pdfDynamicHeader">
                 <div class="pdf-header-left">
@@ -1816,7 +1830,8 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
                 </div>
             </div>
             <div class="pdf-header-divider"></div>
-                       <!-- /PDF HEADER -->
+            <!-- /PDF HEADER -->
+/button>
 
                 </div>
             </div>
@@ -4518,7 +4533,7 @@ showCloudResults(student, assessments) {
     document.getElementById('assessmentTimeline').innerHTML = timelineHtml;
     this.renderCareerPredictions(latest.domains, 'careerMatchesList');
     
-           this.currentResultStudent = student;
+       this.currentResultStudent = student;
        this.currentResultAssessment = latest;
        this.currentResultAllAssessments = assessments;
     
@@ -4527,7 +4542,7 @@ showCloudResults(student, assessments) {
     
     this.showSection('resultsView');
     this.toggleResultButtons();
-},
+    },
     getNotes(assessment) {
         if (!assessment || !assessment.notes) return 'No specific recommendations recorded.';
         let raw = '';
@@ -4992,8 +5007,7 @@ showCloudResults(student, assessments) {
         }
     }
 },
-
-
+     
 
         refreshResultsView() {
             if (!this.currentResultStudent || !this.currentResultAssessment) return;
