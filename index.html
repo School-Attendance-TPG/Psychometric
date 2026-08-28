@@ -35,6 +35,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
@@ -2099,7 +2100,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
                 
                 <div class="result-actions no-print">
                     <button class="btn btn-sm btn-outline" onclick="app.goBackFromResults()"><i class="fas fa-arrow-left"></i> Back</button>
-                    <button class="btn btn-sm btn-primary" onclick="app.downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-sm btn-primary" onclick="app.downloadPDF()"><i class="fas fa-image"></i> Image</button>
 
                 </div>
             </div>
@@ -5170,7 +5171,7 @@ async downloadPDF() {
     const btn = document.querySelector('#resultsView .btn-primary');
     const originalHTML = btn ? btn.innerHTML : '';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Image...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
         btn.disabled = true;
     }
 
@@ -5274,8 +5275,6 @@ async downloadPDF() {
 
         const notesText = this.getNotes(assessment);
         const genDate = new Date().toLocaleDateString('en-MY', {day:'numeric', month:'long', year:'numeric'});
-
-        // Overall score ring (SVG)
         const overallScore = assessment.overallScore;
         const ringColor = this.getScoreColor(overallScore);
         const circumference = 2 * Math.PI * 70;
@@ -5286,12 +5285,10 @@ async downloadPDF() {
 
                 <!-- PREMIUM HEADER -->
                 <div style="background:linear-gradient(135deg,#0d9488 0%,#14b8a6 40%,#2563eb 100%); padding:40px 40px 32px; text-align:center; position:relative; overflow:hidden;">
-                    <!-- Decorative circles -->
                     <div style="position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.08);"></div>
                     <div style="position:absolute; bottom:-30px; left:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.06);"></div>
 
                     <div style="position:relative; z-index:2;">
-                        <!-- MANASU Logo Area -->
                         <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px;">
                             <div style="width:64px; height:64px; border-radius:16px; background:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 30px rgba(0,0,0,0.2);">
                                 <i class="fas fa-brain" style="font-size:1.8rem; background:linear-gradient(135deg,#0d9488,#2563eb); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i>
@@ -5302,7 +5299,6 @@ async downloadPDF() {
                             </div>
                         </div>
 
-                        <!-- School Name -->
                         <div style="display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:50px; padding:8px 24px; margin-top:8px;">
                             <i class="fas fa-school" style="color:#fbbf24; font-size:1rem;"></i>
                             <span style="color:#ffffff; font-weight:700; font-size:0.95rem;">SJKT Telok Panglima Garang</span>
@@ -5313,7 +5309,6 @@ async downloadPDF() {
                         </div>
                     </div>
 
-                    <!-- Gold accent bar -->
                     <div style="position:absolute; bottom:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);"></div>
                 </div>
 
@@ -5335,7 +5330,7 @@ async downloadPDF() {
                             <svg width="100" height="100" style="transform:rotate(-90deg);">
                                 <circle cx="50" cy="50" r="42" fill="none" stroke="#e2e8f0" stroke-width="8"/>
                                 <circle cx="50" cy="50" r="42" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-linecap="round" 
-                                    stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+                                    stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
                                 <defs>
                                     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
                                         <stop offset="0%" style="stop-color:#0d9488"/>
@@ -5360,7 +5355,6 @@ async downloadPDF() {
                 <!-- BODY CONTENT -->
                 <div style="padding:30px 40px;">
 
-                    <!-- SECTION: Domain Breakdown -->
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
                             <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
@@ -5371,7 +5365,6 @@ async downloadPDF() {
                         ${domainCards}
                     </div>
 
-                    <!-- SECTION: Counselor Notes -->
                     <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; border-radius:16px; padding:22px 24px; margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                             <i class="fas fa-clipboard-list" style="color:#0d9488; font-size:1rem;"></i>
@@ -5387,7 +5380,6 @@ async downloadPDF() {
                         </div>
                     </div>
 
-                    <!-- SECTION: Career Predictions -->
                     ${predictions.length > 0 ? `
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -5402,7 +5394,6 @@ async downloadPDF() {
                     </div>
                     ` : ''}
 
-                    <!-- SECTION: Timeline -->
                     ${assessments.length > 0 ? `
                     <div style="margin-bottom:28px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -5439,20 +5430,20 @@ async downloadPDF() {
         // Create hidden container
         const wrapper = document.createElement('div');
         wrapper.id = 'imgGenWrapper';
-        wrapper.style.cssText = 'position:absolute; top:0; left:0; opacity:0; pointer-events:none; z-index:-1;';
+        wrapper.style.cssText = 'position:absolute; top:0; left:0; width:800px; opacity:0; pointer-events:none; z-index:-1;';
         wrapper.innerHTML = reportHTML;
         document.body.appendChild(wrapper);
 
         // Wait for fonts and layout
         await document.fonts.ready;
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500));
 
         const element = document.getElementById('imgReport');
         if (!element) {
             throw new Error('Report element not found');
         }
 
-        // Use html2canvas (bundled with html2pdf.js)
+        // Capture with html2canvas
         const canvas = await html2canvas(element, {
             scale: 2.5,
             backgroundColor: '#ffffff',
@@ -5466,17 +5457,17 @@ async downloadPDF() {
             windowWidth: 800
         });
 
-        // Convert to PNG and download
+        // Download as PNG
         const link = document.createElement('a');
         link.download = `MANASU_Report_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
 
-        this.showToast('Premium report image downloaded!', 'success');
+        this.showToast('Premium report downloaded!', 'success');
 
     } catch (err) {
         console.error('Image generation failed', err);
-        this.showToast('Image generation failed. Please try again.', 'error');
+        this.showToast('Download failed. Please try again.', 'error');
     } finally {
         const wrapper = document.getElementById('imgGenWrapper');
         if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
