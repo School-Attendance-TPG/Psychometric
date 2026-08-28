@@ -5170,7 +5170,7 @@ async downloadPDF() {
     const btn = document.querySelector('#resultsView .btn-primary');
     const originalHTML = btn ? btn.innerHTML : '';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing PDF...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Image...';
         btn.disabled = true;
     }
 
@@ -5180,8 +5180,8 @@ async downloadPDF() {
         const sevLabels = { normal: 'Normal', mild: 'Mild Concern', moderate: 'Moderate Concern', severe: 'Severe Concern' };
         const sev = assessment.severity || 'normal';
 
-        // Build domain rows
-        let domainRows = '';
+        // Build domain cards
+        let domainCards = '';
         if (assessment.domains) {
             Object.entries(assessment.domains).forEach(([key, val]) => {
                 const d = this.getDomainInfo(key);
@@ -5194,27 +5194,27 @@ async downloadPDF() {
                 const dIcon = d ? d.icon : 'fa-brain';
                 const dColor = d ? d.color : '#0d9488';
 
-                domainRows += `
-                    <tr>
-                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; vertical-align:top;">
-                            <div style="font-weight:700; color:#0f172a; font-size:0.9rem; margin-bottom:4px;">
-                                <span style="display:inline-flex; width:26px; height:26px; border-radius:6px; background:${dColor}15; color:${dColor}; align-items:center; justify-content:center; margin-right:8px; font-size:0.8rem;">
+                domainCards += `
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="width:36px; height:36px; border-radius:10px; background:${dColor}15; display:flex; align-items:center; justify-content:center; color:${dColor}; font-size:0.9rem;">
                                     <i class="fas ${dIcon}"></i>
-                                </span>
-                                ${dName}
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">${dName}</div>
+                                    <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">${dDesc}</div>
+                                </div>
                             </div>
-                            <div style="font-size:0.8rem; color:#64748b; padding-left:34px;">${dDesc}</div>
-                        </td>
-                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; text-align:center; font-weight:800; color:${color}; font-size:1rem; white-space:nowrap; vertical-align:middle;">${val}<span style="font-size:0.75rem; color:#94a3b8;">/${max}</span></td>
-                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; text-align:center; vertical-align:middle;">
-                            <span style="display:inline-block; padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:700; background:${color}12; color:${color}; border:1px solid ${color}25;">${level}</span>
-                        </td>
-                        <td style="padding:12px 16px; border-bottom:1px solid #e2e8f0; width:120px; vertical-align:middle;">
-                            <div style="height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
-                                <div style="height:100%; width:${pct}%; background:${color}; border-radius:10px;"></div>
+                            <div style="text-align:right;">
+                                <div style="font-size:1.2rem; font-weight:800; color:${color};">${val}<span style="font-size:0.8rem; color:#94a3b8;">/${max}</span></div>
+                                <div style="font-size:0.7rem; font-weight:700; color:${color}; background:${color}12; padding:2px 10px; border-radius:50px; display:inline-block; margin-top:4px;">${level}</div>
                             </div>
-                        </td>
-                    </tr>
+                        </div>
+                        <div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
+                            <div style="height:100%; width:${pct}%; background:${color}; border-radius:10px;"></div>
+                        </div>
+                    </div>
                 `;
             });
         }
@@ -5229,16 +5229,16 @@ async downloadPDF() {
                 const rankColors = ['#f59e0b', '#64748b', '#ea580c', '#8b5cf6', '#3b82f6'];
                 const rankColor = rankColors[idx] || '#8b5cf6';
                 careerHtml += `
-                    <div style="display:flex; align-items:center; gap:12px; padding:12px; background:#ffffff; border:1px solid #f3e8ff; border-radius:10px; margin-bottom:10px; page-break-inside:avoid; break-inside:avoid;">
-                        <span style="width:32px; height:32px; border-radius:50%; background:${rankColor}; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0;">${idx+1}</span>
-                        <span style="display:inline-flex; width:36px; height:36px; border-radius:10px; background:${career.color}15; color:${career.color}; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap:12px; padding:14px; background:#ffffff; border:1px solid #f3e8ff; border-radius:12px; margin-bottom:10px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:${rankColor}; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0;">${idx+1}</div>
+                        <div style="width:40px; height:40px; border-radius:10px; background:${career.color}15; display:flex; align-items:center; justify-content:center; color:${career.color}; font-size:1rem; flex-shrink:0;">
                             <i class="fas ${career.icon}"></i>
-                        </span>
+                        </div>
                         <div style="flex:1; min-width:0;">
                             <div style="font-weight:700; color:#0f172a; font-size:0.9rem;">${careerName}</div>
                             <div style="font-size:0.78rem; color:#64748b;">${careerDesc}</div>
                         </div>
-                        <div style="font-weight:800; color:#7c3aed; font-size:0.9rem; white-space:nowrap;">${career.matchPercentage}%</div>
+                        <div style="font-weight:800; color:#7c3aed; font-size:1rem; white-space:nowrap;">${career.matchPercentage}%</div>
                     </div>
                 `;
             });
@@ -5250,19 +5250,24 @@ async downloadPDF() {
         if (assessments.length > 0) {
             assessments.forEach((a, idx) => {
                 const sc = sevColors[a.severity] || '#10b981';
+                const isLatest = idx === 0;
                 timelineHtml += `
-                    <tr>
-                        <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; color:#64748b; font-size:0.85rem; white-space:nowrap;">${this.formatDate(a.date)}</td>
-                        <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; font-weight:700; color:#0f172a; text-align:center;">#${assessments.length - idx}</td>
-                        <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; font-weight:800; color:${this.getScoreColor(a.overallScore)}; text-align:center;">${a.overallScore.toFixed(1)}</td>
-                        <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; text-align:center;">
-                            <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:50px; font-size:0.75rem; font-weight:600; background:${sc}10; color:${sc}; border:1px solid ${sc}25;">
-                                <span style="width:6px; height:6px; border-radius:50%; background:${sc};"></span>
-                                ${sevLabels[a.severity] || a.severity}
-                            </span>
-                        </td>
-                        <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; font-size:0.85rem; color:#64748b; text-align:center;">${a.status === 'resolved' ? 'Resolved' : 'Active'}</td>
-                    </tr>
+                    <div style="position:relative; padding-left:24px; margin-bottom:14px;">
+                        <div style="position:absolute; left:6px; top:8px; width:10px; height:10px; border-radius:50%; background:${isLatest ? '#0d9488' : sc}; border:2px solid #ffffff; box-shadow:0 0 0 2px ${isLatest ? '#0d9488' : '#e2e8f0'};"></div>
+                        ${idx < assessments.length - 1 ? '<div style="position:absolute; left:10px; top:22px; bottom:-14px; width:2px; background:#e2e8f0;"></div>' : ''}
+                        <div style="background:${isLatest ? '#f0fdf4' : '#ffffff'}; border:1px solid ${isLatest ? '#bbf7d0' : '#e2e8f0'}; border-radius:10px; padding:12px 14px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a; font-size:0.85rem;">Assessment #${assessments.length - idx}</div>
+                                    <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">${this.formatDate(a.date)}</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:1.1rem; font-weight:800; color:${this.getScoreColor(a.overallScore)};">${a.overallScore.toFixed(1)}</div>
+                                    <div style="font-size:0.7rem; font-weight:600; color:${sc};">${sevLabels[a.severity] || a.severity}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 `;
             });
         }
@@ -5270,79 +5275,111 @@ async downloadPDF() {
         const notesText = this.getNotes(assessment);
         const genDate = new Date().toLocaleDateString('en-MY', {day:'numeric', month:'long', year:'numeric'});
 
-        // Build complete PDF HTML with inline styles
-        const pdfContent = `
-            <div id="pdfExportContainer" style="width:210mm; min-height:297mm; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:0; margin:0; box-sizing:border-box;">
+        // Overall score ring (SVG)
+        const overallScore = assessment.overallScore;
+        const ringColor = this.getScoreColor(overallScore);
+        const circumference = 2 * Math.PI * 70;
+        const offset = circumference - (overallScore / 10) * circumference;
 
-                <!-- HEADER -->
-                <div style="background:linear-gradient(135deg,#0d9488 0%,#14b8a6 50%,#2563eb 100%); padding:28px 30px 22px; text-align:center; border-bottom:4px solid #f59e0b; page-break-inside:avoid; break-inside:avoid;">
-                    <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:10px;">
-                        <div style="width:56px; height:56px; border-radius:14px; background:#ffffff; display:flex; align-items:center; justify-content:center; color:#0d9488; font-size:1.6rem; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                            <i class="fas fa-brain"></i>
+        const reportHTML = `
+            <div id="imgReport" style="width:800px; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-font-smoothing:antialiased;">
+
+                <!-- PREMIUM HEADER -->
+                <div style="background:linear-gradient(135deg,#0d9488 0%,#14b8a6 40%,#2563eb 100%); padding:40px 40px 32px; text-align:center; position:relative; overflow:hidden;">
+                    <!-- Decorative circles -->
+                    <div style="position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.08);"></div>
+                    <div style="position:absolute; bottom:-30px; left:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.06);"></div>
+
+                    <div style="position:relative; z-index:2;">
+                        <!-- MANASU Logo Area -->
+                        <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:16px;">
+                            <div style="width:64px; height:64px; border-radius:16px; background:#ffffff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 30px rgba(0,0,0,0.2);">
+                                <i class="fas fa-brain" style="font-size:1.8rem; background:linear-gradient(135deg,#0d9488,#2563eb); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i>
+                            </div>
+                            <div style="text-align:left;">
+                                <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:#ffffff; letter-spacing:1px; line-height:1;">MANASU</div>
+                                <div style="font-size:0.8rem; color:rgba(255,255,255,0.95); letter-spacing:4px; text-transform:uppercase; font-weight:600; margin-top:4px;">Psychometric Wellness Portal</div>
+                            </div>
                         </div>
-                        <div style="text-align:left;">
-                            <div style="font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:700; color:#ffffff; line-height:1.2; letter-spacing:1px;">MANASU</div>
-                            <div style="font-size:0.75rem; color:rgba(255,255,255,0.95); letter-spacing:3px; text-transform:uppercase; font-weight:600;">Psychometric Wellness Portal</div>
+
+                        <!-- School Name -->
+                        <div style="display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:50px; padding:8px 24px; margin-top:8px;">
+                            <i class="fas fa-school" style="color:#fbbf24; font-size:1rem;"></i>
+                            <span style="color:#ffffff; font-weight:700; font-size:0.95rem;">SJKT Telok Panglima Garang</span>
+                        </div>
+
+                        <div style="margin-top:10px; font-size:0.7rem; color:rgba(255,255,255,0.85); letter-spacing:3px; text-transform:uppercase; font-weight:600;">
+                            Secure & Confidential Assessment Report
                         </div>
                     </div>
-                    <div style="font-size:0.95rem; color:#ffffff; font-weight:700; margin-top:10px; text-shadow:0 1px 3px rgba(0,0,0,0.2);">
-                        <i class="fas fa-school" style="margin-right:6px; color:#fbbf24;"></i> SJKT Telok Panglima Garang
-                    </div>
-                    <div style="display:inline-block; margin-top:8px; padding:4px 18px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); border-radius:50px; font-size:0.7rem; color:#ffffff; letter-spacing:2px; text-transform:uppercase; font-weight:600;">
-                        Secure & Confidential Assessment Report
-                    </div>
+
+                    <!-- Gold accent bar -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);"></div>
                 </div>
 
-                <!-- STUDENT BAR -->
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px 20px; margin:16px 10mm 12px; display:flex; align-items:center; gap:16px; page-break-inside:avoid; break-inside:avoid;">
-                    <div style="width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:1.4rem; flex-shrink:0;">
+                <!-- STUDENT PROFILE BAR -->
+                <div style="background:linear-gradient(135deg,#f8fafc,#f0f9ff); border-bottom:1px solid #e2e8f0; padding:24px 40px; display:flex; align-items:center; gap:18px;">
+                    <div style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:1.5rem; box-shadow:0 4px 15px rgba(13,148,136,0.25);">
                         <i class="fas fa-child"></i>
                     </div>
                     <div style="flex:1;">
-                        <div style="font-size:1.25rem; font-weight:700; color:#0f172a;">${this.sanitizeHTML(student.name)}</div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Class ${this.sanitizeHTML(student.class)} &bull; MyKid: ${this.sanitizeHTML(student.icNumber)} &bull; Age: ${student.age || '-'}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:1.8rem; font-weight:800; line-height:1; color:${this.getScoreColor(assessment.overallScore)};">${assessment.overallScore.toFixed(1)}<span style="font-size:0.9rem; color:#94a3b8; font-weight:500;">/10</span></div>
-                        <div style="font-size:0.65rem; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-top:2px;">Overall Score</div>
-                    </div>
-                </div>
-
-                <!-- SEVERITY -->
-                <div style="margin:0 10mm 16px; text-align:right; page-break-inside:avoid; break-inside:avoid;">
-                    <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:50px; font-size:0.85rem; font-weight:700; background:${sevColors[sev]}10; color:${sevColors[sev]}; border:1px solid ${sevColors[sev]}25;">
-                        <span style="width:8px; height:8px; border-radius:50%; background:${sevColors[sev]};"></span>
-                        ${sevLabels[sev]}
-                    </span>
-                </div>
-
-                <!-- BODY -->
-                <div style="padding:0 10mm 10mm;">
-
-                    <!-- DOMAIN TABLE -->
-                    <div style="font-weight:700; color:#475569; font-size:0.85rem; text-transform:uppercase; letter-spacing:1.5px; margin:20px 0 12px; page-break-after:avoid; break-after:avoid;">
-                        <i class="fas fa-brain" style="margin-right:8px; color:#0d9488;"></i>Detailed Psychometric Analysis
-                    </div>
-                    <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; font-size:0.9rem;">
-                        <thead>
-                            <tr style="background:#f1f5f9;">
-                                <th style="padding:12px 16px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0;">Domain</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:80px;">Score</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:130px;">Level</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:140px;">Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>${domainRows}</tbody>
-                    </table>
-
-                    <!-- NOTES -->
-                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:18px 20px; margin:20px 0; page-break-inside:avoid; break-inside:avoid;">
-                        <div style="font-weight:700; color:#0d9488; font-size:1rem; margin-bottom:10px;">
-                            <i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Counselor Recommendations
+                        <div style="font-size:1.3rem; font-weight:700; color:#0f172a;">${this.sanitizeHTML(student.name)}</div>
+                        <div style="font-size:0.85rem; color:#64748b; margin-top:3px;">
+                            <span style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px;">Class ${this.sanitizeHTML(student.class)}</span>
+                            <span style="display:inline-block; background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem; margin-right:6px;">MyKid: ${this.sanitizeHTML(student.icNumber)}</span>
+                            <span style="display:inline-block; background:#f0fdf4; color:#166534; padding:2px 10px; border-radius:6px; font-weight:600; font-size:0.75rem;">Age: ${student.age || '-'}</span>
                         </div>
-                        <div style="font-size:0.9rem; color:#334155; line-height:1.7;">${notesText}</div>
+                    </div>
+                    <div style="text-align:center; background:#ffffff; border-radius:16px; padding:14px 20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border:1px solid #e2e8f0;">
+                        <div style="position:relative; width:100px; height:100px; margin:0 auto;">
+                            <svg width="100" height="100" style="transform:rotate(-90deg);">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#e2e8f0" stroke-width="8"/>
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-linecap="round" 
+                                    stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+                                <defs>
+                                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#0d9488"/>
+                                        <stop offset="100%" style="stop-color:#2563eb"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;">
+                                <div style="font-size:1.6rem; font-weight:800; color:${ringColor}; line-height:1;">${overallScore.toFixed(1)}</div>
+                                <div style="font-size:0.65rem; color:#94a3b8; font-weight:600;">/ 10</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:6px;">
+                            <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 14px; border-radius:50px; font-size:0.8rem; font-weight:700; background:${sevColors[sev]}12; color:${sevColors[sev]}; border:1px solid ${sevColors[sev]}25;">
+                                <span style="width:7px; height:7px; border-radius:50%; background:${sevColors[sev]};"></span>
+                                ${sevLabels[sev]}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BODY CONTENT -->
+                <div style="padding:30px 40px;">
+
+                    <!-- SECTION: Domain Breakdown -->
+                    <div style="margin-bottom:28px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#0d9488,#2563eb); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Detailed Psychometric Analysis</div>
+                        </div>
+                        ${domainCards}
+                    </div>
+
+                    <!-- SECTION: Counselor Notes -->
+                    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; border-radius:16px; padding:22px 24px; margin-bottom:28px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                            <i class="fas fa-clipboard-list" style="color:#0d9488; font-size:1rem;"></i>
+                            <div style="font-weight:700; color:#0d9488; font-size:1rem;">Counselor Recommendations</div>
+                        </div>
+                        <div style="font-size:0.9rem; color:#334155; line-height:1.8;">${notesText}</div>
                         <div style="margin-top:16px; padding-top:16px; border-top:1px solid #bbf7d0; display:flex; align-items:center; gap:12px;">
-                            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#ef4444); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.1rem; flex-shrink:0;">S</div>
+                            <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#ef4444); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.1rem;">S</div>
                             <div>
                                 <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">Subashini Sivalingam</div>
                                 <div style="font-size:0.8rem; color:#64748b;">Guidance & Counseling Teacher, SJKT TPG</div>
@@ -5350,95 +5387,98 @@ async downloadPDF() {
                         </div>
                     </div>
 
-                    <!-- CAREER -->
+                    <!-- SECTION: Career Predictions -->
                     ${predictions.length > 0 ? `
-                    <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px; padding:18px 20px; margin:20px 0; page-break-inside:avoid; break-inside:avoid;">
-                        <div style="font-weight:700; color:#7c3aed; font-size:1rem; margin-bottom:14px;">
-                            <i class="fas fa-briefcase" style="margin-right:8px;"></i>Career Path Prediction
+                    <div style="margin-bottom:28px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Career Path Prediction</div>
                         </div>
-                        ${careerHtml}
+                        <div style="background:linear-gradient(135deg,#faf5ff,#f5f3ff); border:1px solid #e9d5ff; border-radius:16px; padding:20px;">
+                            ${careerHtml}
+                        </div>
                     </div>
                     ` : ''}
 
-                    <!-- TIMELINE -->
+                    <!-- SECTION: Timeline -->
                     ${assessments.length > 0 ? `
-                    <div style="font-weight:700; color:#475569; font-size:0.85rem; text-transform:uppercase; letter-spacing:1.5px; margin:20px 0 12px; page-break-after:avoid; break-after:avoid;">
-                        <i class="fas fa-history" style="margin-right:8px; color:#0d9488;"></i>Assessment History
+                    <div style="margin-bottom:28px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#f59e0b,#f97316); display:flex; align-items:center; justify-content:center; color:white; font-size:0.85rem;">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div style="font-weight:700; color:#0f172a; font-size:1.1rem;">Assessment History</div>
+                        </div>
+                        <div style="background:#f8fafc; border-radius:16px; padding:20px;">
+                            ${timelineHtml}
+                        </div>
                     </div>
-                    <table style="width:100%; border-collapse:collapse; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; font-size:0.9rem;">
-                        <thead>
-                            <tr style="background:#f1f5f9;">
-                                <th style="padding:12px 16px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0;">Date</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:70px;">#</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:80px;">Score</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:130px;">Severity</th>
-                                <th style="padding:12px 16px; text-align:center; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#64748b; font-weight:700; border-bottom:2px solid #e2e8f0; width:120px;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>${timelineHtml}</tbody>
-                    </table>
                     ` : ''}
                 </div>
 
-                <!-- FOOTER -->
-                <div style="text-align:center; padding:20px 30px; border-top:2px solid #e2e8f0; margin-top:20px; background:#f8fafc; page-break-inside:avoid; break-inside:avoid;">
-                    <div style="font-weight:700; color:#0d9488; font-size:0.9rem; letter-spacing:1px;">MANASU Psychometric Wellness Portal</div>
-                    <div style="font-size:0.8rem; color:#475569; font-weight:600; margin-top:4px;">SJKT Telok Panglima Garang</div>
-                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:6px; line-height:1.5;">This report is confidential and intended solely for the parents/guardians of the named student.</div>
-                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px;">Generated on ${genDate}</div>
+                <!-- PREMIUM FOOTER -->
+                <div style="background:linear-gradient(135deg,#0f172a,#1e293b); padding:28px 40px; text-align:center; position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#0d9488,#2563eb,#f59e0b);"></div>
+                    <div style="position:relative; z-index:2;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px;">
+                            <i class="fas fa-brain" style="color:#0d9488; font-size:1.2rem;"></i>
+                            <span style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:#f1f5f9; letter-spacing:1px;">MANASU</span>
+                        </div>
+                        <div style="font-size:0.85rem; color:#94a3b8; font-weight:600;">SJKT Telok Panglima Garang</div>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:8px; line-height:1.6; max-width:500px; margin-left:auto; margin-right:auto;">
+                            This report is confidential and intended solely for the parents/guardians of the named student.
+                        </div>
+                        <div style="font-size:0.7rem; color:#475569; margin-top:8px;">Generated on ${genDate}</div>
+                    </div>
                 </div>
             </div>
         `;
 
-        // Create container - natural flow, invisible but in viewport
+        // Create hidden container
         const wrapper = document.createElement('div');
-        wrapper.id = 'pdfTempWrapper';
-        wrapper.style.cssText = 'position:absolute; top:0; left:0; width:210mm; opacity:0; pointer-events:none; z-index:-1;';
-        wrapper.innerHTML = pdfContent;
+        wrapper.id = 'imgGenWrapper';
+        wrapper.style.cssText = 'position:absolute; top:0; left:0; opacity:0; pointer-events:none; z-index:-1;';
+        wrapper.innerHTML = reportHTML;
         document.body.appendChild(wrapper);
 
-        // Wait for fonts and render
+        // Wait for fonts and layout
         await document.fonts.ready;
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 1200));
 
-        const element = document.getElementById('pdfExportContainer');
+        const element = document.getElementById('imgReport');
+        if (!element) {
+            throw new Error('Report element not found');
+        }
 
-        const opt = {
-            margin: [8, 8, 8, 8],
-            filename: `MANASU_Report_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                letterRendering: true,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 794,
-                width: 794
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait',
-                compress: true
-            },
-            pagebreak: {
-                mode: ['css', 'legacy'],
-                avoid: ['tr', '.domain-item', '.career-match-item']
-            }
-        };
+        // Use html2canvas (bundled with html2pdf.js)
+        const canvas = await html2canvas(element, {
+            scale: 2.5,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            letterRendering: true,
+            scrollX: 0,
+            scrollY: 0,
+            width: 800,
+            windowWidth: 800
+        });
 
-        await html2pdf().set(opt).from(element).save();
-        this.showToast(this.t('toast_pdf_downloaded'), 'success');
+        // Convert to PNG and download
+        const link = document.createElement('a');
+        link.download = `MANASU_Report_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+
+        this.showToast('Premium report image downloaded!', 'success');
 
     } catch (err) {
-        console.error('PDF generation failed', err);
-        this.showToast(this.t('toast_pdf_failed'), 'error');
+        console.error('Image generation failed', err);
+        this.showToast('Image generation failed. Please try again.', 'error');
     } finally {
-        const wrapper = document.getElementById('pdfTempWrapper');
+        const wrapper = document.getElementById('imgGenWrapper');
         if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
         if (btn) {
             btn.innerHTML = originalHTML;
