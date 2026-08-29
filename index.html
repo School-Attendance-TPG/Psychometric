@@ -382,6 +382,8 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .btn-table-del:hover { background: var(--danger); color: white; }
         .btn-table-view { background: rgba(59,130,246,0.08); color: var(--info); }
         .btn-table-view:hover { background: var(--info); color: white; }
+        .btn-table-whatsapp { background: rgba(37,211,102,0.1); color: #25d366; }
+        .btn-table-whatsapp:hover { background: #25d366; color: white; }
 
         .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .search-box { flex: 1; min-width: 250px; position: relative; }
@@ -6058,7 +6060,7 @@ refreshResultsView() {
                     <td><div class="table-actions">
                         <button class="btn-table btn-table-edit" onclick="app.editStudent('${s.id}')" title="${this.t('tooltip_edit')}"><i class="fas fa-edit"></i></button>
                         <button class="btn-table btn-table-del" onclick="app.deleteStudent('${s.id}')" title="${this.t('tooltip_delete')}"><i class="fas fa-trash"></i></button>
-                        ${s.parentPhone ? `<button class="btn-table" style="background:rgba(37,211,102,0.1); color:#25d366;" onclick="app.sharePinWhatsApp('${s.id}')" title="${this.t('tooltip_share_pin')}"><i class="fab fa-whatsapp"></i></button>` : ''}
+                        ${s.parentPhone ? `<button class="btn-table btn-table-whatsapp" onclick="app.sharePinWhatsApp('${s.id}')" title="${this.t('tooltip_share_pin')}"><i class="fab fa-whatsapp"></i></button>` : ''}
                     </div></td>
                 </tr>
             `).join('');
