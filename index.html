@@ -1950,6 +1950,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -5430,7 +5431,7 @@ async downloadPDF() {
                 const careerDesc = career.desc[lang] || career.desc.en;
                 const rankColors = ['#f59e0b', '#94a3b8', '#ea580c', '#8b5cf6', '#3b82f6'];
                 const rankColor = rankColors[idx] || '#8b5cf6';
-                const medals = ['🥇', '🥈', '🥉', '4', '5'];
+                const medals = ['&#129351;', '&#129352;', '&#129353;', '4', '5'];
                 careerHTML += `
                     <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #faf5ff; border: 1px solid ${rankColor}20; border-radius: 12px; margin-bottom: 10px;">
                         <div style="width: 38px; height: 38px; border-radius: 50%; background: ${rankColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; box-shadow: 0 2px 8px ${rankColor}40;">${medals[idx]}</div>
@@ -5517,31 +5518,13 @@ async downloadPDF() {
             </div>
         `;
 
-        const pages = [
-            { body: page1Body },
-            { body: page2Body },
-            { body: page3Body },
-            { body: page4Body }
-        ];
+        const pages = [page1Body, page2Body, page3Body, page4Body];
         const totalPages = pages.length;
 
-        let fullHTML = '<div id="pdfExportContainer" style="width: 210mm; background: #f1f5f9; padding: 20px;">';
-        pages.forEach((page, idx) => {
-            fullHTML += `
-                <div class="pdf-a4-page" style="width: 210mm; min-height: 297mm; background: #ffffff; margin: 0 auto 20px auto; position: relative; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-radius: 4px;">
-                    ${headerHTML}
-                    <div style="padding-bottom: 100px;">
-                        ${page.body}
-                    </div>
-                    ${footerHTML(idx + 1, totalPages)}
-                </div>
-            `;
-        });
-        fullHTML += '</div>';
-
+        // Show loading overlay
         const overlay = document.createElement('div');
-        overlay.id = 'imgGenOverlay';
-        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.9); z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;';
+        overlay.id = 'pdfGenOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.9); z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;';
         overlay.innerHTML = `
             <div style="color:white; font-size:1.2rem; font-weight:600; display:flex; align-items:center; gap:12px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
@@ -5552,34 +5535,80 @@ async downloadPDF() {
         `;
         document.body.appendChild(overlay);
 
-        const wrapper = document.createElement('div');
-        wrapper.id = 'imgGenWrapper';
-        wrapper.style.cssText = 'position:absolute; top:0; left:-9999px; width:210mm; opacity:0.001; pointer-events:none;';
-        wrapper.innerHTML = fullHTML;
-        document.body.appendChild(wrapper);
+        // Off-screen render container — NO opacity trick!
+        const renderHost = document.createElement('div');
+        renderHost.id = 'pdfRenderHost';
+        renderHost.style.cssText = 'position:fixed; left:-9999px; top:0; width:210mm; pointer-events:none; z-index:-9999;';
+        document.body.appendChild(renderHost);
 
+        // Wait for fonts
         await document.fonts.ready;
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 300));
 
-        const element = document.getElementById('pdfExportContainer');
-        if (!element) throw new Error('Report element not found');
+        const pageCanvases = [];
+        const mmToPx = 3.7795275591;
+        const pageW = Math.round(210 * mmToPx);
+        const pageH = Math.round(297 * mmToPx);
 
-        const canvas = await html2canvas(element, {
-            scale: 2.5,
-            backgroundColor: '#f1f5f9',
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            letterRendering: true,
-            scrollX: 0,
-            scrollY: 0,
-            width: 794,
-            windowWidth: 794
+        for (let i = 0; i < pages.length; i++) {
+            const pageBox = document.createElement('div');
+            pageBox.style.cssText = `width:${pageW}px; height:${pageH}px; background:#ffffff; position:relative; overflow:hidden; box-sizing:border-box;`;
+            pageBox.innerHTML = headerHTML + `<div style="padding-bottom:90px; box-sizing:border-box;">${pages[i]}</div>` + footerHTML(i + 1, totalPages);
+            renderHost.appendChild(pageBox);
+
+            // Force layout reflow
+            pageBox.offsetHeight;
+
+            const canvas = await html2canvas(pageBox, {
+                scale: 2.5,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                width: pageW,
+                height: pageH,
+                windowWidth: pageW,
+                windowHeight: pageH
+            });
+
+            pageCanvases.push(canvas);
+            renderHost.removeChild(pageBox);
+        }
+
+        document.body.removeChild(renderHost);
+        document.body.removeChild(overlay);
+
+        // Stitch pages with shadow gap
+        const gap = Math.round(20 * 2.5);
+        const totalHeight = pageCanvases.reduce((sum, c) => sum + c.height, 0) + (pageCanvases.length - 1) * gap;
+        const maxWidth = Math.max(...pageCanvases.map(c => c.width));
+
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = maxWidth;
+        finalCanvas.height = totalHeight;
+        const ctx = finalCanvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+        let y = 0;
+        pageCanvases.forEach((canvas, i) => {
+            const x = (maxWidth - canvas.width) / 2;
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.06)';
+            ctx.fillRect(x + 6, y + 6, canvas.width, canvas.height);
+            // Page
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x, y, canvas.width, canvas.height);
+            // Content
+            ctx.drawImage(canvas, x, y);
+            y += canvas.height + gap;
         });
 
         const link = document.createElement('a');
         link.download = `MANASU_Report_${sanitize(student.name).replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
+        link.href = finalCanvas.toDataURL('image/png', 1.0);
         link.click();
 
         this.showToast('A4 Report downloaded successfully!', 'success');
@@ -5588,17 +5617,16 @@ async downloadPDF() {
         console.error('Image generation failed', err);
         this.showToast('Download failed. Please try again.', 'error');
     } finally {
-        const overlay = document.getElementById('imgGenOverlay');
+        const overlay = document.getElementById('pdfGenOverlay');
         if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        const wrapper = document.getElementById('imgGenWrapper');
-        if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+        const host = document.getElementById('pdfRenderHost');
+        if (host && host.parentNode) host.parentNode.removeChild(host);
         if (btn) {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
         }
     }
 },
-
 refreshResultsView() {
             if (!this.currentResultStudent || !this.currentResultAssessment) return;
             const student = this.currentResultStudent;
