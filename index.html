@@ -3728,32 +3728,44 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
             const icNumber = params.get('ic');
             let targetStudent = null;
             let source = null;
+            let prefillIc = null;
 
             if (studentId) {
                 targetStudent = this.students.find(s => s.id === studentId);
                 source = 'qr';
+                if (targetStudent) prefillIc = targetStudent.icNumber;
             }
 
             if (!targetStudent && icNumber) {
                 const cleanIc = icNumber.replace(/[-\s]/g, '');
                 targetStudent = this.students.find(s => s.icNumber.replace(/[-\s]/g, '') === cleanIc);
                 source = 'qr';
+                prefillIc = icNumber;
             }
 
-            if (targetStudent) {
-                // QR SCAN FLOW: Pre-fill IC, show portal, then auto-verify
-                document.getElementById('parentIcInput').value = targetStudent.icNumber;
+            if (prefillIc) {
+                // QR SCAN FLOW: Pre-fill IC, show portal, focus PIN
+                document.getElementById('parentIcInput').value = prefillIc;
                 this.showSection('parentPortal');
 
-                if (source === 'qr') {
-                    // SECURITY: Never auto-login. Only pre-fill MyKid.
-                    // Parent must complete authentication (OTP/PIN) manually.
-                } else {
-                    // Manual entry: just focus the input
+                // Auto-focus PIN input for quick entry
+                setTimeout(() => {
+                    const pinInput = document.getElementById('parentPinInput');
+                    if (pinInput) {
+                        pinInput.focus();
+                        pinInput.select();
+                    }
+                }, 400);
+
+                // Show subtle indicator that MyKid came from QR
+                const icInput = document.getElementById('parentIcInput');
+                if (icInput) {
+                    icInput.style.background = '#f0fdf4';
+                    icInput.style.borderColor = '#0d9488';
                     setTimeout(() => {
-                        const input = document.getElementById('parentIcInput');
-                        if (input) { input.focus(); input.select(); }
-                    }, 300);
+                        icInput.style.background = '';
+                        icInput.style.borderColor = '';
+                    }, 2000);
                 }
             }
         },
@@ -3804,6 +3816,8 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
 
         if (hasUrlParams) {
             this.checkUrlParams();
+            // Retry after Firebase loads (in case student data wasn't ready)
+            setTimeout(() => this.checkUrlParams(), 2000);
             return; // Skip session restore if QR/link params present
         }
 
