@@ -1948,6 +1948,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -5343,7 +5344,11 @@ async downloadPDF() {
 
         // Build the complete premium report HTML
         const reportHTML = `
-            <div id="imgReport" style="width:800px; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-font-smoothing:antialiased; line-height:1.5;">
+            <div id="imgReport" style="width:800px; background:#ffffff; font-family:'Poppins',Arial,sans-serif; color:#111827; -webkit-font-smoothing:antialiased; line-height:1.6; word-spacing:normal; letter-spacing:normal; text-rendering:optimizeLegibility;">
+                    <style>
+                        #imgReport, #imgReport * { word-spacing:normal !important; letter-spacing:normal !important; white-space:normal !important; font-feature-settings:normal !important; font-variant-ligatures:normal !important; }
+                        #imgReport p, #imgReport span, #imgReport div, #imgReport h1, #imgReport h2, #imgReport h3, #imgReport h4, #imgReport h5, #imgReport h6 { line-height:1.6 !important; }
+                    </style>
 
                 <!-- OFFICIAL HEADER -->
                 <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%); padding:32px 40px 28px; text-align:center; position:relative; overflow:hidden;">
@@ -5521,13 +5526,15 @@ async downloadPDF() {
         // Create the report container (hidden but in DOM flow for html2canvas)
         const wrapper = document.createElement('div');
         wrapper.id = 'imgGenWrapper';
-        wrapper.style.cssText = 'position:absolute; top:-9999px; left:0; width:800px; opacity:0.01; pointer-events:none; visibility:hidden;';
+        // CRITICAL FIX: Off-screen VISIBLE render (NOT visibility:hidden)
+        // visibility:hidden breaks text kerning/spacing in html2canvas
+        wrapper.style.cssText = 'position:absolute; top:-9999px; left:-9999px; width:800px; opacity:0.001; pointer-events:none;';
         wrapper.innerHTML = reportHTML;
         document.body.appendChild(wrapper);
 
-        // Wait for fonts and layout
+        // CRITICAL FIX: Wait longer for fonts to fully load + layout to settle
         await document.fonts.ready;
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(r => setTimeout(r, 2500));
 
         const element = document.getElementById('imgReport');
         if (!element) {
@@ -5545,14 +5552,8 @@ async downloadPDF() {
             scrollX: 0,
             scrollY: 0,
             width: 800,
-            windowWidth: 800,
-            onclone: (clonedDoc) => {
-                const clonedReport = clonedDoc.getElementById('imgReport');
-                if (clonedReport) {
-                    clonedReport.style.visibility = 'visible';
-                    clonedReport.style.opacity = '1';
-                }
-            }
+            windowWidth: 800
+            // NO onclone needed — element is already visible off-screen
         });
 
         // Download as PNG
