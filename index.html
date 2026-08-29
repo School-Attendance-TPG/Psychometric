@@ -1953,6 +1953,7 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -3722,10 +3723,11 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
             document.getElementById('adminSidebar').classList.toggle('open');
         },
 
-                checkUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const studentId = params.get('student');
-            const icNumber = params.get('ic');
+                checkUrlParams(pendingParams) {
+            // ✅ Accept pre-captured params (before history.replaceState stripped them from URL)
+            const params = pendingParams || {};
+            const studentId = params.studentId;
+            const icNumber = params.icNumber;
             let targetStudent = null;
             let source = null;
             let prefillIc = null;
@@ -3775,6 +3777,13 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
     this.loadSettings();
     this.loadDemoData();
     this.loadStemMissions();
+
+    // ✅ QR FIX: Capture URL params BEFORE setupHistoryNavigation() strips them
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrStudentId = urlParams.get('student');
+    const qrIcNumber = urlParams.get('ic');
+    this._pendingQrParams = { studentId: qrStudentId, icNumber: qrIcNumber };
+
     this.setupHistoryNavigation();
     this.setupNavScroll();
     this.setupFirebase();
@@ -3810,14 +3819,14 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
     const lastSearchedIC = null;
     
     setTimeout(() => {
-        // ✅ QR SCAN TAKES PRECEDENCE: Check URL params first
-        const params = new URLSearchParams(window.location.search);
-        const hasUrlParams = params.get('student') || params.get('ic');
+        // ✅ QR SCAN TAKES PRECEDENCE: Use pre-captured params (before history.replaceState stripped them)
+        const pending = this._pendingQrParams;
+        const hasUrlParams = pending && (pending.studentId || pending.icNumber);
 
         if (hasUrlParams) {
-            this.checkUrlParams();
+            this.checkUrlParams(pending);
             // Retry after Firebase loads (in case student data wasn't ready)
-            setTimeout(() => this.checkUrlParams(), 2000);
+            setTimeout(() => this.checkUrlParams(pending), 2000);
             return; // Skip session restore if QR/link params present
         }
 
