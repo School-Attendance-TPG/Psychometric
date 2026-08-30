@@ -1139,21 +1139,21 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
             .admin-stat-value { font-size: 1.4rem; }
         }
 
-        .qr-dropdown { background: var(--card-bg); border: 1px solid var(--glass-border); }
-.qr-dropdown-item { padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--glass-border); transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
-.qr-dropdown-item:hover { background:rgba(13,148,136,0.10); }
+        .qr-dropdown { background: #ffffff; border: 1px solid #e2e8f0; }
+.qr-dropdown-item { padding:12px 16px; cursor:pointer; border-bottom:1px solid #f1f5f9; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center; }
+.qr-dropdown-item:hover { background:#f0fdf4; }
 .qr-dropdown-item:last-child { border-bottom:none; }
-.qr-dropdown-item .stu-name { font-weight:600; color:var(--text-primary); font-size:0.9rem; }
-.qr-dropdown-item .stu-meta { font-size:0.75rem; color:var(--text-muted); }
-.qr-dropdown-empty { padding:16px; text-align:center; color:var(--text-muted); font-size:0.85rem; }
+.qr-dropdown-item .stu-name { font-weight:600; color:#0f172a; font-size:0.9rem; }
+.qr-dropdown-item .stu-meta { font-size:0.75rem; color:#64748b; }
+.qr-dropdown-empty { padding:16px; text-align:center; color:#64748b; font-size:0.85rem; }
 
-/* Dark mode overrides for QR dropdown */
-body.dark-mode .qr-dropdown { background: var(--card-bg); border-color: rgba(255,255,255,0.08); }
-body.dark-mode .qr-dropdown-item { border-bottom-color: rgba(255,255,255,0.06); }
-body.dark-mode .qr-dropdown-item:hover { background: rgba(13,148,136,0.12); }
-body.dark-mode .qr-dropdown-item .stu-name { color: var(--text-primary); }
-body.dark-mode .qr-dropdown-item .stu-meta { color: var(--text-muted); }
-body.dark-mode .qr-dropdown-empty { color: var(--text-muted); }
+/* Dark mode overrides for QR dropdown — SOLID background */
+body.dark-mode .qr-dropdown { background: #1e293b; border-color: rgba(255,255,255,0.10); }
+body.dark-mode .qr-dropdown-item { border-bottom-color: rgba(255,255,255,0.08); }
+body.dark-mode .qr-dropdown-item:hover { background: rgba(13,148,136,0.15); }
+body.dark-mode .qr-dropdown-item .stu-name { color: #f1f5f9; }
+body.dark-mode .qr-dropdown-item .stu-meta { color: #94a3b8; }
+body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 
         /* Tamil language button-அ எல்லா இடத்துலயும் hide பண்ணு */
 .lang-btn[data-lang="ta"] {
@@ -2421,7 +2421,7 @@ body.dark-mode .qr-dropdown-empty { color: var(--text-muted); }
         <label data-i18n="form_search_student">Search Student (Name or MyKid)</label>
         <input type="text" class="input-premium" id="qrSearchInput" placeholder="Type name or MyKid number..." data-i18n-placeholder="form_type_name_mykid" autocomplete="off" oninput="app.filterQRStudents()" onfocus="app.showQRDropdown()">
         <input type="hidden" id="qrStudentId">
-        <div id="qrDropdown" class="qr-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:12px; max-height:200px; overflow-y:auto; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.1); margin-top:4px;"></div>
+        <div id="qrDropdown" class="qr-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#ffffff; border:1px solid var(--glass-border); border-radius:12px; max-height:200px; overflow-y:auto; z-index:100; box-shadow:0 10px 30px rgba(0,0,0,0.1); margin-top:4px;"></div>
     </div>
 </div>
                         <button class="btn btn-primary" style="margin-top:12px;" onclick="app.generateQR()"><i class="fas fa-qrcode"></i> <span data-i18n="btn_generate_qr">Generate QR Code</span></button>
