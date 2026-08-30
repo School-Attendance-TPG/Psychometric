@@ -1968,6 +1968,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -2877,6 +2878,21 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        },
+
+        // ═══════════════════════════════════════════════════════════════
+        // XSS SANITIZATION — SECURITY FIX
+        // ═══════════════════════════════════════════════════════════════
+        sanitizeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+                .replace(/javascript:/gi, 'blocked:')
+                .replace(/on\w+\s*=/gi, 'data-blocked=');
         },
 
         settings: {
