@@ -1963,6 +1963,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -2487,8 +2488,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                     <h3><img src="icon-192.png" alt="MANASU" style="width:22px; height:22px; object-fit:contain; border-radius:6px; vertical-align:middle; margin-right:6px;"> MANASU <span data-i18n="sidebar_teacher">Teacher</span></h3>
                     <p data-i18n="teacher_sidebar_subtitle">Class Results Viewer</p>
                 </div>
-                <button class="admin-nav-item active" onclick="app.showTeacherPage('dashboard')" data-teacher-nav="dashboard"><i class="fas fa-chart-pie"></i> <span data-i18n="nav_dashboard">Dashboard</span></button>
-                <button class="admin-nav-item" onclick="app.showTeacherPage('classResults')" data-teacher-nav="classResults"><i class="fas fa-users"></i> <span data-i18n="nav_class_results">Class Results</span></button>
+                <button class="admin-nav-item active" onclick="app.showTeacherPage('classResults')" data-teacher-nav="classResults"><i class="fas fa-users"></i> <span data-i18n="nav_class_results">Class Results</span></button>
                 <button class="admin-nav-item" onclick="app.showTeacherPage('assessments')" data-teacher-nav="assessments"><i class="fas fa-clipboard-check"></i> <span data-i18n="nav_class_assessments">Assessments</span></button>
                 <div class="admin-sidebar-footer">
                     <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; padding:0 12px;">
@@ -2510,52 +2510,8 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 </div>
             </aside>
             <main class="admin-main">
-                <!-- TEACHER DASHBOARD -->
-                <div id="teacherPage-dashboard" class="admin-page active">
-                    <h1 style="font-size:1.6rem; margin-bottom:4px;" data-i18n="nav_dashboard">Dashboard</h1>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;" data-i18n="teacher_dash_subtitle">Overview of your class wellness metrics</p>
-                    <div class="admin-stats" id="teacherDashStats">
-                        <div class="admin-stat-card stat-blue">
-                            <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
-                            <div class="admin-stat-value" id="teacherDashStudents">0</div>
-                            <div class="admin-stat-label" data-i18n="stat_students_in_class">Students</div>
-                        </div>
-                        <div class="admin-stat-card stat-teal">
-                            <div class="admin-stat-icon"><i class="fas fa-clipboard-check"></i></div>
-                            <div class="admin-stat-value" id="teacherDashAssessments">0</div>
-                            <div class="admin-stat-label" data-i18n="stat_total_assessments">Assessments</div>
-                        </div>
-                        <div class="admin-stat-card stat-gold">
-                            <div class="admin-stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="admin-stat-value" id="teacherDashFlagged">0</div>
-                            <div class="admin-stat-label" data-i18n="stat_flagged_cases">Flagged Cases</div>
-                        </div>
-                        <div class="admin-stat-card stat-red">
-                            <div class="admin-stat-icon"><i class="fas fa-chart-line"></i></div>
-                            <div class="admin-stat-value" id="teacherDashAvg">0</div>
-                            <div class="admin-stat-label" data-i18n="stat_average_score">Average Score</div>
-                        </div>
-                    </div>
-                    <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label data-i18n="form_select_class">Select Class</label>
-                            <div class="filter-box" style="min-width:100%;">
-                                <select id="teacherDashClassSelect" class="input-premium" onchange="app.onTeacherDashClassChange()" style="padding-left:16px;">
-                                    <option value="" data-i18n="form_select_class_option">-- Select Class --</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="glass-card">
-                        <h4 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="margin-right:8px; color:var(--healing-teal)"></i><span data-i18n="recent_assessments">Recent Assessments</span></h4>
-                        <div id="teacherDashRecent">
-                            <div class="empty-state"><i class="fas fa-clipboard-list"></i><h4 data-i18n="empty_select_class">Please select a class to view results</h4></div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- CLASS RESULTS -->
-                <div id="teacherPage-classResults" class="admin-page">
+                <div id="teacherPage-classResults" class="admin-page active">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
                         <div>
                             <h1 style="font-size:1.6rem; margin-bottom:4px;" data-i18n="teacher_class_results_title">Class Results</h1>
@@ -2569,17 +2525,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         </div>
                     </div>
 
-                    <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label data-i18n="form_select_class">Select Class</label>
-                            <div class="filter-box" style="min-width:100%;">
-                                <select id="teacherClassSelect" class="input-premium" onchange="app.onTeacherClassChange()" style="padding-left:16px;">
-                                    <option value="" data-i18n="form_select_class_option">-- Select Class --</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="teacherClassStats" class="admin-stats" style="display:none;">
+                    <div id="teacherClassStats" class="admin-stats">
                         <div class="admin-stat-card stat-blue">
                             <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
                             <div class="admin-stat-value" id="teacherStatStudents">0</div>
@@ -2599,6 +2545,17 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             <div class="admin-stat-icon"><i class="fas fa-chart-line"></i></div>
                             <div class="admin-stat-value" id="teacherStatAvg">0</div>
                             <div class="admin-stat-label" data-i18n="stat_average_score">Average Score</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label data-i18n="form_select_class">Select Class</label>
+                            <div class="filter-box" style="min-width:100%;">
+                                <select id="teacherClassSelect" class="input-premium" onchange="app.onTeacherClassChange()" style="padding-left:16px;">
+                                    <option value="" data-i18n="form_select_class_option">-- Select Class --</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -2653,7 +2610,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     <div class="modal-overlay" id="studentModal">
         <div class="modal">
             <div class="modal-header"><h3 class="modal-title" id="studentModalTitle" data-i18n="modal_add_student">Add Student</h3><button class="modal-close" onclick="app.closeStudentModal()">&times;</button></div>
-            <form onsubmit="app.saveStudent(event)">
+            <form id="studentForm" onsubmit="app.saveStudent(event)">
                 <input type="hidden" id="studentEditId">
                 <div class="form-grid">
                     <div class="form-group"><label data-i18n="form_full_name">Full Name *</label><input type="text" id="stuName" class="input-premium" required placeholder="e.g. Arun Kumar"></div>
@@ -3059,7 +3016,6 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 teacher_sidebar_subtitle: 'Class Results Viewer',
                 nav_class_results: 'Class Results',
                 nav_class_assessments: 'Assessments',
-                teacher_dash_subtitle: 'Overview of your class wellness metrics',
                 teacher_class_results_title: 'Class Results',
                 teacher_class_results_subtitle: 'View psychometric results by class',
                 form_select_class: 'Select Class',
@@ -3307,7 +3263,6 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 teacher_sidebar_subtitle: 'வகுப்பு முடிவுகள் பார்வையாளர்',
                 nav_class_results: 'வகுப்பு முடிவுகள்',
                 nav_class_assessments: 'மதிப்பீடுகள்',
-                teacher_dash_subtitle: 'உங்கள் வகுப்பு ஆரோக்கிய அளவுகோல்களின் கண்ணோட்டம்',
                 teacher_class_results_title: 'வகுப்பு முடிவுகள்',
                 teacher_class_results_subtitle: 'வகுப்பு வாரியாக உளவியல் முடிவுகளைக் காண்க',
                 form_select_class: 'வகுப்பைத் தேர்ந்தெடுக்கவும்',
@@ -3555,7 +3510,6 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 teacher_sidebar_subtitle: 'Paparan Keputusan Kelas',
                 nav_class_results: 'Keputusan Kelas',
                 nav_class_assessments: 'Penilaian',
-                teacher_dash_subtitle: 'Gambaran keseluruhan metrik kesejahteraan kelas anda',
                 teacher_class_results_title: 'Keputusan Kelas',
                 teacher_class_results_subtitle: 'Lihat keputusan psikometrik mengikut kelas',
                 form_select_class: 'Pilih Kelas',
@@ -4069,7 +4023,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             // Post-refresh redirect for teachers
             if (role === 'teacher') {
                 const lastSection = localStorage.getItem('manasu_lastSection');
-                const lastTeacherPage = localStorage.getItem('manasu_lastTeacherPage') || 'dashboard';
+                const lastTeacherPage = localStorage.getItem('manasu_lastTeacherPage') || 'classResults';
                 if (lastSection === 'teacherDashboard' || document.getElementById('teacherLogin')?.classList.contains('active')) {
                     this.showSection('teacherDashboard');
                     setTimeout(() => {
@@ -4548,107 +4502,13 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             const target = document.getElementById('teacherPage-' + page);
             if (target) target.classList.add('active');
             document.querySelectorAll('[data-teacher-nav="' + page + '"]').forEach(el => el.classList.add('active'));
-            if (page === 'dashboard') this.updateTeacherDashboard();
             if (page === 'classResults') await this.renderTeacherStudentsTable();
             if (page === 'assessments') await this.renderTeacherAssessmentsTable();
         },
 
-        updateTeacherDashboard() {
-            const cls = this.currentTeacherClass;
-            const statsEl = document.getElementById('teacherDashStats');
-            const recentEl = document.getElementById('teacherDashRecent');
-
-            if (!cls) {
-                if (statsEl) statsEl.style.display = 'none';
-                if (recentEl) recentEl.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h4 data-i18n="empty_select_class">Please select a class to view results</h4></div>';
-                document.getElementById('teacherDashStudents').textContent = '0';
-                document.getElementById('teacherDashAssessments').textContent = '0';
-                document.getElementById('teacherDashFlagged').textContent = '0';
-                document.getElementById('teacherDashAvg').textContent = '0';
-                return;
-            }
-
-            if (statsEl) statsEl.style.display = 'grid';
-            const clsTrimmed = cls.trim();
-            const classStudents = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
-            const studentIds = classStudents.map(s => s.id);
-            const classAssessments = this.assessments.filter(a => studentIds.includes(a.studentId));
-            const flagged = classAssessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
-            const avg = classAssessments.length > 0 
-                ? (classAssessments.reduce((sum, a) => sum + a.overallScore, 0) / classAssessments.length).toFixed(1) 
-                : '0';
-
-            document.getElementById('teacherDashStudents').textContent = classStudents.length;
-            document.getElementById('teacherDashAssessments').textContent = classAssessments.length;
-            document.getElementById('teacherDashFlagged').textContent = flagged;
-            document.getElementById('teacherDashAvg').textContent = avg;
-
-            // Recent assessments
-            const recent = [...classAssessments].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 5);
-            if (recent.length === 0) {
-                recentEl.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h4 data-i18n="empty_no_assessments">No assessments yet</h4></div>';
-            } else {
-                recentEl.innerHTML = recent.map(a => {
-                    const s = this.students.find(st => st.id === a.studentId);
-                    return `<div style="display:flex; align-items:center; padding:14px; border-bottom:1px solid var(--glass-border); animation:fadeInUp 0.3s ease;">
-                        <div style="width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg, var(--healing-teal), var(--malaysia-blue)); display:flex; align-items:center; justify-content:center; margin-right:14px; color:white; font-weight:700;">${a.overallScore.toFixed(1)}</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:600; color:var(--text-primary);">${this.sanitizeHTML(s ? s.name : 'Unknown')}</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">${this.formatDate(a.date)} • ${s ? s.class : '-'}</div>
-                        </div>
-                        ${this.getSeverityBadge(a.severity)}
-                    </div>`;
-                }).join('');
-            }
-        },
-
-        onTeacherDashClassChange() {
-            const selectedClass = document.getElementById('teacherDashClassSelect').value;
-            this.currentTeacherClass = selectedClass || null;
-            if (selectedClass) {
-                localStorage.setItem('manasu_lastTeacherClass', selectedClass);
-                // Sync the other class select
-                const otherSelect = document.getElementById('teacherClassSelect');
-                if (otherSelect) otherSelect.value = selectedClass;
-            } else {
-                localStorage.removeItem('manasu_lastTeacherClass');
-            }
-            this.updateTeacherDashboard();
-        },
-
         renderTeacherClassSelect() {
-            // Populate both class selects
-            ['teacherClassSelect', 'teacherDashClassSelect'].forEach(id => {
-                const select = document.getElementById(id);
-                if (!select) return;
-                const classes = [...new Set(this.students.map(s => s.class?.trim()).filter(Boolean))].sort();
-                if (classes.length === 0) {
-                    select.innerHTML = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
-                    return;
-                }
-                const defaultOpt = '<option value="" data-i18n="form_select_class_option">-- Select Class --</option>';
-                select.innerHTML = defaultOpt + classes.map(c => `<option value="${this.sanitizeHTML(c)}">${this.sanitizeHTML(c)}</option>`).join('');
-            });
-
-            // Pre-select assigned class if available
-            const dashSelect = document.getElementById('teacherDashClassSelect');
-            const classSelect = document.getElementById('teacherClassSelect');
-            if (this.currentUser && this.currentUser.assignedClass) {
-                const assigned = this.currentUser.assignedClass.trim();
-                [dashSelect, classSelect].forEach(sel => {
-                    if (sel) {
-                        const optionExists = Array.from(sel.options).some(opt => opt.value === assigned);
-                        if (optionExists && !sel.value) {
-                            sel.value = assigned;
-                        }
-                    }
-                });
-                if (!this.currentTeacherClass) {
-                    this.currentTeacherClass = assigned;
-                    this.updateTeacherDashboard();
-                }
-            }
-        },
+            const select = document.getElementById('teacherClassSelect');
+            if (!select) return;
 
             // Get ALL unique classes from all students
             const classes = [...new Set(this.students.map(s => s.class?.trim()).filter(Boolean))].sort();
@@ -4685,32 +4545,35 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             const badgeEl = document.getElementById('teacherClassBadge');
             const nameEl = document.getElementById('teacherClassName');
             if (selectedClass) {
-                document.getElementById('teacherClassStats').style.display = 'block';
                 if (badgeEl) badgeEl.style.display = 'block';
                 if (nameEl) nameEl.textContent = selectedClass;
-                this.updateTeacherStats();
             } else {
-                document.getElementById('teacherClassStats').style.display = 'none';
                 if (badgeEl) badgeEl.style.display = 'none';
             }
+            this.updateTeacherStats();
             this.renderTeacherStudentsTable();
             this.renderTeacherAssessmentsTable();
         },
 
         updateTeacherStats() {
             const cls = this.currentTeacherClass;
-            if (!cls) return;
-            const clsTrimmed = cls.trim();
-            const classStudents = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
-            const studentIds = classStudents.map(s => s.id);
-            const classAssessments = this.assessments.filter(a => studentIds.includes(a.studentId));
-            const flagged = classAssessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
-            const avg = classAssessments.length > 0 
-                ? (classAssessments.reduce((sum, a) => sum + a.overallScore, 0) / classAssessments.length).toFixed(1) 
+            let filteredStudents = this.students;
+            let filteredAssessments = this.assessments;
+
+            if (cls) {
+                const clsTrimmed = cls.trim();
+                filteredStudents = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
+                const studentIds = filteredStudents.map(s => s.id);
+                filteredAssessments = this.assessments.filter(a => studentIds.includes(a.studentId));
+            }
+
+            const flagged = filteredAssessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
+            const avg = filteredAssessments.length > 0 
+                ? (filteredAssessments.reduce((sum, a) => sum + a.overallScore, 0) / filteredAssessments.length).toFixed(1) 
                 : '0';
 
-            document.getElementById('teacherStatStudents').textContent = classStudents.length;
-            document.getElementById('teacherStatAssessments').textContent = classAssessments.length;
+            document.getElementById('teacherStatStudents').textContent = filteredStudents.length;
+            document.getElementById('teacherStatAssessments').textContent = filteredAssessments.length;
             document.getElementById('teacherStatFlagged').textContent = flagged;
             document.getElementById('teacherStatAvg').textContent = avg;
         },
