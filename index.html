@@ -4030,10 +4030,11 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 const lastTeacherPage = localStorage.getItem('manasu_lastTeacherPage') || 'classResults';
                 if (lastSection === 'teacherDashboard' || document.getElementById('teacherLogin')?.classList.contains('active')) {
                     this.showSection('teacherDashboard');
-                    setTimeout(() => {
+                    // Load Firebase data first, then render dropdown
+                    this.loadStudentsFromFirebase().then(() => {
                         this.renderTeacherClassSelect();
                         this.showTeacherPage(lastTeacherPage);
-                    }, 100);
+                    });
                 }
             }
             // Post-refresh redirect for admins
@@ -4422,7 +4423,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 // Load students from Firebase first (teacher needs class data)
                 await this.loadStudentsFromFirebase();
 
-                this.renderTeacherClassSelect();
+                await this.renderTeacherClassSelect();
                 this.showSection('teacherDashboard');
                 this.showTeacherPage('classResults');
                 this.showToast(this.t('toast_teacher_login_success'), 'success');
@@ -4506,13 +4507,23 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             const target = document.getElementById('teacherPage-' + page);
             if (target) target.classList.add('active');
             document.querySelectorAll('[data-teacher-nav="' + page + '"]').forEach(el => el.classList.add('active'));
-            if (page === 'classResults') await this.renderTeacherStudentsTable();
+            if (page === 'classResults') {
+                await this.renderTeacherClassSelect();
+                await this.renderTeacherStudentsTable();
+            }
             if (page === 'assessments') await this.renderTeacherAssessmentsTable();
         },
 
-        renderTeacherClassSelect() {
+        async renderTeacherClassSelect() {
             const select = document.getElementById('teacherClassSelect');
             if (!select) return;
+
+            // Show loading state while Firebase loads
+            if (this.students.length === 0) {
+                select.innerHTML = '<option value="" data-i18n="form_select_class_option">-- Loading Classes... --</option>';
+                // Wait for Firebase data then re-render
+                await this.loadStudentsFromFirebase();
+            }
 
             // Get ALL unique classes from all students
             const classes = [...new Set(this.students.map(s => s.class?.trim()).filter(Boolean))].sort();
@@ -4528,7 +4539,6 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             // ✅ Pre-select teacher's assigned class if available
             if (this.currentUser && this.currentUser.assignedClass) {
                 const assigned = this.currentUser.assignedClass.trim();
-                // Check if assigned class exists in the dropdown options
                 const optionExists = Array.from(select.options).some(opt => opt.value === assigned);
                 if (optionExists) {
                     select.value = assigned;
