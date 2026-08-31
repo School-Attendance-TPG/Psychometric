@@ -1007,7 +1007,8 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
         .mobile-menu-close:hover { background: var(--danger); color: white; }
         .mobile-menu-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
         .mobile-nav-link { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px; border: none; background: none; color: var(--text-secondary); font-family: 'Poppins', sans-serif; font-size: 1.05rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
-        .mobile-nav-link:hover, .mobile-nav-link.active { background: rgba(13,148,136,0.08); color: var(--healing-teal); }
+        .mobile-nav-link:hover, .mobile-nav-link.active { background: rgba(13,148,136,0.08); color: var(--healing-teal); box-shadow: inset 3px 0 0 var(--healing-teal); }
+        body.dark-mode .mobile-nav-link.active { background: rgba(13,148,136,0.20); color: #2dd4bf; }
         .mobile-nav-link i { width: 24px; text-align: center; font-size: 1.1rem; }
         .mobile-menu-footer { padding: 20px 24px; border-top: 1px solid var(--glass-border); }
 
@@ -1171,6 +1172,20 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 
         
     
+
+        /* Browser autofill dark mode fix */
+        body.dark-mode input:-webkit-autofill,
+        body.dark-mode input:-webkit-autofill:hover,
+        body.dark-mode input:-webkit-autofill:focus,
+        body.dark-mode input:-webkit-autofill:active,
+        body.dark-mode textarea:-webkit-autofill,
+        body.dark-mode select:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+            -webkit-text-fill-color: #f1f5f9 !important;
+            caret-color: #f1f5f9 !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
         /* ═══════════════════════════════════════════════════════════════
            CAREER PREDICTION STYLES
         ═══════════════════════════════════════════════════════════════ */
@@ -1954,6 +1969,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 }
 
     </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -3793,11 +3809,15 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 // Show subtle indicator that MyKid came from QR
                 const icInput = document.getElementById('parentIcInput');
                 if (icInput) {
-                    icInput.style.background = '#f0fdf4';
-                    icInput.style.borderColor = '#0d9488';
+                    const isDark = document.body.classList.contains('dark-mode');
+                    icInput.style.background = isDark ? 'rgba(13, 148, 136, 0.15)' : '#f0fdf4';
+                    icInput.style.borderColor = isDark ? 'rgba(13, 148, 136, 0.5)' : '#0d9488';
+                    icInput.style.color = isDark ? '#f1f5f9' : '';
+                    icInput.style.transition = 'all 0.3s ease';
                     setTimeout(() => {
                         icInput.style.background = '';
                         icInput.style.borderColor = '';
+                        icInput.style.color = '';
                     }, 2000);
                 }
             }
@@ -4125,6 +4145,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.mobile-nav-link').forEach(n => n.classList.remove('active'));
     const target = document.getElementById(id);
     if (target) {
         target.classList.add('active');
@@ -7255,6 +7276,21 @@ refreshResultsView() {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                     return;
+                }
+
+                // Show subtle indicator that MyKid came from QR
+                const stemIcInput = document.getElementById('stemIcInput');
+                if (stemIcInput) {
+                    const isDark = document.body.classList.contains('dark-mode');
+                    stemIcInput.style.background = isDark ? 'rgba(139, 92, 246, 0.15)' : '#f5f3ff';
+                    stemIcInput.style.borderColor = isDark ? 'rgba(139, 92, 246, 0.5)' : '#8b5cf6';
+                    stemIcInput.style.color = isDark ? '#f1f5f9' : '';
+                    stemIcInput.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        stemIcInput.style.background = '';
+                        stemIcInput.style.borderColor = '';
+                        stemIcInput.style.color = '';
+                    }, 2000);
                 }
 
                 // PIN Validation (same as parent portal)
