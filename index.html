@@ -1100,26 +1100,37 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
         }
         @media (max-width: 640px) {
             .hero-logos {
-                flex-direction: column;
-                gap: 14px;
+                flex-direction: row;
+                gap: 10px;
                 padding: 0;
+                align-items: stretch;
             }
             .hero-logo-divider { display: none; }
             .hero-logo-left, .hero-logo-right {
-                width: 100%;
-                justify-content: flex-start;
-                padding: 12px 16px;
-                flex-direction: row !important;
+                flex: 1;
+                justify-content: center;
+                padding: 14px 10px;
+                flex-direction: column !important;
                 align-items: center !important;
-                text-align: left !important;
+                text-align: center !important;
+                gap: 8px;
             }
             .hero-logo-left img, .hero-logo-right img,
             .school-logo-placeholder {
-                width: 42px;
-                height: 42px;
+                width: 44px;
+                height: 44px;
             }
+            .hero-logo-left .logo-text,
             .hero-logo-right .logo-text {
-                text-align: left !important;
+                text-align: center !important;
+            }
+            .hero-logo-left .logo-title,
+            .hero-logo-right .logo-title {
+                font-size: 0.8rem;
+            }
+            .hero-logo-left .logo-sub,
+            .hero-logo-right .logo-sub {
+                font-size: 0.55rem;
             }
         }
 
@@ -2202,7 +2213,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <img src="school-logo.png" alt="SJKT TPG Logo" onerror="this.outerHTML='<div class=\'school-logo-placeholder\'><i class=\'fas fa-school\'></i></div>'">
                         <div class="logo-text">
                             <div class="logo-title">SJKT Telok<br>Panglima Garang</div>
-                            <div class="logo-sub">Official School</div>
+                            <div class="logo-sub">Official Partner School</div>
                         </div>
                     </div>
                 </div>
