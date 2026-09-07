@@ -85,6 +85,11 @@
                allow read: if true;           // Parent: MyKid + PIN verified in app (no login)
                allow write: if isAdmin();
              }
+             // REQUIRED for older students (STU_xxx doc IDs): MyKid → studentId map
+             match /studentIndex/{myKid} {
+               allow get: if true;           // Parent: MyKid lookup
+               allow write: if isAdmin();
+             }
              match /{document=**} {
                allow read, write: if false;
              }
@@ -4689,7 +4694,10 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 
                 if (!student && this.firebaseReady && this.db) {
                     const { doc, getDoc } = window.fb;
-                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase()];
+                    // Try MyKid as document ID (new students) — including dashed variants
+                    const dashed = cleanIc.replace(/(\d{6})(\d{2})(\d{4})/, '$1-$2-$3');
+                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase(),
+                                    dashed, dashed.toUpperCase(), dashed.toLowerCase()];
                     for (const tryId of tryIds) {
                         try {
                             const stuSnap = await getDoc(doc(this.db, 'students', tryId));
@@ -4700,6 +4708,23 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             }
                         } catch (e) { }
                     }
+                    // ✅ INDEX FALLBACK — older students have STU_xxx doc IDs
+                    if (!student) {
+                        try {
+                            const idxSnap = await getDoc(doc(this.db, 'studentIndex', cleanIc));
+                            if (idxSnap.exists()) {
+                                const realId = idxSnap.data().studentId;
+                                if (realId) {
+                                    const stuSnap = await getDoc(doc(this.db, 'students', realId));
+                                    if (stuSnap.exists()) {
+                                        student = {...stuSnap.data(), id: stuSnap.id};
+                                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                                    }
+                                }
+                            }
+                        } catch (e) { }
+                    }
+                    if (!student) console.warn('[MANASU] Student not found for MyKid:', cleanIc);
                 }
 
                 if (!student) {
@@ -6599,6 +6624,7 @@ refreshResultsView() {
             }
 
             this.saveStudentToFirebase(finalStudent);
+            this.saveStudentIndexToFirebase(finalStudent);
             this.updatePublicStats();
         },
         editStudent(id) { this.openStudentModal(id); },
@@ -6607,6 +6633,8 @@ refreshResultsView() {
         async confirmDelete() {
             if (!this.deleteTarget.id) return;
             if (this.deleteTarget.type === 'student') {
+                const stuToDel = this.students.find(s => s.id === this.deleteTarget.id);
+                if (stuToDel) this.deleteStudentIndexFromFirebase(stuToDel.icNumber);
                 this.students = this.students.filter(s => s.id !== this.deleteTarget.id);
                 this.assessments = this.assessments.filter(a => a.studentId !== this.deleteTarget.id);
                 this.saveStudents(); this.saveAssessments();
@@ -7495,6 +7523,8 @@ refreshResultsView() {
                 if (fbAssessments.length === 0 && this.assessments.length > 0) {
                     for (const a of this.assessments) await this.saveAssessmentToFirebase(a);
                 }
+                // ✅ Auto-create MyKid index for all students (self-healing, one-time)
+                this.backfillStudentIndex();
 
                 this.updateHeroStats();
                 this.renderStudentsTable();
@@ -7514,6 +7544,39 @@ refreshResultsView() {
                 // ✅ Use existing student.id (STU_...) as document ID
                 await setDoc(doc(this.db, 'students', student.id), student);
             } catch(e) { console.error('Firebase save student failed'); }
+        },
+        // ===== MyKid → studentId INDEX (for older students with STU_xxx doc IDs) =====
+        async saveStudentIndexToFirebase(student) {
+            if (!this.firebaseReady || !this.db || !student || !student.icNumber) return;
+            try {
+                const { doc, setDoc } = window.fb;
+                const cleanIc = String(student.icNumber).replace(/[-\s]/g, '').toUpperCase();
+                if (!cleanIc) return;
+                await setDoc(doc(this.db, 'studentIndex', cleanIc), {
+                    studentId: student.id,
+                    name: student.name || '',
+                    updatedAt: new Date().toISOString()
+                });
+            } catch (e) { console.error('Index save failed:', e); }
+        },
+
+        async deleteStudentIndexFromFirebase(icNumber) {
+            if (!this.firebaseReady || !this.db || !icNumber) return;
+            try {
+                const { doc, deleteDoc } = window.fb;
+                const cleanIc = String(icNumber).replace(/[-\s]/g, '').toUpperCase();
+                await deleteDoc(doc(this.db, 'studentIndex', cleanIc));
+            } catch (e) { }
+        },
+
+        // Admin login pannum bodhu automatic-ah ella students-kum index create (one-time self-healing)
+        async backfillStudentIndex() {
+            if (!this.firebaseReady || !this.db) return;
+            if (!this.currentUser || this.currentUser.role !== 'admin') return;
+            for (const s of this.students) {
+                if (s && s.icNumber) await this.saveStudentIndexToFirebase(s);
+            }
+            console.log('[MANASU] studentIndex backfill done:', this.students.length, 'students');
         },
 
         async saveAssessmentToFirebase(assessment) {
@@ -7738,7 +7801,10 @@ refreshResultsView() {
 
                 if (!student && this.firebaseReady && this.db) {
                     const { doc, getDoc } = window.fb;
-                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase()];
+                    // Try MyKid as document ID (new students) — including dashed variants
+                    const dashed = cleanIc.replace(/(\d{6})(\d{2})(\d{4})/, '$1-$2-$3');
+                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase(),
+                                    dashed, dashed.toUpperCase(), dashed.toLowerCase()];
                     for (const tryId of tryIds) {
                         try {
                             const stuSnap = await getDoc(doc(this.db, 'students', tryId));
@@ -7749,6 +7815,23 @@ refreshResultsView() {
                             }
                         } catch (e) { }
                     }
+                    // ✅ INDEX FALLBACK — older students have STU_xxx doc IDs
+                    if (!student) {
+                        try {
+                            const idxSnap = await getDoc(doc(this.db, 'studentIndex', cleanIc));
+                            if (idxSnap.exists()) {
+                                const realId = idxSnap.data().studentId;
+                                if (realId) {
+                                    const stuSnap = await getDoc(doc(this.db, 'students', realId));
+                                    if (stuSnap.exists()) {
+                                        student = {...stuSnap.data(), id: stuSnap.id};
+                                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                                    }
+                                }
+                            }
+                        } catch (e) { }
+                    }
+                    if (!student) console.warn('[MANASU] Student not found for MyKid:', cleanIc);
                 }
 
                 if (!student) {
