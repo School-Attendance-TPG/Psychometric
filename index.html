@@ -82,7 +82,7 @@
                allow write: if false;
              }
              match /stemMissions/{missionId} {
-               allow read: if isAuthenticated();
+               allow read: if true;           // Parent: MyKid + PIN verified in app (no login)
                allow write: if isAdmin();
              }
              match /{document=**} {
@@ -3056,7 +3056,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;" data-i18n="form_file_url_hint"><i class="fas fa-info-circle"></i> Paste a direct download link. OR upload a small file below.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label data-i18n="form_upload_file">Upload File Directly (Small files only, &lt; 2MB)</label>
+                        <label data-i18n="form_upload_file">Upload File Directly (Small files only, &lt; 600KB)</label>
                         <input type="file" id="stemMissionFile" class="input-premium" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.png" onchange="app.handleMissionFileUpload(this)">
                     </div>
                 </div>
@@ -3458,7 +3458,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'Instructions for Students',
                 form_file_url: 'File URL (Google Drive, Dropbox, etc.)',
                 form_file_url_hint: 'Paste a direct download link. OR upload a small file below.',
-                form_upload_file: 'Upload File Directly (Small files only, < 2MB)',
+                form_upload_file: 'Upload File Directly (Small files only, < 600KB)',
                 btn_publish_mission: 'Publish Mission',
                 toast_student_added: 'Student added!',
                 toast_student_updated: 'Student updated!',
@@ -3491,7 +3491,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 toast_no_assessments_found: 'No assessments found for this student',
                 toast_no_student_found: 'No student found with this MyKid number',
                 toast_cloud_sync_failed: 'Cloud sync failed, using local data',
-                toast_file_too_large: 'File too large! Max 2MB allowed.',
+                toast_file_too_large: 'File too large! Max 600KB allowed.',
                 toast_file_ready: 'File ready for upload!',
                 toast_select_student_qr: 'Please select a student from the dropdown first',
                 toast_student_not_found_qr: 'Student not found. Please search and select again.',
@@ -3705,7 +3705,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'மாணவர்களுக்கான வழிமுறைகள்',
                 form_file_url: 'கோப்பு URL (Google Drive, Dropbox, முதலியன)',
                 form_file_url_hint: 'நேரடி பதிவிறக்க இணைப்பை ஒட்டவும். அல்லது கீழே ஒரு சிறிய கோப்பை பதிவேற்றம் செய்யவும்.',
-                form_upload_file: 'கோப்பை நேரடியாக பதிவேற்றம் செய்யவும் (சிறிய கோப்புகள் மட்டும், < 2MB)',
+                form_upload_file: 'கோப்பை நேரடியாக பதிவேற்றம் செய்யவும் (சிறிய கோப்புகள் மட்டும், < 600KB)',
                 btn_publish_mission: 'பணியை வெளியிடவும்',
                 toast_student_added: 'மாணவர் சேர்க்கப்பட்டார்!',
                 toast_student_updated: 'மாணவர் புதுப்பிக்கப்பட்டார்!',
@@ -3738,7 +3738,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 toast_no_assessments_found: 'இந்த மாணவருக்கு மதிப்பீடுகள் எதுவும் கிடைக்கவில்லை',
                 toast_no_student_found: 'இந்த MyKid எண்ணுடன் மாணவர் எதுவும் கிடைக்கவில்லை',
                 toast_cloud_sync_failed: 'கிளவுட் ஒத்திசைவு தோல்வியடைந்தது, உள்ளூர் தரவைப் பயன்படுத்துகிறது',
-                toast_file_too_large: 'கோப்பு மிகப் பெரியது! அதிகபட்சம் 2MB அனுமதிக்கப்படுகிறது.',
+                toast_file_too_large: 'கோப்பு மிகப் பெரியது! அதிகபட்சம் 600KB அனுமதிக்கப்படுகிறது.',
                 toast_file_ready: 'கோப்பு பதிவேற்றம் செய்ய தயாராக உள்ளது!',
                 toast_select_student_qr: 'முதலில் கீழ்தோன்றலிலிருந்து ஒரு மாணவரைத் தேர்ந்தெடுக்கவும்',
                 toast_student_not_found_qr: 'மாணவர் கிடைக்கவில்லை. தயவுசெய்து மீண்டும் தேடி தேர்ந்தெடுக்கவும்.',
@@ -3952,7 +3952,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'Arahan untuk Pelajar',
                 form_file_url: 'URL Fail (Google Drive, Dropbox, dll)',
                 form_file_url_hint: 'Tampal pautan muat turun terus. ATAU muat naik fail kecil di bawah.',
-                form_upload_file: 'Muat Naik Fail Terus (Fail kecil sahaja, < 2MB)',
+                form_upload_file: 'Muat Naik Fail Terus (Fail kecil sahaja, < 600KB)',
                 btn_publish_mission: 'Terbitkan Misi',
                 toast_student_added: 'Pelajar ditambah!',
                 toast_student_updated: 'Pelajar dikemas kini!',
@@ -3985,7 +3985,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 toast_no_assessments_found: 'Tiada penilaian dijumpai untuk pelajar ini',
                 toast_no_student_found: 'Tiada pelajar dijumpai dengan nombor MyKid ini',
                 toast_cloud_sync_failed: 'Penyegerakan awan gagal, menggunakan data tempatan',
-                toast_file_too_large: 'Fail terlalu besar! Maksimum 2MB dibenarkan.',
+                toast_file_too_large: 'Fail terlalu besar! Maksimum 600KB dibenarkan.',
                 toast_file_ready: 'Fail sedia untuk dimuat naik!',
                 toast_select_student_qr: 'Sila pilih pelajar daripada dropdown dahulu',
                 toast_student_not_found_qr: 'Pelajar tidak dijumpai. Sila cari dan pilih semula.',
@@ -4482,7 +4482,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     }
     if (page === 'settings') this.loadSettings();
     if (page === 'stemMissions' && isStale) {
-        this.renderAdminStemMissions();
+        this.loadStemMissionsFromFirebase().then(() => this.renderAdminStemMissions());
         localStorage.setItem(cacheKey, String(now));
         localStorage.setItem(dataKey, currentDataHash);
     }
@@ -6583,6 +6583,7 @@ refreshResultsView() {
             } else if (this.deleteTarget.type === 'stemMission') {
                 this.stemMissions = this.stemMissions.filter(m => m.id !== this.deleteTarget.id);
                 this.saveStemMissions();
+                this.deleteStemMissionFromFirebase(this.deleteTarget.id);
                 this.renderAdminStemMissions();
                 this.showToast(this.t('toast_mission_deleted'), 'info');
             }
@@ -7514,6 +7515,42 @@ refreshResultsView() {
         },
         saveStemMissions() { /* SECURITY: No localStorage persistence */ },
 
+        // ===== STEM MISSION CLOUD SYNC (Firebase) =====
+        async saveStemMissionToFirebase(mission) {
+            if (!this.firebaseReady || !this.db || !mission) return;
+            try {
+                const { doc, setDoc } = window.fb;
+                await setDoc(doc(this.db, 'stemMissions', mission.id), mission);
+            } catch (err) {
+                console.error('Mission cloud save failed', err);
+                this.showToast('Cloud save failed - file too large? Use a link instead.', 'error');
+            }
+        },
+
+        async loadStemMissionsFromFirebase() {
+            if (!this.firebaseReady || !this.db) return;
+            try {
+                const { collection, getDocs } = window.fb;
+                const snap = await getDocs(collection(this.db, 'stemMissions'));
+                const fbMissions = [];
+                snap.forEach(d => fbMissions.push({ ...d.data(), id: d.id }));
+                const localOnly = this.stemMissions.filter(m => !fbMissions.find(f => f.id === m.id));
+                this.stemMissions = [...fbMissions, ...localOnly];
+            } catch (err) {
+                console.warn('Mission cloud load failed', err);
+            }
+        },
+
+        async deleteStemMissionFromFirebase(id) {
+            if (!this.firebaseReady || !this.db || !id) return;
+            try {
+                const { doc, deleteDoc } = window.fb;
+                await deleteDoc(doc(this.db, 'stemMissions', id));
+            } catch (err) {
+                console.warn('Mission cloud delete failed', err);
+            }
+        },
+
         async searchStemMission() {
             const icInput = document.getElementById('stemIcInput');
             const pinInput = document.getElementById('stemPinInput');
@@ -7607,6 +7644,9 @@ refreshResultsView() {
                 delete this.pinLockUntil[cleanIc];
 
                 this.currentStemStudent = student;
+                if (this.stemMissions.length === 0) {
+                    await this.loadStemMissionsFromFirebase();
+                }
                 this.renderStemMissions();
 
             } catch (err) {
@@ -7729,8 +7769,9 @@ refreshResultsView() {
         handleMissionFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) {
-                this.showToast(this.t('toast_file_too_large'), 'error');
+            // Firestore doc limit is 1MB; base64 inflates ~4/3, so cap at 600KB
+            if (file.size > 600 * 1024) {
+                this.showToast('File too large! Max 600KB allowed - please use a Google Drive link instead.', 'error');
                 input.value = '';
                 return;
             }
@@ -7781,6 +7822,10 @@ refreshResultsView() {
                 this.showToast(this.t('toast_mission_added'), 'success');
             }
             this.saveStemMissions();
+            const savedMission = id
+                ? this.stemMissions.find(m => m.id === id)
+                : this.stemMissions[this.stemMissions.length - 1];
+            this.saveStemMissionToFirebase(savedMission);
             this.renderAdminStemMissions();
             this.closeStemMissionModal();
         },
