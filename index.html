@@ -7525,6 +7525,8 @@ refreshResultsView() {
                 }
                 // ✅ Auto-create MyKid index for all students (self-healing, one-time)
                 this.backfillStudentIndex();
+                // ✅ Copy old top-level assessments into subcollections (parents can read)
+                this.backfillAssessments();
 
                 this.updateHeroStats();
                 this.renderStudentsTable();
@@ -7583,11 +7585,35 @@ refreshResultsView() {
             if (!this.firebaseReady || !this.db) return;
             try {
                 const { doc, setDoc } = window.fb;
-                // Save under student's subcollection (secure path)
                 const studentDocId = (assessment.studentId || '').replace(/[-\s]/g, '').toUpperCase();
                 if (!studentDocId) return;
+                // 1. Subcollection — parent read path (MyKid + PIN verified in app)
                 await setDoc(doc(this.db, 'students', studentDocId, 'assessments', assessment.id), assessment);
-            } catch(e) { console.error('Firebase save assessment failed'); }
+                // 2. Top-level mirror — admin dashboard sync path
+                await setDoc(doc(this.db, 'assessments', assessment.id), assessment);
+            } catch(e) { console.error('Firebase save assessment failed');
+                this.showToast('Assessment cloud save failed!', 'error');
+            }
+        },
+
+        // One-time self-healing: top-level assessments → student subcollections
+        // (old assessments saved before dual-write existed — parents need subcollection path)
+        async backfillAssessments() {
+            if (!this.firebaseReady || !this.db) return;
+            if (!this.currentUser || this.currentUser.role !== 'admin') return;
+            try {
+                const { doc, setDoc, collection, getDocs } = window.fb;
+                const assSnap = await getDocs(collection(this.db, 'assessments'));
+                let count = 0;
+                for (const d of assSnap.docs) {
+                    const a = { ...d.data(), id: d.id };
+                    const studentDocId = (a.studentId || '').replace(/[-\s]/g, '').toUpperCase();
+                    if (!studentDocId) continue;
+                    await setDoc(doc(this.db, 'students', studentDocId, 'assessments', a.id), a);
+                    count++;
+                }
+                if (count > 0) console.log('[MANASU] assessments backfill done:', count);
+            } catch (e) { console.error('assessments backfill failed:', e); }
         },
 
         async deleteStudentFromFirebase(id) {
@@ -7605,8 +7631,11 @@ refreshResultsView() {
                 // Find studentId from local data to know subcollection path
                 const localAss = this.assessments.find(a => a.id === id);
                 const studentDocId = localAss ? (localAss.studentId || '').replace(/[-\s]/g, '').toUpperCase() : '';
-                if (!studentDocId) return;
-                await deleteDoc(doc(this.db, 'students', studentDocId, 'assessments', id));
+                if (studentDocId) {
+                    await deleteDoc(doc(this.db, 'students', studentDocId, 'assessments', id));
+                }
+                // Also remove top-level mirror
+                await deleteDoc(doc(this.db, 'assessments', id));
             } catch(e) { console.error('Firebase delete assessment failed'); }
         },
 
