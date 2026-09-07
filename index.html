@@ -2555,7 +2555,27 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         </div>
     </section>
     
-    <!-- ADMIN DASHBOARD -->
+        <!-- STEM MISSION VIEW (MyKid + PIN verified ulla view — resultsView maari) -->
+    <section id="stemMissionView" class="section">
+        <div class="results-container" id="stemMissionViewContainer"></div>
+    </section>
+
+    <!-- STEM NO-FILE POPUP -->
+    <div class="modal-overlay" id="stemNoFileModal">
+        <div class="modal" style="max-width:440px; text-align:center;">
+            <div style="width:74px; height:74px; background:rgba(245,158,11,0.12); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:18px;">
+                <i class="fas fa-file-circle-xmark" style="font-size:2rem; color:var(--warning);"></i>
+            </div>
+            <h3 style="margin-bottom:10px; font-size:1.25rem;" data-i18n="stem_no_file_title">File Not Attached Yet</h3>
+            <p style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem; line-height:1.7;" data-i18n="stem_no_file_desc">The counselor has not attached a file or link for this mission yet. Please contact your class teacher on WhatsApp for the materials.</p>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-outline" onclick="document.getElementById('stemNoFileModal').classList.remove('show')" data-i18n="btn_cancel">Close</button>
+                <button class="btn" style="background:#25d366; color:white;" onclick="app.contactTeacherWhatsApp()"><i class="fab fa-whatsapp"></i> <span data-i18n="stem_contact_teacher">Contact Teacher on WhatsApp</span></button>
+            </div>
+        </div>
+    </div>
+
+<!-- ADMIN DASHBOARD -->
     <section id="adminDashboard" class="section">
         <div class="admin-layout">
             <button class="admin-mobile-toggle" id="adminMobileToggle" onclick="app.toggleAdminSidebar()" aria-label="Menu"><i class="fas fa-bars"></i></button>
@@ -3312,6 +3332,13 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 stem_download: 'Download File',
                 stem_submit_whatsapp: 'Submit via WhatsApp',
                 stem_active_missions: 'Active Missions',
+                stem_mission_date: 'Mission Date',
+                stem_instructions: 'Instructions',
+                stem_back: 'Back to Portal',
+                stem_no_file_title: 'File Not Attached Yet',
+                stem_no_file_desc: 'The counselor has not attached a file or link for this mission yet. Please contact your class teacher on WhatsApp for the materials.',
+                stem_contact_teacher: 'Contact Teacher on WhatsApp',
+                stem_status_active: 'Active',
                 admin_login_title: 'Counselor Portal',
                 admin_login_subtitle: 'Secure access for authorized counseling staff only',
                 label_email: 'Email Address',
@@ -3559,6 +3586,13 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 stem_download: 'கோப்பைப் பதிவிறக்கம் செய்யவும்',
                 stem_submit_whatsapp: 'WhatsApp மூலம் சமர்ப்பிக்கவும்',
                 stem_active_missions: 'செயலில் உள்ள பணிகள்',
+                stem_mission_date: 'பணி தேதி',
+                stem_instructions: 'வழிமுறைகள்',
+                stem_back: 'போர்ட்டலுக்குத் திரும்பு',
+                stem_no_file_title: 'கோப்பு இன்னும் இணைக்கப்படவில்லை',
+                stem_no_file_desc: 'இந்த பணிக்கு ஆலோசகர் இன்னும் கோப்பு அல்லது இணைப்பை சேர்க்கவில்லை. தயவுசெய்து உங்கள் வகுப்பு ஆசிரியரை WhatsApp மூலம் தொடர்பு கொள்ளவும்.',
+                stem_contact_teacher: 'WhatsApp-ல் ஆசிரியரை தொடர்பு கொள்ளவும்',
+                stem_status_active: 'செயலில் உள்ளது',
                 admin_login_title: 'ஆலோசகர் இணையதளம்',
                 admin_login_subtitle: 'அங்கீகரிக்கப்பட்ட ஆலோசகர் ஊழியர்களுக்கு மட்டும் பாதுகாப்பான அணுகல்',
                 label_email: 'மின்னஞ்சல் முகவரி',
@@ -3806,6 +3840,13 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 stem_download: 'Muat Turun Fail',
                 stem_submit_whatsapp: 'Hantar melalui WhatsApp',
                 stem_active_missions: 'Misi Aktif',
+                stem_mission_date: 'Tarikh Misi',
+                stem_instructions: 'Arahan',
+                stem_back: 'Kembali ke Portal',
+                stem_no_file_title: 'Fail Belum Dilampirkan',
+                stem_no_file_desc: 'Kaunselor belum melampirkan fail atau pautan untuk misi ini lagi. Sila hubungi guru kelas anda melalui WhatsApp untuk bahan tersebut.',
+                stem_contact_teacher: 'Hubungi Guru melalui WhatsApp',
+                stem_status_active: 'Aktif',
                 admin_login_title: 'Portal Kaunselor',
                 admin_login_subtitle: 'Akses selamat untuk kakitangan kaunseling yang dibenarkan sahaja',
                 label_email: 'Alamat Emel',
@@ -4569,8 +4610,8 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             if (document.getElementById('resultsView').classList.contains('active') && this.currentResultAssessment) {
                 this.refreshResultsView();
             }
-            if (document.getElementById('stemMission').classList.contains('active') && this.currentStemStudent) {
-                this.renderStemMissions();
+            if (document.getElementById('stemMissionView').classList.contains('active') && this.currentStemStudent) {
+                this.renderStemMissionView();
             }
         },
 
@@ -7552,6 +7593,114 @@ refreshResultsView() {
             }
         },
 
+        // ===== STEM MISSION INSIDE VIEW (like resultsView) =====
+        renderStemMissionView() {
+            const container = document.getElementById('stemMissionViewContainer');
+            if (!container || !this.currentStemStudent) return;
+            const student = this.currentStemStudent;
+            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
+
+            let html = `
+                <div class="results-header">
+                    <div class="child-profile">
+                        <div class="child-avatar" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6);"><i class="fas fa-user-astronaut"></i></div>
+                        <div class="child-info">
+                            <h3>${this.sanitizeHTML(student.name)}</h3>
+                            <p>${this.t('th_class')} ${this.sanitizeHTML(student.class || '-')} • MyKid: ${this.sanitizeHTML(student.icNumber)}</p>
+                        </div>
+                    </div>
+                    <div class="result-actions no-print">
+                        <button class="btn btn-sm btn-outline" onclick="app.goBackFromStemView()"><i class="fas fa-arrow-left"></i> ${this.t('stem_back')}</button>
+                    </div>
+                </div>
+                <div class="glass-card result-card-full" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.06)); border:1px solid rgba(139,92,246,0.18);">
+                    <h4 style="display:flex; align-items:center; gap:10px; color:#7c3aed; margin:0;"><i class="fas fa-rocket"></i> ${this.t('stem_active_missions')} <span style="background:#7c3aed; color:white; font-size:0.75rem; padding:2px 12px; border-radius:50px;">${activeMissions.length}</span></h4>
+                </div>
+            `;
+
+            if (activeMissions.length === 0) {
+                html += `
+                    <div class="glass-card result-card-full" style="text-align:center; padding:50px 20px;">
+                        <i class="fas fa-rocket" style="font-size:3rem; opacity:0.25; margin-bottom:16px; color:#8b5cf6;"></i>
+                        <h4 style="color:var(--text-secondary); margin-bottom:8px;">${this.t('stem_no_missions')}</h4>
+                        <p style="color:var(--text-muted); font-size:0.85rem;">${this.t('stem_check_back')}</p>
+                    </div>
+                `;
+            } else {
+                activeMissions.forEach((mission, idx) => {
+                    const fileChip = mission.fileName ? `<span style="font-size:0.75rem; background:rgba(0,0,0,0.04); padding:4px 12px; border-radius:50px; color:var(--text-secondary);"><i class="fas fa-paperclip" style="margin-right:4px;"></i>${this.sanitizeHTML(mission.fileName)}</span>` : '';
+                    html += `
+                    <div class="glass-card result-card-full" style="border-left:4px solid #8b5cf6; animation:fadeInUp 0.5s ease ${idx * 0.12}s both;">
+                        <div style="display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;">
+                            <div style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg, #8b5cf6, #3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:1.4rem; flex-shrink:0; box-shadow:0 8px 20px rgba(139,92,246,0.25);"><i class="fas fa-rocket"></i></div>
+                            <div style="flex:1; min-width:260px;">
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+                                    <h3 style="font-size:1.2rem; color:#7c3aed; margin:0;">${this.sanitizeHTML(mission.title)}</h3>
+                                    <span style="font-size:0.72rem; background:rgba(16,185,129,0.1); color:#047857; padding:3px 12px; border-radius:50px; font-weight:700;"><i class="fas fa-circle" style="font-size:0.45rem; margin-right:4px;"></i>${this.t('stem_status_active')}</span>
+                                </div>
+                                <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;"><i class="fas fa-calendar-alt" style="margin-right:6px;"></i>${this.t('stem_mission_date')}: ${this.formatDate(mission.date)}</div>
+                                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin-bottom:12px;">${this.sanitizeHTML(mission.description)}</p>
+                                ${mission.instructions ? `
+                                <div style="background:rgba(139,92,246,0.05); border:1px solid rgba(139,92,246,0.12); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+                                    <div style="font-size:0.78rem; font-weight:700; color:#7c3aed; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;"><i class="fas fa-list-ol" style="margin-right:6px;"></i>${this.t('stem_instructions')}</div>
+                                    <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.7; white-space:pre-line;">${this.sanitizeHTML(mission.instructions)}</div>
+                                </div>` : ''}
+                                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                                    <button class="btn btn-sm" onclick="app.downloadMissionFile('${mission.id}')" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6); color:white;"><i class="fas fa-file-download"></i> ${this.t('stem_download')}</button>
+                                    <button class="btn btn-sm" onclick="app.submitMissionWhatsApp('${mission.id}')" style="background:#25d366; color:white;"><i class="fab fa-whatsapp"></i> ${this.t('stem_submit_whatsapp')}</button>
+                                    ${fileChip}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        },
+
+        // DOWNLOAD click — file illama irundha POPUP kaattum
+        downloadMissionFile(missionId) {
+            const mission = this.stemMissions.find(m => m.id === missionId);
+            if (!mission) return;
+            if (mission.fileData) {
+                const a = document.createElement('a');
+                a.href = `data:${mission.mimeType || 'application/octet-stream'};base64,${mission.fileData}`;
+                a.download = mission.fileName || 'mission-file';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                this.showToast('Download started!', 'success');
+            } else if (mission.fileUrl) {
+                window.open(mission.fileUrl, '_blank');
+            } else {
+                document.getElementById('stemNoFileModal').classList.add('show');
+            }
+        },
+
+        submitMissionWhatsApp(missionId) {
+            const mission = this.stemMissions.find(m => m.id === missionId);
+            const student = this.currentStemStudent;
+            if (!mission || !student) return;
+            const text = `Hi Counselor, I am ${student.name} from Class ${student.class} (MyKid: ${student.icNumber}). I have completed the STEM Mission: "${mission.title}". Please find my attached work. Thank you!`;
+            window.open(`https://wa.me/601125841706?text=${encodeURIComponent(text)}`, '_blank');
+        },
+
+        contactTeacherWhatsApp() {
+            const student = this.currentStemStudent;
+            const text = student
+                ? `Hi Teacher, this is regarding the STEM Mission for ${student.name} (Class ${student.class}, MyKid: ${student.icNumber}). The mission file is not attached yet. Please share the materials. Thank you!`
+                : 'Hi Teacher, please share the STEM Mission file. Thank you!';
+            window.open(`https://wa.me/601125841706?text=${encodeURIComponent(text)}`, '_blank');
+        },
+
+        goBackFromStemView() {
+            const pin = document.getElementById('stemPinInput');
+            if (pin) pin.value = '';
+            this.currentStemStudent = null;
+            this.showSection('stemMission');
+        },
+
         async searchStemMission() {
             const icInput = document.getElementById('stemIcInput');
             const pinInput = document.getElementById('stemPinInput');
@@ -7648,7 +7797,8 @@ refreshResultsView() {
                 if (this.stemMissions.length === 0) {
                     await this.loadStemMissionsFromFirebase();
                 }
-                this.renderStemMissions();
+                this.renderStemMissionView();
+                this.showSection('stemMissionView');
 
             } catch (err) {
                 console.error('STEM search failed');
