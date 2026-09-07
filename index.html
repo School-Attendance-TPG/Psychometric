@@ -76,6 +76,11 @@
                allow list: if isAdmin() || isTeacher();
                allow create, update, delete: if isAdmin();
              }
+             // REQUIRED for parent results to open:
+             match /students/{myKid}/assessments/{assId} {
+               allow read: if true;          // Parent: MyKid + PIN verified in app
+               allow write: if false;
+             }
              match /stemMissions/{missionId} {
                allow read: if isAuthenticated();
                allow write: if isAdmin();
@@ -2211,6 +2216,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -3138,11 +3144,27 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         // PIN HASHING — SECURITY FIX
         // ═══════════════════════════════════════════════════════════════
         async hashPin(pin) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(pin);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            try {
+                if (window.crypto && window.crypto.subtle) {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(pin);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+            } catch (e) { }
+            let h = 0x811c9dc5;
+            const s = String(pin);
+            for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+            return 'fb1a' + h.toString(16).padStart(8, '0');
+        },
+
+        // PIN verification - hash + legacy plain PIN rendayum accept pannum
+        async verifyPin(pin, stored) {
+            if (!stored) return true;
+            if (stored === pin) return true;
+            const hashed = await this.hashPin(pin);
+            return stored === hashed;
         },
 
         // ═══════════════════════════════════════════════════════════════
@@ -4625,12 +4647,17 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 );
 
                 if (!student && this.firebaseReady && this.db) {
-                    const { collection, query, where, getDocs } = window.fb;
-                    const stuQuery = query(collection(this.db, 'students'), where('icNumber', '==', cleanIc));
-                    const stuSnap = await getDocs(stuQuery);
-                    if (!stuSnap.empty) {
-                        student = {...stuSnap.docs[0].data(), id: stuSnap.docs[0].id};
-                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                    const { doc, getDoc } = window.fb;
+                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase()];
+                    for (const tryId of tryIds) {
+                        try {
+                            const stuSnap = await getDoc(doc(this.db, 'students', tryId));
+                            if (stuSnap.exists()) {
+                                student = {...stuSnap.data(), id: stuSnap.id};
+                                if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                                break;
+                            }
+                        } catch (e) { }
                     }
                 }
 
@@ -4642,8 +4669,8 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 }
 
                 // PIN Validation
-                const hashedInputPin = await this.hashPin(pin);
-                if (student.parentPin && student.parentPin !== hashedInputPin) {
+                const pinOk = await this.verifyPin(pin, student.parentPin);
+                if (!pinOk) {
                     this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
                     if (this.pinAttempts[cleanIc] >= 3) {
                         this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
@@ -4664,13 +4691,25 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 let assessments = this.assessments.filter(a => a.studentId === student.id).sort((a,b) => b.date.localeCompare(a.date));
                 if (assessments.length === 0 && this.firebaseReady && this.db) {
                     const { collection, query, where, getDocs } = window.fb;
-                    const assQuery = query(collection(this.db, 'assessments'), where('studentId', '==', student.id));
-                    const assSnap = await getDocs(assQuery);
-                    assSnap.forEach(d => {
-                        const a = {...d.data(), id: d.id};
-                        if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
-                        assessments.push(a);
-                    });
+                    try {
+                        const subSnap = await getDocs(collection(this.db, 'students', student.id, 'assessments'));
+                        subSnap.forEach(d => {
+                            const a = {...d.data(), id: d.id};
+                            if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
+                            assessments.push(a);
+                        });
+                    } catch (e) { }
+                    if (assessments.length === 0) {
+                        try {
+                            const assQuery = query(collection(this.db, 'assessments'), where('studentId', '==', student.id));
+                            const assSnap = await getDocs(assQuery);
+                            assSnap.forEach(d => {
+                                const a = {...d.data(), id: d.id};
+                                if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
+                                assessments.push(a);
+                            });
+                        } catch (e) { }
+                    }
                     assessments.sort((a,b) => b.date.localeCompare(a.date));
                 }
 
@@ -7511,12 +7550,17 @@ refreshResultsView() {
                 );
 
                 if (!student && this.firebaseReady && this.db) {
-                    const { collection, query, where, getDocs } = window.fb;
-                    const stuQuery = query(collection(this.db, 'students'), where('icNumber', '==', cleanIc));
-                    const stuSnap = await getDocs(stuQuery);
-                    if (!stuSnap.empty) {
-                        student = {...stuSnap.docs[0].data(), id: stuSnap.docs[0].id};
-                        if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                    const { doc, getDoc } = window.fb;
+                    const tryIds = [cleanIc, cleanIc.toUpperCase(), cleanIc.toLowerCase()];
+                    for (const tryId of tryIds) {
+                        try {
+                            const stuSnap = await getDoc(doc(this.db, 'students', tryId));
+                            if (stuSnap.exists()) {
+                                student = {...stuSnap.data(), id: stuSnap.id};
+                                if (!this.students.find(s => s.id === student.id)) this.students.push(student);
+                                break;
+                            }
+                        } catch (e) { }
                     }
                 }
 
@@ -7543,8 +7587,8 @@ refreshResultsView() {
                 }
 
                 // PIN Validation (same as parent portal)
-                const hashedInputPin = await this.hashPin(pin);
-                if (student.parentPin && student.parentPin !== hashedInputPin) {
+                const pinOk = await this.verifyPin(pin, student.parentPin);
+                if (!pinOk) {
                     this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
                     if (this.pinAttempts[cleanIc] >= 3) {
                         this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
