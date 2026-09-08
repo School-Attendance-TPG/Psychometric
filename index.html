@@ -67,30 +67,35 @@
                allow write: if isAdmin();
              }
              match /students/{myKid} {
-               allow get: if true;           // Parent: direct MyKid access
-               allow list: if isAdmin();     // NO public bulk listing
-               allow create, update, delete: if isAdmin();
-             }
-             match /assessments/{assId} {
-               allow get: if true;           // Parent: direct assessment ID
+               allow get: if true;           // STRIPPED profile only (name/class/age — no phone, no PIN)
                allow list: if isAdmin() || isTeacher();
                allow create, update, delete: if isAdmin();
              }
-             // REQUIRED for parent results to open:
-             match /students/{myKid}/assessments/{assId} {
-               allow read: if true;          // Parent: MyKid + PIN verified in app
-               allow write: if false;
+             // 🔒 VAULT: each parent's own data — ONLY that signed-in parent + admin/teacher
+             match /studentData/{uid} {
+               allow read, write: if (request.auth != null && request.auth.uid == uid) || isAdmin() || isTeacher();
+               match /assessments/{assId} {
+                 allow read, write: if (request.auth != null && request.auth.uid == uid) || isAdmin() || isTeacher();
+               }
+             }
+             // Private parent contact — admin only
+             match /studentsPrivate/{myKid} {
+               allow read, write: if isAdmin();
+             }
+             match /assessments/{assId} {
+               allow get: if isAdmin() || isTeacher();   // admin mirror only (parents use vault)
+               allow list: if isAdmin() || isTeacher();
+               allow create, update, delete: if isAdmin();
              }
              match /stemMissions/{missionId} {
-               allow read: if true;           // Parent: MyKid + PIN verified in app (no login)
+               allow read: if true;
                allow write: if isAdmin();
              }
-             // REQUIRED for older students (STU_xxx doc IDs): MyKid → studentId map
-             match /studentIndex/{myKid} {
-               allow get: if true;           // Parent: MyKid lookup
+             match /stats/{docId} {
+               allow read: if true;
                allow write: if isAdmin();
              }
-             match /{document=**} {
+} {
                allow read, write: if false;
              }
            }
@@ -8156,6 +8161,463 @@ refreshResultsView() {
     };
 
     
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🔒 MANASU VAULT SECURITY LAYER
+    // Student data readable ONLY by that student's own Firebase Auth
+    // account (MyKid+PIN login). PIN never stored in Firestore.
+    // ═══════════════════════════════════════════════════════════════
+    const Vault = {
+        DOMAIN: 'manasu-parent.app',
+        SUFFIX: '@manasu',
+        clean(myKid) { return String(myKid || '').replace(/[-\s]/g, '').toUpperCase(); },
+        emailFor(myKid) { return this.clean(myKid) + '@' + this.DOMAIN; },
+        passFor(pin) { return pin + this.SUFFIX; }
+    };
+
+    // Crack old 4-digit PIN hashes (10,000 combos — one-time migration)
+    async function VaultCrackPin(stored) {
+        if (!stored) return null;
+        const s = String(stored);
+        if (s.startsWith('fb1a')) {
+            for (let i = 0; i <= 9999; i++) {
+                const p = String(i).padStart(4, '0');
+                let h = 0x811c9dc5;
+                for (let k = 0; k < p.length; k++) { h ^= p.charCodeAt(k); h = Math.imul(h, 0x01000193) >>> 0; }
+                if ('fb1a' + h.toString(16).padStart(8, '0') === s) return p;
+            }
+            return null;
+        }
+        for (let i = 0; i <= 9999; i++) {
+            const p = String(i).padStart(4, '0');
+            if (await app.hashPin(p) === s) return p;
+        }
+        return null;
+    }
+
+    // ── PARENT LOGIN (Parent Portal) — Auth-backed, console-proof ──
+    app.searchByIC = async function() {
+        const ic = document.getElementById('parentIcInput').value.trim();
+        const pinInput = document.getElementById('parentPinInput');
+        const pin = pinInput ? pinInput.value.trim().replace(/\D/g, '') : '';
+        if (!ic || ic.replace(/[-\s]/g, '').length < 6) { this.showToast(this.t('toast_enter_valid_mykid'), 'error'); return; }
+        if (!pin || pin.length !== 4) { this.showToast('Please enter a valid 4-digit PIN', 'error'); return; }
+        const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
+        const now = Date.now();
+        if (this.pinLockUntil[cleanIc] && now < this.pinLockUntil[cleanIc]) {
+            this.showToast('Too many failed attempts. Try again in ' + Math.ceil((this.pinLockUntil[cleanIc] - now) / 60000) + ' minute(s).', 'error');
+            return;
+        }
+        const btn = document.querySelector('#parentPortal .btn-teal');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_searching');
+        btn.disabled = true;
+        try {
+            const { signInWithEmailAndPassword } = window.fb;
+            await signInWithEmailAndPassword(this.auth, Vault.emailFor(cleanIc), Vault.passFor(pin));
+            this.parentSession = true;
+            this.pinAttempts[cleanIc] = 0;
+            delete this.pinLockUntil[cleanIc];
+            const uid = this.auth.currentUser.uid;
+            const { doc, getDoc, collection, getDocs } = window.fb;
+            const profSnap = await getDoc(doc(this.db, 'studentData', uid));
+            const assSnap = await getDocs(collection(this.db, 'studentData', uid, 'assessments'));
+            const assessments = [];
+            assSnap.forEach(d => assessments.push({ ...d.data(), id: d.id }));
+            if (!profSnap.exists() || assessments.length === 0) {
+                this.showToast(this.t('toast_no_assessments_found'), 'info');
+                return;
+            }
+            assessments.sort((a, b) => b.date.localeCompare(a.date));
+            const student = { ...profSnap.data(), id: uid };
+            this.viewSource = 'parent';
+            this.showCloudResults(student, assessments);
+        } catch (err) {
+            this.pinAttempts[cleanIc] = (this.pinAttempts[cleanIc] || 0) + 1;
+            if (this.pinAttempts[cleanIc] >= 3) {
+                this.pinLockUntil[cleanIc] = now + (30 * 60 * 1000);
+                this.pinAttempts[cleanIc] = 0;
+                this.showToast('Too many failed attempts. Locked for 30 minutes.', 'error');
+            } else {
+                this.showToast('Invalid PIN. ' + (3 - this.pinAttempts[cleanIc]) + ' attempt(s) remaining.', 'error');
+            }
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    // ── PARENT LOGIN (STEM Portal) ──
+    app.searchStemMission = async function() {
+        const ic = document.getElementById('stemIcInput').value.trim();
+        const pinInput = document.getElementById('stemPinInput');
+        const pin = pinInput ? pinInput.value.trim().replace(/\D/g, '') : '';
+        if (!ic || ic.replace(/[-\s]/g, '').length < 6) { this.showToast(this.t('toast_enter_valid_mykid'), 'error'); return; }
+        if (!pin || pin.length !== 4) { this.showToast('Please enter a valid 4-digit PIN', 'error'); return; }
+        const cleanIc = ic.replace(/[-\s]/g, '').toUpperCase();
+        const btn = document.querySelector('#stemMission .btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + this.t('toast_searching');
+        btn.disabled = true;
+        try {
+            const { signInWithEmailAndPassword } = window.fb;
+            await signInWithEmailAndPassword(this.auth, Vault.emailFor(cleanIc), Vault.passFor(pin));
+            this.parentSession = true;
+            const uid = this.auth.currentUser.uid;
+            const { doc, getDoc } = window.fb;
+            const profSnap = await getDoc(doc(this.db, 'studentData', uid));
+            if (!profSnap.exists()) { this.showToast(this.t('toast_no_student_mission'), 'error'); return; }
+            const student = { ...profSnap.data(), id: uid };
+            if (this.stemMissions.length === 0) await this.loadStemMissionsFromFirebase();
+            this.currentStemStudent = student;
+            this.renderStemMissionView();
+            this.showSection('stemMissionView');
+        } catch (e) {
+            this.showToast('Invalid PIN. Please try again.', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    };
+
+    // ── Sign out parent session on Back ──
+    const __origBack = app.goBackFromResults.bind(app);
+    app.goBackFromResults = async function() {
+        const wasParent = this.parentSession;
+        const src = this.viewSource;
+        __origBack();
+        if (wasParent && src === 'parent') {
+            try { await window.fb.signOut(this.auth); } catch (e) { }
+            this.parentSession = false;
+        }
+    };
+    const __origStemBack = app.goBackFromStemView.bind(app);
+    app.goBackFromStemView = async function() {
+        __origStemBack();
+        if (this.parentSession) {
+            try { await window.fb.signOut(this.auth); } catch (e) { }
+            this.parentSession = false;
+        }
+    };
+
+    // ── Dashboard sync: supplement from vault (top-level mirror may be empty post-migration) ──
+    const __origSync = app.syncFromFirebase.bind(app);
+    app.syncFromFirebase = async function() {
+        await __origSync();
+        if (!this.firebaseReady || !this.db) return;
+        if (!this.currentUser || this.currentUser.role !== 'admin') return;
+        try {
+            const { collection, getDocs, doc } = window.fb;
+            const profs = await getDocs(collection(this.db, 'studentData'));
+            let added = 0;
+            for (const p of profs.docs) {
+                const uid = p.id;
+                const snap = await getDocs(collection(this.db, 'studentData', uid, 'assessments'));
+                snap.forEach(d => {
+                    const a = { ...d.data(), id: d.id };
+                    if (!this.assessments.find(x => x.id === a.id)) { this.assessments.push(a); added++; }
+                });
+            }
+            if (added > 0) { console.log('[VAULT] dashboard synced from vault:', added, 'assessments'); this.renderAssessmentsTable(); this.updateDashboard(); }
+        } catch (e) { console.warn('[VAULT] vault sync supplement failed', e); }
+    };
+
+    // ── ADMIN: save student → stripped public doc + private doc + Auth user ──
+    app.saveStudent = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('studentEditId').value;
+        const plainPin = document.getElementById('stuParentPin').value.replace(/\D/g, '').substring(0, 4);
+        const data = {
+            name: document.getElementById('stuName').value,
+            icNumber: document.getElementById('stuIc').value.replace(/[-\s]/g, ''),
+            class: document.getElementById('stuClass').value,
+            age: parseInt(document.getElementById('stuAge').value) || null,
+            updatedAt: new Date().toISOString()
+        };
+        const privateData = {
+            parentName: document.getElementById('stuParent').value,
+            parentPhone: document.getElementById('stuPhone').value
+        };
+        if (!this.firebaseReady || !this.db) { this.showToast('Firebase not connected.', 'error'); return; }
+        const { doc, setDoc, getDoc } = window.fb;
+        if (id) {
+            const idx = this.students.findIndex(s => s.id === id);
+            if (idx >= 0) this.students[idx] = { ...this.students[idx], ...data, ...privateData };
+            this.showToast(this.t('toast_student_updated'), 'success');
+        } else {
+            data.id = data.icNumber.toUpperCase();
+            data.createdAt = new Date().toISOString();
+            this.students.push({ ...data, ...privateData });
+            this.showToast(this.t('toast_student_added'), 'success');
+        }
+        const finalStudent = id ? this.students.find(s => s.id === id) : this.students[this.students.length - 1];
+        const cleanIc = Vault.clean(data.icNumber);
+        // 1. Public doc — STRIPPED (no phone, no PIN)
+        try {
+            await setDoc(doc(this.db, 'students', finalStudent.id), {
+                id: finalStudent.id, name: data.name, icNumber: data.icNumber,
+                class: data.class, age: data.age,
+                createdAt: finalStudent.createdAt || new Date().toISOString(), updatedAt: data.updatedAt
+            });
+        } catch (err) { console.error('public student save failed', err); }
+        // 2. Private doc (admin-only) — keep existing uid
+        let uid = null;
+        try {
+            const priv = await getDoc(doc(this.db, 'studentsPrivate', cleanIc));
+            if (priv.exists()) uid = priv.data().uid || null;
+        } catch (e) { }
+        try {
+            await setDoc(doc(this.db, 'studentsPrivate', cleanIc), {
+                parentName: privateData.parentName, parentPhone: privateData.parentPhone,
+                uid: uid || '', updatedAt: new Date().toISOString()
+            });
+        } catch (e) { }
+        // 3. Auth user (new PIN typed) — creates account or resets after console delete
+        if (plainPin && plainPin.length === 4) {
+            await app.VaultEnsureAuth(finalStudent, plainPin, uid);
+        }
+        this.renderStudentsTable();
+        this.populateStudentSelects();
+        this.closeStudentModal();
+        document.getElementById('stuParentPin').value = '';
+        this.updateHeroStats();
+        if (plainPin && privateData.parentPhone) this.showPinShareModal(finalStudent, plainPin);
+        this.updatePublicStats();
+    };
+
+    // Create (or re-create after reset) the parent's Auth account; wire data vault
+    app.VaultEnsureAuth = async function(student, pin, existingUid) {
+        try {
+            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const { getAuth, createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            const secApp = initializeApp(window.firebaseApp.options, 'vaultSec');
+            const secAuth = getAuth(secApp);
+            const email = Vault.emailFor(student.icNumber);
+            const cred = await createUserWithEmailAndPassword(secAuth, email, Vault.passFor(pin));
+            const uid = cred.user.uid;
+            const { doc, setDoc, getDoc } = window.fb;
+            const cleanIc = Vault.clean(student.icNumber);
+            const privSnap = await getDoc(doc(this.db, 'studentsPrivate', cleanIc));
+            const prev = privSnap.exists() ? privSnap.data() : {};
+            await setDoc(doc(this.db, 'studentsPrivate', cleanIc), { ...prev, uid, updatedAt: new Date().toISOString() });
+            if (existingUid && existingUid !== uid) {
+                await app.VaultMigrateData(existingUid, uid);
+            } else if (!existingUid) {
+                await app.VaultMigrateLegacy(student, uid);
+            }
+            return uid;
+        } catch (e) {
+            if (e.code === 'auth/email-already-in-use') {
+                console.warn('[VAULT] Auth exists for', student.icNumber, '— to reset PIN: Firebase Console → Authentication → delete that user, then save student again with new PIN.');
+                this.showToast('PIN reset: delete the parent user in Firebase Console → Auth, then save again.', 'error');
+            } else {
+                console.error('[VAULT] auth ensure failed', e);
+            }
+        }
+    };
+
+    // Copy legacy assessments (subcollection + top-level) into a fresh vault
+    app.VaultMigrateLegacy = async function(student, uid) {
+        const { doc, setDoc, deleteDoc, collection, getDocs, query, where } = window.fb;
+        try {
+            const subSnap = await getDocs(collection(this.db, 'students', student.id, 'assessments'));
+            for (const d of subSnap.docs) {
+                const a = { ...d.data(), id: d.id };
+                await setDoc(doc(this.db, 'studentData', uid, 'assessments', a.id), a);
+                await deleteDoc(doc(this.db, 'students', student.id, 'assessments', d.id));
+            }
+        } catch (e) { }
+        try {
+            const topSnap = await getDocs(query(collection(this.db, 'assessments'), where('studentId', '==', student.id)));
+            for (const d of topSnap.docs) {
+                const a = { ...d.data(), id: d.id };
+                await setDoc(doc(this.db, 'studentData', uid, 'assessments', a.id), a);
+                await deleteDoc(doc(this.db, 'assessments', d.id));
+            }
+        } catch (e) { }
+        try {
+            await setDoc(doc(this.db, 'studentData', uid), { id: uid, name: student.name, class: student.class || '', age: student.age || null, icNumber: student.icNumber });
+        } catch (e) { }
+    };
+
+    // Move data between uids (PIN reset flow)
+    app.VaultMigrateData = async function(oldUid, newUid) {
+        const { doc, setDoc, getDoc, deleteDoc, collection, getDocs } = window.fb;
+        try {
+            const prof = await getDoc(doc(this.db, 'studentData', oldUid));
+            if (prof.exists()) {
+                await setDoc(doc(this.db, 'studentData', newUid), prof.data());
+                await deleteDoc(doc(this.db, 'studentData', oldUid));
+            }
+            const snap = await getDocs(collection(this.db, 'studentData', oldUid, 'assessments'));
+            for (const d of snap.docs) {
+                await setDoc(doc(this.db, 'studentData', newUid, 'assessments', d.id), d.data());
+                await deleteDoc(doc(this.db, 'studentData', oldUid, 'assessments', d.id));
+            }
+        } catch (e) { console.error('[VAULT] data migrate failed', e); }
+    };
+
+    // ── ADMIN: save assessment → vault + top-level mirror ──
+    app.saveAssessmentToFirebase = async function(assessment) {
+        if (!this.firebaseReady || !this.db) return;
+        try {
+            const { doc, setDoc, getDoc } = window.fb;
+            let uid = null;
+            if (assessment.studentId) {
+                const stu = await getDoc(doc(this.db, 'students', assessment.studentId));
+                if (stu.exists()) {
+                    const ic = Vault.clean(stu.data().icNumber || '');
+                    if (ic) {
+                        const priv = await getDoc(doc(this.db, 'studentsPrivate', ic));
+                        if (priv.exists()) uid = priv.data().uid || null;
+                    }
+                }
+            }
+            if (uid) {
+                await setDoc(doc(this.db, 'studentData', uid, 'assessments', assessment.id), assessment);
+            }
+            await setDoc(doc(this.db, 'assessments', assessment.id), assessment);
+        } catch (e) {
+            console.error('Assessment save failed', e);
+            this.showToast('Assessment cloud save failed!', 'error');
+        }
+    };
+
+    // ── Stripped public student save (no phone/PIN ever in public doc) ──
+    app.saveStudentToFirebase = async function(student) {
+        if (!this.firebaseReady || !this.db || !student) return;
+        try {
+            const { doc, setDoc } = window.fb;
+            await setDoc(doc(this.db, 'students', student.id), {
+                id: student.id, name: student.name, icNumber: student.icNumber,
+                class: student.class || '', age: student.age || null,
+                createdAt: student.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+        } catch (e) { console.error('Firebase save student failed'); }
+    };
+
+    // ── Replaced: no more studentIndex / subcollection backfills ──
+    app.saveStudentIndexToFirebase = async function() { /* VAULT: replaced by studentsPrivate */ };
+    app.backfillAssessments = async function() { /* VAULT: handled by migration */ };
+
+    // ── Migration (runs once on admin login): Auth users + data vault + leak cleanup ──
+    app.backfillStudentIndex = async function() {
+        if (!this.firebaseReady || !this.db) return;
+        if (!this.currentUser || this.currentUser.role !== 'admin') return;
+        const alreadyDone = localStorage.getItem('manasu_vault_migrated') === '1';
+        const hasRealPins = this.students.some(s => s && s.parentPin && String(s.parentPin).length > 4);
+        if (alreadyDone && !hasRealPins) { console.log('[VAULT] already migrated'); return; }
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+        const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        const { doc, setDoc, getDoc, deleteDoc, collection, getDocs, query, where } = window.fb;
+        let secAuth;
+        try {
+            secAuth = getAuth(initializeApp(window.firebaseApp.options, 'vaultSec'));
+        } catch (e) { console.error('[VAULT] secondary init failed', e); return; }
+        let migrated = 0, skipped = 0;
+        for (const s of this.students) {
+            if (!s || !s.icNumber) continue;
+            const cleanIc = Vault.clean(s.icNumber);
+            const pin = await VaultCrackPin(s.parentPin);
+            if (!pin) { console.warn('[VAULT] SKIP (no PIN):', s.name, s.icNumber); skipped++; continue; }
+            const email = Vault.emailFor(cleanIc);
+            let uid;
+            try {
+                const cred = await createUserWithEmailAndPassword(secAuth, email, Vault.passFor(pin));
+                uid = cred.user.uid;
+            } catch (e) {
+                if (e.code === 'auth/email-already-in-use') {
+                    try {
+                        const c2 = await signInWithEmailAndPassword(secAuth, email, Vault.passFor(pin));
+                        uid = c2.user.uid;
+                    } catch (e2) { console.warn('[VAULT] SKIP (pin mismatch):', s.icNumber); skipped++; continue; }
+                } else { console.warn('[VAULT] SKIP:', e.code, s.icNumber); skipped++; continue; }
+            }
+            // move subcollection assessments → vault, delete old copies
+            try {
+                const subSnap = await getDocs(collection(this.db, 'students', s.id, 'assessments'));
+                for (const d of subSnap.docs) {
+                    const a = { ...d.data(), id: d.id };
+                    await setDoc(doc(this.db, 'studentData', uid, 'assessments', a.id), a);
+                    await deleteDoc(doc(this.db, 'students', s.id, 'assessments', d.id));
+                }
+            } catch (e) { }
+            // move top-level mirror → vault, delete old copies
+            try {
+                const topSnap = await getDocs(query(collection(this.db, 'assessments'), where('studentId', '==', s.id)));
+                for (const d of topSnap.docs) {
+                    const a = { ...d.data(), id: d.id };
+                    await setDoc(doc(this.db, 'studentData', uid, 'assessments', a.id), a);
+                    await deleteDoc(doc(this.db, 'assessments', d.id));
+                }
+            } catch (e) { }
+            // vault profile + private + STRIPPED public + index cleanup
+            try { await setDoc(doc(this.db, 'studentData', uid), { id: uid, name: s.name, class: s.class || '', age: s.age || null, icNumber: s.icNumber }); } catch (e) { }
+            try { await setDoc(doc(this.db, 'studentsPrivate', cleanIc), { parentName: s.parentName || '', parentPhone: s.parentPhone || '', uid, updatedAt: new Date().toISOString() }); } catch (e) { }
+            try { await setDoc(doc(this.db, 'students', s.id), { id: s.id, name: s.name, icNumber: s.icNumber, class: s.class || '', age: s.age || null, createdAt: s.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() }); } catch (e) { }
+            try { await deleteDoc(doc(this.db, 'studentIndex', cleanIc)); } catch (e) { }
+            const li = this.students.findIndex(x => x.id === s.id);
+            if (li >= 0) { this.students[li].parentPin = 'vault'; }
+            migrated++;
+        }
+        localStorage.setItem('manasu_vault_migrated', '1');
+        console.log('[VAULT] Migration complete: ' + migrated + ' migrated, ' + skipped + ' skipped (set PIN for those via Edit → Save)');
+        this.renderStudentsTable();
+    };
+
+    // ── Student delete: also wipe vault + private ──
+    app.deleteStudentIndexFromFirebase = async function(icNumber) {
+        if (!this.firebaseReady || !this.db || !icNumber) return;
+        const { doc, getDoc, deleteDoc, collection, getDocs } = window.fb;
+        const cleanIc = Vault.clean(icNumber);
+        try {
+            const priv = await getDoc(doc(this.db, 'studentsPrivate', cleanIc));
+            if (priv.exists()) {
+                const uid = priv.data().uid;
+                if (uid) {
+                    const snap = await getDocs(collection(this.db, 'studentData', uid, 'assessments'));
+                    for (const d of snap.docs) await deleteDoc(doc(this.db, 'studentData', uid, 'assessments', d.id));
+                    await deleteDoc(doc(this.db, 'studentData', uid));
+                }
+            }
+            await deleteDoc(doc(this.db, 'studentsPrivate', cleanIc));
+            await deleteDoc(doc(this.db, 'studentIndex', cleanIc));
+        } catch (e) { }
+    };
+
+    // ── WhatsApp share: PIN NEVER sent in chat (security) — collect from office ──
+    app.sharePinWhatsApp = async function(studentId) {
+        const s = this.students.find(st => st.id === studentId);
+        if (!s) return;
+        if (!s.parentPhone) {
+            try {
+                const { doc, getDoc } = window.fb;
+                const priv = await getDoc(doc(this.db, 'studentsPrivate', Vault.clean(s.icNumber)));
+                if (priv.exists()) { s.parentPhone = priv.data().parentPhone || ''; s.parentName = priv.data().parentName || ''; }
+            } catch (e) { }
+        }
+        if (!s.parentPhone) { this.showToast('No parent phone number set.', 'error'); return; }
+        const msg = 'Hi Parent, your child *' + s.name + '* (' + s.class + ') MANASU account is ready.\n\nMyKid: *' + s.icNumber + '*\n4-digit PIN: please collect from the school office (counselor).\n\nLogin: ' + location.origin + location.pathname;
+        window.open('https://wa.me/' + s.parentPhone.replace(/\D/g, '') + '?text=' + encodeURIComponent(msg), '_blank');
+    };
+
+    // ── Edit modal: fill phone/parent from private store if missing ──
+    const __origOpenStu = app.openStudentModal.bind(app);
+    app.openStudentModal = async function(id) {
+        if (id) {
+            const s = this.students.find(st => st.id === id);
+            if (s && !s.parentPhone) {
+                try {
+                    const { doc, getDoc } = window.fb;
+                    const priv = await getDoc(doc(this.db, 'studentsPrivate', Vault.clean(s.icNumber)));
+                    if (priv.exists()) { s.parentPhone = priv.data().parentPhone || ''; s.parentName = priv.data().parentName || ''; }
+                } catch (e) { }
+            }
+        }
+        __origOpenStu(id);
+    };
 
     document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
