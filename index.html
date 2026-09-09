@@ -4949,7 +4949,8 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             }
         },
 
-        onTeacherClassChange() {
+        async onTeacherClassChange() {
+            await this.VaultEnsureAssessments();
             const selectedClass = document.getElementById('teacherClassSelect').value;
             this.currentTeacherClass = selectedClass || null;
             if (selectedClass) {
@@ -5001,6 +5002,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         },
 
         async renderTeacherStudentsTable() {
+            await this.VaultEnsureAssessments();
             const tbody = document.getElementById('teacherStudentsTableBody');
             const search = document.getElementById('teacherStudentSearch')?.value.toLowerCase() || '';
             const cls = this.currentTeacherClass;
@@ -5058,6 +5060,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         },
 
         async renderTeacherAssessmentsTable() {
+            await this.VaultEnsureAssessments();
             const tbody = document.getElementById('teacherAssessmentsTableBody');
             const search = document.getElementById('teacherAssessmentSearch')?.value.toLowerCase() || '';
             const severityFilter = document.getElementById('teacherSeverityFilter')?.value || 'all';
@@ -8345,6 +8348,39 @@ refreshResultsView() {
                 }
             }
         } catch (e) { console.warn('[VAULT] vault sync supplement failed', e); }
+    };
+
+    // ── Guaranteed vault loader: teacher/admin tables AWAIT this before rendering ──
+    app.VaultEnsureAssessments = async function() {
+        if (!this.firebaseReady || !this.db) return;
+        const role = this.currentUser ? this.currentUser.role : null;
+        if (role !== 'admin' && role !== 'teacher') return;
+        if (this.__vaultLoading) return this.__vaultLoading;
+        this.__vaultLoading = (async () => {
+            try {
+                const { collection, getDocs } = window.fb;
+                const profs = await getDocs(collection(this.db, 'studentData'));
+                let added = 0;
+                for (const p of profs.docs) {
+                    const snap = await getDocs(collection(this.db, 'studentData', p.id, 'assessments'));
+                    snap.forEach(d => {
+                        const a = { ...d.data(), id: d.id };
+                        if (!this.assessments.find(x => x.id === a.id)) { this.assessments.push(a); added++; }
+                    });
+                }
+                if (added > 0) console.log('[VAULT] assessments loaded:', added, '(' + role + ')');
+                // Diagnostic: assessments whose studentId matches no loaded student
+                if (this.students.length > 0) {
+                    const orphans = this.assessments.filter(a => a.studentId && !this.students.find(s => s.id === a.studentId));
+                    if (orphans.length > 0) console.warn('[VAULT] ⚠️ ' + orphans.length + ' assessments with unmatched studentId:', orphans.map(o => ({ id: o.id, studentId: o.studentId })));
+                }
+            } catch (e) {
+                console.warn('[VAULT] load FAILED:', e && e.code ? e.code : e, '— teacher rules-la studentData read irukka nu check pannunga');
+            } finally {
+                this.__vaultLoading = null;
+            }
+        })();
+        return this.__vaultLoading;
     };
 
     // ── ADMIN: save student → stripped public doc + private doc + Auth user ──
