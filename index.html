@@ -212,7 +212,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
         .font-tamil { font-family: 'Noto Sans Tamil', sans-serif; }
         .font-display { font-family: 'Playfair Display', serif; }
-        .text-gradient { background: linear-gradient(135deg, #0f172a 0%, var(--healing-teal) 50%, var(--malaysia-blue) 100%); background-size: 200% auto; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; }
+        .text-gradient { background: linear-gradient(135deg, #0f172a 0%, var(--healing-teal) 50%, var(--malaysia-blue) 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; }
         @keyframes shine { to { background-position: 200% center; } }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 28px; border: none; border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
@@ -422,7 +422,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .score-slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .score-slider-header label { font-weight: 600; font-size: 0.95rem; }
         .score-value { padding: 4px 12px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; min-width: 36px; text-align: center; }
-        .score-slider input[type="range"] { width: 100%; appearance: none; -webkit-appearance: none; height: 8px; border-radius: 10px; background: rgba(0,0,0,0.05); outline: none; }
+        .score-slider input[type="range"] { width: 100%; -webkit-appearance: none; height: 8px; border-radius: 10px; background: rgba(0,0,0,0.05); outline: none; }
         .score-slider input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--healing-teal); cursor: pointer; box-shadow: 0 0 10px rgba(13,148,136,0.30); transition: all 0.3s; }
         .score-slider input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 20px rgba(13,148,136,0.40); }
 
@@ -1176,7 +1176,6 @@ body.pdf-mode .score-severe { color: #b91c1c !important; }
                 padding: 1.5px;
                 background: linear-gradient(135deg, var(--healing-teal), var(--malaysia-blue), var(--malaysia-yellow), var(--healing-teal));
                 -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-                mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
                 -webkit-mask-composite: xor;
                 mask-composite: exclude;
                 opacity: 0.5;
@@ -2530,7 +2529,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 <div class="portal-visual">
                     <div class="portal-card-visual" style="background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(37,99,235,0.10));">
                         <div class="brain-glow" style="background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, rgba(37,99,235,0.15) 40%, transparent 70%);"></div>
-                        <div class="brain-icon" style="font-size: 5.5rem; background: linear-gradient(135deg, #8b5cf6, #3b82f6); background-clip: text; -webkit-background-clip: text;"><i class="fas fa-rocket"></i></div>
+                        <div class="brain-icon" style="font-size: 5.5rem; background: linear-gradient(135deg, #8b5cf6, #3b82f6); -webkit-background-clip: text;"><i class="fas fa-rocket"></i></div>
                         <div class="brain-rings">
                             <div class="ring ring-1" style="border-color: rgba(139,92,246,0.2);"></div>
                             <div class="ring ring-2" style="border-color: rgba(37,99,235,0.15);"></div>
@@ -8314,14 +8313,16 @@ refreshResultsView() {
         }
     };
 
-    // ── Dashboard sync: supplement from vault (top-level mirror may be empty post-migration) ──
+    // ── Dashboard sync: supplement from vault (top-level mirror lacks pre-vault assessments) ──
     const __origSync = app.syncFromFirebase.bind(app);
     app.syncFromFirebase = async function() {
         await __origSync();
         if (!this.firebaseReady || !this.db) return;
-        if (!this.currentUser || this.currentUser.role !== 'admin') return;
+        // ✅ BOTH admin and teacher need vault supplement (migrated assessments live there)
+        const role = this.currentUser ? this.currentUser.role : null;
+        if (role !== 'admin' && role !== 'teacher') return;
         try {
-            const { collection, getDocs, doc } = window.fb;
+            const { collection, getDocs } = window.fb;
             const profs = await getDocs(collection(this.db, 'studentData'));
             let added = 0;
             for (const p of profs.docs) {
@@ -8332,7 +8333,17 @@ refreshResultsView() {
                     if (!this.assessments.find(x => x.id === a.id)) { this.assessments.push(a); added++; }
                 });
             }
-            if (added > 0) { console.log('[VAULT] dashboard synced from vault:', added, 'assessments'); this.renderAssessmentsTable(); this.updateDashboard(); }
+            if (added > 0) {
+                console.log('[VAULT] synced from vault:', added, 'assessments (' + role + ')');
+                this.renderAssessmentsTable();
+                this.updateDashboard();
+                // Re-render teacher tables if teacher dashboard is open
+                if (document.getElementById('teacherDashboard') && document.getElementById('teacherDashboard').classList.contains('active')) {
+                    this.renderTeacherStudentsTable();
+                    this.renderTeacherAssessmentsTable();
+                    this.updateTeacherStats();
+                }
+            }
         } catch (e) { console.warn('[VAULT] vault sync supplement failed', e); }
     };
 
