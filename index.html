@@ -2227,6 +2227,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -4950,7 +4951,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         },
 
         async onTeacherClassChange() {
-            await this.VaultEnsureAssessments();
+            // ✅ Munnadi: class-ah MUNNAADI set pannu — fetch correct class-ku aagum
             const selectedClass = document.getElementById('teacherClassSelect').value;
             this.currentTeacherClass = selectedClass || null;
             if (selectedClass) {
@@ -4966,11 +4967,29 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             } else {
                 if (badgeEl) badgeEl.style.display = 'none';
             }
+
+            // ✅ Loading spinner — "data varuthu" nu users-kku theriyum
+            this.setTeacherTablesLoading(true);
+
+            // ✅ Ippo thaan fetch — antha class-oda students mattum (parallel)
+            await this.VaultEnsureAssessments(true);
+
             this.updateTeacherStats();
-            this.renderTeacherStudentsTable();
-            this.renderTeacherAssessmentsTable();
+            await this.renderTeacherStudentsTable();
+            await this.renderTeacherAssessmentsTable();
         },
 
+        // Teacher tables-ah loading state-ku maathu (spinner show)
+        setTeacherTablesLoading(isLoading) {
+            if (!isLoading) return;
+            const spin = (cols) => '<tr><td colspan="' + cols + '" style="text-align:center; padding:40px;">' +
+                '<i class="fas fa-spinner fa-spin" style="color:var(--healing-teal); font-size:1.5rem;"></i>' +
+                '<div style="margin-top:10px; color:var(--text-muted); font-size:0.85rem;">Loading results...</div></td></tr>';
+            const st = document.getElementById('teacherStudentsTableBody');
+            if (st) st.innerHTML = spin(7);
+            const at = document.getElementById('teacherAssessmentsTableBody');
+            if (at) at.innerHTML = spin(6);
+        },
         updateTeacherStats() {
             const cls = this.currentTeacherClass;
             // ✅ No class selected → hide stats cards entirely
@@ -8321,64 +8340,94 @@ refreshResultsView() {
     app.syncFromFirebase = async function() {
         await __origSync();
         if (!this.firebaseReady || !this.db) return;
-        // ✅ BOTH admin and teacher need vault supplement (migrated assessments live there)
         const role = this.currentUser ? this.currentUser.role : null;
         if (role !== 'admin' && role !== 'teacher') return;
-        try {
-            const { collection, getDocs } = window.fb;
-            const profs = await getDocs(collection(this.db, 'studentData'));
-            let added = 0;
-            for (const p of profs.docs) {
-                const uid = p.id;
-                const snap = await getDocs(collection(this.db, 'studentData', uid, 'assessments'));
-                snap.forEach(d => {
-                    const a = { ...d.data(), id: d.id };
-                    if (!this.assessments.find(x => x.id === a.id)) { this.assessments.push(a); added++; }
-                });
+        // ✅ Slow sequential loop REMOVED — fast cached loader use pannu
+        const added = await this.VaultEnsureAssessments(true);
+        if (added > 0) {
+            console.log('[VAULT] synced from vault:', added, 'assessments (' + role + ')');
+            this.renderAssessmentsTable();
+            this.updateDashboard();
+            if (document.getElementById('teacherDashboard') && document.getElementById('teacherDashboard').classList.contains('active')) {
+                this.renderTeacherStudentsTable();
+                this.renderTeacherAssessmentsTable();
+                this.updateTeacherStats();
             }
-            if (added > 0) {
-                console.log('[VAULT] synced from vault:', added, 'assessments (' + role + ')');
-                this.renderAssessmentsTable();
-                this.updateDashboard();
-                // Re-render teacher tables if teacher dashboard is open
-                if (document.getElementById('teacherDashboard') && document.getElementById('teacherDashboard').classList.contains('active')) {
-                    this.renderTeacherStudentsTable();
-                    this.renderTeacherAssessmentsTable();
-                    this.updateTeacherStats();
-                }
-            }
-        } catch (e) { console.warn('[VAULT] vault sync supplement failed', e); }
+        }
     };
 
-    // ── Guaranteed vault loader: teacher/admin tables AWAIT this before rendering ──
-    app.VaultEnsureAssessments = async function() {
-        if (!this.firebaseReady || !this.db) return;
+    // ── FAST vault loader: cached + parallel + class-scoped ──
+    app.VaultEnsureAssessments = async function(force = false) {
+        if (!this.firebaseReady || !this.db) return 0;
         const role = this.currentUser ? this.currentUser.role : null;
-        if (role !== 'admin' && role !== 'teacher') return;
+        if (role !== 'admin' && role !== 'teacher') return 0;
+
+        // 120-second cache — same class-ku marupadiyum fetch vendaam
+        const cacheKey = (role === 'teacher' && this.currentTeacherClass) ? this.currentTeacherClass : 'all';
+        const cacheFresh = (Date.now() - (this.__vaultCacheTime || 0)) < 120000;
+        if (!force && this.__vaultCacheKey === cacheKey && cacheFresh) return 0;
+
+        // Concurrent calls — same promise-ah share pannu (dedupe)
         if (this.__vaultLoading) return this.__vaultLoading;
+
         this.__vaultLoading = (async () => {
+            let added = 0;
             try {
                 const { collection, getDocs } = window.fb;
-                const profs = await getDocs(collection(this.db, 'studentData'));
-                let added = 0;
-                for (const p of profs.docs) {
-                    const snap = await getDocs(collection(this.db, 'studentData', p.id, 'assessments'));
-                    snap.forEach(d => {
-                        const a = { ...d.data(), id: d.id };
-                        if (!this.assessments.find(x => x.id === a.id)) { this.assessments.push(a); added++; }
+
+                // Class-scoped: teacher + class selected → antha class students mattum
+                let targets = null;
+                if (role === 'teacher' && this.currentTeacherClass && this.students.length > 0) {
+                    const cls = this.currentTeacherClass.trim();
+                    targets = this.students
+                        .filter(s => s.class && s.class.trim() === cls)
+                        .map(s => s.id);
+                }
+
+                if (targets && targets.length > 0) {
+                    // ✅ PARALLEL reads — oru-odathu oru illa, ellame concurrent
+                    const snaps = await Promise.all(targets.map(uid =>
+                        getDocs(collection(this.db, 'studentData', uid, 'assessments')).catch(() => null)
+                    ));
+                    const existing = new Set(this.assessments.map(a => a.id));
+                    snaps.forEach(snap => {
+                        if (!snap) return;
+                        snap.forEach(d => {
+                            if (!existing.has(d.id)) {
+                                this.assessments.push({ ...d.data(), id: d.id });
+                                existing.add(d.id); added++;
+                            }
+                        });
+                    });
+                } else if (targets === null) {
+                    // Fallback: students array innum load aagala — all profiles (parallel)
+                    const profs = await getDocs(collection(this.db, 'studentData'));
+                    const snaps = await Promise.all(profs.docs.map(p =>
+                        getDocs(collection(this.db, 'studentData', p.id, 'assessments')).catch(() => null)
+                    ));
+                    const existing = new Set(this.assessments.map(a => a.id));
+                    snaps.forEach(snap => {
+                        if (!snap) return;
+                        snap.forEach(d => {
+                            if (!existing.has(d.id)) {
+                                this.assessments.push({ ...d.data(), id: d.id });
+                                existing.add(d.id); added++;
+                            }
+                        });
                     });
                 }
-                if (added > 0) console.log('[VAULT] assessments loaded:', added, '(' + role + ')');
-                // Diagnostic: assessments whose studentId matches no loaded student
-                if (this.students.length > 0) {
-                    const orphans = this.assessments.filter(a => a.studentId && !this.students.find(s => s.id === a.studentId));
-                    if (orphans.length > 0) console.warn('[VAULT] ⚠️ ' + orphans.length + ' assessments with unmatched studentId:', orphans.map(o => ({ id: o.id, studentId: o.studentId })));
+                // targets = [] (class-la students illa) → cache set panna vendaam
+                if (!targets || targets.length > 0) {
+                    this.__vaultCacheKey = cacheKey;
+                    this.__vaultCacheTime = Date.now();
                 }
+                if (added > 0) console.log('[VAULT] fast-loaded:', added, 'assessments (' + cacheKey + ')');
             } catch (e) {
-                console.warn('[VAULT] load FAILED:', e && e.code ? e.code : e, '— teacher rules-la studentData read irukka nu check pannunga');
+                console.warn('[VAULT] load failed:', e && e.code ? e.code : e);
             } finally {
                 this.__vaultLoading = null;
             }
+            return added;
         })();
         return this.__vaultLoading;
     };
