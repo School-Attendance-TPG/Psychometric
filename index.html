@@ -3204,7 +3204,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             <span class="file-upload-inner">
                                 <span class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
                                 <span class="file-upload-title" id="missionFileTitle">Choose a file or drag &amp; drop</span>
-                                <span class="file-upload-hint"><i class="fas fa-paperclip"></i> PDF, DOC, PPT, ZIP, JPG, PNG &bull; Max 400KB</span>
+                                <span class="file-upload-hint"><i class="fas fa-cloud-upload-alt"></i> PDF, DOC, PPT, ZIP, JPG, PNG &bull; Max 10MB &bull; Stored in Cloudinary ☁️</span>
                             </span>
                         </label>
                         <div id="missionFilesList" style="margin-top:12px;"></div>
@@ -3300,6 +3300,10 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     // ═══════════════════════════════════════════════════════════════
     // APP STATE & CONFIG
     // ═══════════════════════════════════════════════════════════════
+    // ☁️ CLOUDINARY CONFIG — 2 values mattum fill pannunga (Cloudinary Dashboard → Settings)
+    const CLOUDINARY_CLOUD_NAME = 'fg4fhj7k';
+    const CLOUDINARY_UPLOAD_PRESET = 'manasu_missions';
+    const CLOUDINARY_MAX_SIZE = 10 * 1024 * 1024; // 10MB (Cloudinary free plan limit)
     const app = {
                 navigatingViaHistory: false,
         students: [],
@@ -8165,7 +8169,7 @@ refreshResultsView() {
                             </div>
                             <div style="display:flex; flex-direction:column; gap:10px; min-width:180px;">
                                 ${missionFiles.map((f) => `
-                                <a href="data:${f.mimeType || 'application/octet-stream'};base64,${f.data}" download="${f.name || 'mission-file'}" class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
+                                <a href="${f.url ? f.url : `data:${f.mimeType || 'application/octet-stream'};base64,${f.data}`}" ${f.url ? 'target="_blank"' : `download="${f.name || 'mission-file'}"`} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
                                     <i class="fas fa-download"></i> ${f.name || (t.stem_download || 'Download File')}
                                 </a>`).join('')}
                                 ${(!mission.fileData && mission.fileUrl) ? `
@@ -8215,7 +8219,7 @@ refreshResultsView() {
                     document.getElementById('stemMissionFileUrl').value = m.fileUrl || '';
                     // ✅ FILES: load multi-file list (or legacy single file)
                     this._missionFiles = (m.files && Array.isArray(m.files)) ? [...m.files]
-                        : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, size: 0 }] : []);
+                        : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, url: null, size: 0 }] : []);
                     document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
                     this.renderMissionFilesList();
                     // ✅ EDITABLE DATE: load saved date (old missions fall back to createdAt date)
@@ -8227,40 +8231,55 @@ refreshResultsView() {
         closeStemMissionModal() {
             document.getElementById('stemMissionModal').classList.remove('show');
         },
+        // ☁️ Cloudinary-ku upload pannu (server illa — unsigned preset use)
+        async uploadToCloudinary(file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            fd.append('folder', 'manasu-missions');
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                method: 'POST',
+                body: fd
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error && err.error.message ? err.error.message : 'Cloudinary upload failed');
+            }
+            return await res.json();
+        },
+
         handleMissionFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
-            // Firestore doc hard limit is 1MB; base64 inflates ~4/3, so cap each file at 400KB
-            if (file.size > 400 * 1024) {
-                this.showToast('File too large! Max 400KB allowed - please upload to Google Drive and paste the link instead.', 'error');
+            // ☁️ Cloudinary free plan: max 10MB per file
+            if (file.size > CLOUDINARY_MAX_SIZE) {
+                this.showToast('File too large! Max 10MB allowed for direct upload.', 'error');
                 input.value = '';
                 return;
             }
             if (!this._missionFiles) this._missionFiles = [];
-            // ✅ Total size guard — ellaa files-um serndhu ~1MB database limit-la irukanum
-            const usedBytes = this._missionFiles.reduce((s, f) => s + (f.size || 0), 0);
-            if (usedBytes + file.size > 950 * 1024) {
-                this.showToast('Total attachment size too large for database (max ~950KB across all files). Remove a file or use the File URL option instead.', 'error');
-                input.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64 = e.target.result.split(',')[1];
-                const mimeType = e.target.result.split(';')[0].split(':')[1];
-                this._missionFiles.push({ name: file.name, mimeType, data: base64, size: file.size });
+            const t = document.getElementById('missionFileTitle');
+            if (t) t.textContent = '☁️ Uploading to Cloudinary...';
+            const zone = document.getElementById('missionFileDropZone');
+            if (zone) zone.style.pointerEvents = 'none';
+            this.uploadToCloudinary(file).then((result) => {
+                this._missionFiles.push({
+                    name: file.name,
+                    mimeType: file.type || 'application/octet-stream',
+                    size: file.size,
+                    url: result.secure_url,
+                    publicId: result.public_id
+                });
                 document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
-                // Legacy single-file fields = first file (backward compat with old docs)
-                document.getElementById('stemMissionFileData').value = this._missionFiles[0].data;
-                document.getElementById('stemMissionFileName').value = this._missionFiles[0].name;
-                document.getElementById('stemMissionMimeType').value = this._missionFiles[0].mimeType;
                 this.renderMissionFilesList();
-                const t = document.getElementById('missionFileTitle');
-                if (t) t.textContent = '\u2713 ' + file.name;
-                this.showToast(this.t('toast_file_ready'), 'success');
+                if (t) t.textContent = '✓ ' + file.name;
+                this.showToast('File uploaded to Cloudinary!', 'success');
                 input.value = '';
-            };
-            reader.readAsDataURL(file);
+            }).catch((err) => {
+                this.showToast('Upload failed: ' + (err && err.message ? err.message : 'Check Cloudinary settings'), 'error');
+            }).finally(() => {
+                if (zone) zone.style.pointerEvents = '';
+            });
         },
 
         // ✅ Multi-file list renderer — count + delete (website theme-la)
@@ -8316,7 +8335,7 @@ refreshResultsView() {
                 if (t) t.textContent = 'Choose a file or drag & drop';
             }
             this.renderMissionFilesList();
-            this.showToast(((removed && removed.name) ? removed.name : 'File') + ' removed', 'info');
+            this.showToast(((removed && removed.name) ? removed.name : 'File') + ' removed from mission (cloud copy stays in Cloudinary storage)', 'info');
         },
         async saveStemMission(e) {
             e.preventDefault();
