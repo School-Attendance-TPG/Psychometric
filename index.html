@@ -2258,6 +2258,66 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             font-size: 0.75rem;
             color: var(--text-muted);
         }
+
+        /* ── Attached files list ── */
+        .mission-files-count {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: var(--healing-teal);
+            color: #ffffff;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .mission-file-chip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--healing-teal);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            animation: fadeInUp 0.3s ease;
+            box-shadow: var(--shadow-soft);
+        }
+        .mission-file-ic {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(13,148,136,0.1);
+            color: var(--healing-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .mission-file-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .mission-file-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mission-file-size { font-size: 0.7rem; color: var(--text-muted); }
+        .mission-file-del {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: rgba(239,68,68,0.1);
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .mission-file-del:hover { background: var(--danger); color: #ffffff; transform: scale(1.12); }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -3112,6 +3172,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 <input type="hidden" id="stemMissionFileData">
                 <input type="hidden" id="stemMissionFileName">
                 <input type="hidden" id="stemMissionMimeType">
+                <input type="hidden" id="stemMissionFilesJson">
                 <div class="form-grid">
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_mission_title">Mission Title *</label>
@@ -3146,6 +3207,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                                 <span class="file-upload-hint"><i class="fas fa-paperclip"></i> PDF, DOC, PPT, ZIP, JPG, PNG &bull; Max 400KB</span>
                             </span>
                         </label>
+                        <div id="missionFilesList" style="margin-top:12px;"></div>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
@@ -8077,6 +8139,8 @@ refreshResultsView() {
                 const date = this.formatDate(mission.date || mission.createdAt);
                 const whatsappText = `Hi Counselor, I am ${student.name} from Class ${student.class} (MyKid: ${student.icNumber}). I have completed the STEM Mission: "${mission.title}". Please find my attached work. Thank you!`;
                 const waLink = `https://wa.me/601125841706?text=${encodeURIComponent(whatsappText)}`;
+                const missionFiles = (mission.files && mission.files.length) ? mission.files
+                    : (mission.fileData ? [{ name: mission.fileName || 'mission-file', mimeType: mission.mimeType || 'application/octet-stream', data: mission.fileData }] : []);
                 const fileLink = mission.fileData ? 
                     `data:${mission.mimeType || 'application/octet-stream'};base64,${mission.fileData}` : 
                     (mission.fileUrl || '#');
@@ -8100,9 +8164,14 @@ refreshResultsView() {
                                 </div>
                             </div>
                             <div style="display:flex; flex-direction:column; gap:10px; min-width:180px;">
-                                <a href="${fileLink}" target="_blank" ${mission.fileData ? `download="${mission.fileName || 'mission-file'}"` : ''} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
-                                    <i class="fas fa-download"></i> ${t.stem_download || 'Download File'}
-                                </a>
+                                ${missionFiles.map((f) => `
+                                <a href="data:${f.mimeType || 'application/octet-stream'};base64,${f.data}" download="${f.name || 'mission-file'}" class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
+                                    <i class="fas fa-download"></i> ${f.name || (t.stem_download || 'Download File')}
+                                </a>`).join('')}
+                                ${(!mission.fileData && mission.fileUrl) ? `
+                                <a href="${fileLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
+                                    <i class="fas fa-external-link-alt"></i> ${t.stem_download || 'Open Link'}
+                                </a>` : ''}
                                 <a href="${waLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #25d366, #128c7e); color:white; text-decoration:none; width:100%;">
                                     <i class="fab fa-whatsapp"></i> ${t.stem_submit_whatsapp || 'Submit via WhatsApp'}
                                 </a>
@@ -8127,6 +8196,11 @@ refreshResultsView() {
             document.getElementById('stemMissionFileData').value = '';
             document.getElementById('stemMissionFileName').value = '';
             document.getElementById('stemMissionMimeType').value = '';
+            document.getElementById('stemMissionFilesJson').value = '';
+            this._missionFiles = [];
+            this.renderMissionFilesList();
+            const zoneTitle = document.getElementById('missionFileTitle');
+            if (zoneTitle) zoneTitle.textContent = 'Choose a file or drag & drop';
             // ✅ Default mission date = today (fully editable)
             document.getElementById('stemMissionDate').value = new Date().toISOString().split('T')[0];
             
@@ -8139,6 +8213,11 @@ refreshResultsView() {
                     document.getElementById('stemMissionDesc').value = m.description;
                     document.getElementById('stemMissionInstructions').value = m.instructions || '';
                     document.getElementById('stemMissionFileUrl').value = m.fileUrl || '';
+                    // ✅ FILES: load multi-file list (or legacy single file)
+                    this._missionFiles = (m.files && Array.isArray(m.files)) ? [...m.files]
+                        : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, size: 0 }] : []);
+                    document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
+                    this.renderMissionFilesList();
                     // ✅ EDITABLE DATE: load saved date (old missions fall back to createdAt date)
                     document.getElementById('stemMissionDate').value = m.date || (m.createdAt ? m.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]);
                 }
@@ -8151,9 +8230,17 @@ refreshResultsView() {
         handleMissionFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
-            // Firestore doc hard limit is 1MB; base64 inflates ~4/3, so cap at 400KB to stay safe
+            // Firestore doc hard limit is 1MB; base64 inflates ~4/3, so cap each file at 400KB
             if (file.size > 400 * 1024) {
                 this.showToast('File too large! Max 400KB allowed - please upload to Google Drive and paste the link instead.', 'error');
+                input.value = '';
+                return;
+            }
+            if (!this._missionFiles) this._missionFiles = [];
+            // ✅ Total size guard — ellaa files-um serndhu ~1MB database limit-la irukanum
+            const usedBytes = this._missionFiles.reduce((s, f) => s + (f.size || 0), 0);
+            if (usedBytes + file.size > 950 * 1024) {
+                this.showToast('Total attachment size too large for database (max ~950KB across all files). Remove a file or use the File URL option instead.', 'error');
                 input.value = '';
                 return;
             }
@@ -8161,12 +8248,75 @@ refreshResultsView() {
             reader.onload = (e) => {
                 const base64 = e.target.result.split(',')[1];
                 const mimeType = e.target.result.split(';')[0].split(':')[1];
-                document.getElementById('stemMissionFileData').value = base64;
-                document.getElementById('stemMissionFileName').value = file.name;
-                document.getElementById('stemMissionMimeType').value = mimeType;
+                this._missionFiles.push({ name: file.name, mimeType, data: base64, size: file.size });
+                document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
+                // Legacy single-file fields = first file (backward compat with old docs)
+                document.getElementById('stemMissionFileData').value = this._missionFiles[0].data;
+                document.getElementById('stemMissionFileName').value = this._missionFiles[0].name;
+                document.getElementById('stemMissionMimeType').value = this._missionFiles[0].mimeType;
+                this.renderMissionFilesList();
+                const t = document.getElementById('missionFileTitle');
+                if (t) t.textContent = '\u2713 ' + file.name;
                 this.showToast(this.t('toast_file_ready'), 'success');
+                input.value = '';
             };
             reader.readAsDataURL(file);
+        },
+
+        // ✅ Multi-file list renderer — count + delete (website theme-la)
+        renderMissionFilesList() {
+            const box = document.getElementById('missionFilesList');
+            if (!box) return;
+            const files = this._missionFiles || [];
+            if (files.length === 0) { box.innerHTML = ''; return; }
+            const fmt = (b) => b > 0 ? (b >= 1024 * 1024 ? (b / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB') : '';
+            const iconFor = (name, mime) => {
+                const n = (name || '').toLowerCase();
+                if (mime && mime.startsWith('image/')) return 'fa-image';
+                if (n.endsWith('.pdf')) return 'fa-file-pdf';
+                if (/\.(doc|docx)$/.test(n)) return 'fa-file-word';
+                if (/\.(ppt|pptx)$/.test(n)) return 'fa-file-powerpoint';
+                if (n.endsWith('.zip')) return 'fa-file-archive';
+                return 'fa-file';
+            };
+            box.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-size:0.8rem; font-weight:700; color:var(--healing-teal); letter-spacing:0.5px;">
+                        <i class="fas fa-paperclip"></i> Attached Files
+                    </span>
+                    <span class="mission-files-count">${files.length} file${files.length > 1 ? 's' : ''}</span>
+                </div>
+                ${files.map((f, i) => `
+                <div class="mission-file-chip">
+                    <span class="mission-file-ic"><i class="fas ${iconFor(f.name, f.mimeType)}"></i></span>
+                    <span class="mission-file-info">
+                        <span class="mission-file-name" title="${this.sanitizeHTML(f.name || 'file')}">${this.sanitizeHTML(f.name || 'file')}</span>
+                        ${f.size ? `<span class="mission-file-size">${fmt(f.size)}</span>` : ''}
+                    </span>
+                    <button type="button" class="mission-file-del" onclick="app.removeMissionFile(${i})" title="Remove file">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>`).join('')}`;
+        },
+
+        // ✅ File remove — list + hidden JSON + legacy fields update
+        removeMissionFile(i) {
+            if (!this._missionFiles) return;
+            const removed = this._missionFiles.splice(i, 1)[0];
+            document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
+            if (this._missionFiles.length > 0) {
+                document.getElementById('stemMissionFileData').value = this._missionFiles[0].data;
+                document.getElementById('stemMissionFileName').value = this._missionFiles[0].name;
+                document.getElementById('stemMissionMimeType').value = this._missionFiles[0].mimeType;
+            } else {
+                document.getElementById('stemMissionFileData').value = '';
+                document.getElementById('stemMissionFileName').value = '';
+                document.getElementById('stemMissionMimeType').value = '';
+                const t = document.getElementById('missionFileTitle');
+                if (t) t.textContent = 'Choose a file or drag & drop';
+            }
+            this.renderMissionFilesList();
+            this.showToast(((removed && removed.name) ? removed.name : 'File') + ' removed', 'info');
         },
         async saveStemMission(e) {
             e.preventDefault();
@@ -8184,6 +8334,7 @@ refreshResultsView() {
                 fileData: document.getElementById('stemMissionFileData').value || null,
                 fileName: document.getElementById('stemMissionFileName').value || null,
                 mimeType: document.getElementById('stemMissionMimeType').value || null,
+                files: JSON.parse(document.getElementById('stemMissionFilesJson').value || '[]'),
                 // ✅ EDITABLE DATE — counselor-selected date is saved
                 date: document.getElementById('stemMissionDate').value || new Date().toISOString().split('T')[0],
                 status: 'active',
@@ -8198,6 +8349,10 @@ refreshResultsView() {
                         data.fileData = this.stemMissions[idx].fileData;
                         data.fileName = this.stemMissions[idx].fileName;
                         data.mimeType = this.stemMissions[idx].mimeType;
+                    }
+                    // ✅ If no files in form but existing mission has files, retain them
+                    if ((!data.files || data.files.length === 0) && this.stemMissions[idx].files) {
+                        data.files = this.stemMissions[idx].files;
                     }
                     data.id = id;
                     this.stemMissions[idx] = { ...this.stemMissions[idx], ...data };
