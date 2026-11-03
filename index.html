@@ -7940,6 +7940,24 @@ refreshResultsView() {
         downloadMissionFile(missionId) {
             const mission = this.stemMissions.find(m => m.id === missionId);
             if (!mission) return;
+            // ✅ Cloudinary multi-files first (URL-based, instant download)
+            const cFiles = (mission.files && Array.isArray(mission.files) && mission.files.length)
+                ? mission.files.filter(f => f && (f.url || f.data)) : [];
+            if (cFiles.length === 1) {
+                const f = cFiles[0];
+                if (f.url) window.open(f.url, '_blank');
+                else this._downloadBase64File(f);
+                this.showToast('Download started!', 'success');
+                return;
+            }
+            if (cFiles.length > 1) {
+                cFiles.forEach((f, i) => setTimeout(() => {
+                    if (f.url) window.open(f.url, '_blank');
+                    else this._downloadBase64File(f);
+                }, i * 500));
+                this.showToast(cFiles.length + ' files opening...', 'success');
+                return;
+            }
             if (mission.fileData) {
                 const a = document.createElement('a');
                 a.href = `data:${mission.mimeType || 'application/octet-stream'};base64,${mission.fileData}`;
@@ -7953,6 +7971,16 @@ refreshResultsView() {
             } else {
                 document.getElementById('stemNoFileModal').classList.add('show');
             }
+        },
+
+        // Legacy base64 file download helper
+        _downloadBase64File(f) {
+            const a = document.createElement('a');
+            a.href = `data:${f.mimeType || 'application/octet-stream'};base64,${f.data}`;
+            a.download = f.name || 'mission-file';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         },
 
         submitMissionWhatsApp(missionId) {
