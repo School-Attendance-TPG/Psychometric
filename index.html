@@ -8881,8 +8881,40 @@ refreshResultsView() {
             return uid;
         } catch (e) {
             if (e.code === 'auth/email-already-in-use') {
-                console.warn('[VAULT] Auth exists for', student.icNumber, '— to reset PIN: Firebase Console → Authentication → delete that user, then save student again with new PIN.');
-                this.showToast('PIN reset: delete the parent user in Firebase Console → Auth, then save again.', 'error');
+                // ☁️ AUTO-MODE: Cloud Function-la irundhu old parent user-ah delete pannii auto-retry
+                let autoDone = false;
+                try {
+                    const delFn = window.fb.httpsCallable(window.firebaseFunctions, 'deleteParentUser');
+                    const res = await delFn({ email: Vault.emailFor(student.icNumber) });
+                    if (res.data && (res.data.deleted || res.data.deleted === null)) {
+                        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                        const { getAuth, createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                        const secApp2 = initializeApp(window.firebaseApp.options, 'vaultSec');
+                        const secAuth2 = getAuth(secApp2);
+                        const email2 = Vault.emailFor(student.icNumber);
+                        const cred2 = await createUserWithEmailAndPassword(secAuth2, email2, Vault.passFor(pin));
+                        const uid2 = cred2.user.uid;
+                        const { doc, setDoc, getDoc } = window.fb;
+                        const cleanIc2 = Vault.clean(student.icNumber);
+                        const privSnap2 = await getDoc(doc(this.db, 'studentsPrivate', cleanIc2));
+                        const prev2 = privSnap2.exists() ? privSnap2.data() : {};
+                        await setDoc(doc(this.db, 'studentsPrivate', cleanIc2), { ...prev2, uid: uid2, updatedAt: new Date().toISOString() });
+                        if (existingUid && existingUid !== uid2) {
+                            await app.VaultMigrateData(existingUid, uid2);
+                        } else if (!existingUid) {
+                            await app.VaultMigrateLegacy(student, uid2);
+                        }
+                        autoDone = true;
+                        this.showToast('Old parent user auto-deleted & new PIN set ✓', 'success');
+                        return uid2;
+                    }
+                } catch (fnErr) {
+                    console.warn('[VAULT] auto-delete unavailable (deploy deleteParentUser function?):', fnErr && fnErr.code ? fnErr.code : fnErr);
+                }
+                if (!autoDone) {
+                    console.warn('[VAULT] Auth exists for', student.icNumber, '— to reset PIN: Firebase Console → Authentication → delete that user, then save student again with new PIN.');
+                    this.showToast('PIN reset: delete the parent user in Firebase Console → Auth, then save again.', 'error');
+                }
             } else {
                 console.error('[VAULT] auth ensure failed', e);
             }
