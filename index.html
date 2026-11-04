@@ -7945,17 +7945,17 @@ refreshResultsView() {
                 ? mission.files.filter(f => f && (f.url || f.data)) : [];
             if (cFiles.length === 1) {
                 const f = cFiles[0];
-                if (f.url) window.open(f.url, '_blank');
+                if (f.url) this._forceDownload(f.url, f.name);
                 else this._downloadBase64File(f);
                 this.showToast('Download started!', 'success');
                 return;
             }
             if (cFiles.length > 1) {
                 cFiles.forEach((f, i) => setTimeout(() => {
-                    if (f.url) window.open(f.url, '_blank');
+                    if (f.url) this._forceDownload(f.url, f.name);
                     else this._downloadBase64File(f);
                 }, i * 500));
-                this.showToast(cFiles.length + ' files opening...', 'success');
+                this.showToast(cFiles.length + ' files downloading...', 'success');
                 return;
             }
             if (mission.fileData) {
@@ -7972,6 +7972,26 @@ refreshResultsView() {
                 // 🔍 Debug — console-la mission data kaatum
                 console.warn('[STEM] No file found for mission:', mission.id, '| files field:', JSON.stringify(mission.files || null), '| fileData:', mission.fileData ? 'exists' : 'null', '| fileUrl:', mission.fileUrl || 'null');
                 document.getElementById('stemNoFileModal').classList.add('show');
+            }
+        },
+
+        // ☁️ Cloudinary URL → force download (browser-la open aagama, save dialog varum)
+        async _forceDownload(url, filename) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('fetch failed');
+                const blob = await res.blob();
+                const objUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objUrl;
+                a.download = filename || 'mission-file';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
+            } catch (e) {
+                // Fallback — direct open
+                window.open(url, '_blank');
             }
         },
 
@@ -8199,7 +8219,7 @@ refreshResultsView() {
                             </div>
                             <div style="display:flex; flex-direction:column; gap:10px; min-width:180px;">
                                 ${missionFiles.map((f) => `
-                                <a href="${f.url ? f.url : `data:${f.mimeType || 'application/octet-stream'};base64,${f.data}`}" ${f.url ? 'target="_blank"' : `download="${f.name || 'mission-file'}"`} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
+                                <a href="${f.url ? f.url : `data:${f.mimeType || 'application/octet-stream'};base64,${f.data}`}" ${f.url ? `onclick="event.preventDefault(); app._forceDownload('${f.url}', '${String(f.name || 'mission-file').replace(/'/g, '')}')"` : `download="${f.name || 'mission-file'}"`} class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; text-decoration:none; width:100%;">
                                     <i class="fas fa-download"></i> ${f.name || (t.stem_download || 'Download File')}
                                 </a>`).join('')}
                                 ${(!mission.fileData && mission.fileUrl) ? `
