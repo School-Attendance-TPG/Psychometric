@@ -4949,6 +4949,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         const subSnap = await getDocs(collection(this.db, 'students', student.id, 'assessments'));
                         subSnap.forEach(d => {
                             const a = {...d.data(), id: d.id};
+                            if (a.studentId) a.studentId = normId(a.studentId);
                             if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
                             assessments.push(a);
                         });
@@ -4964,6 +4965,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             const assSnap = await getDocs(assQuery);
                             assSnap.forEach(d => {
                                 const a = {...d.data(), id: d.id};
+                                if (a.studentId) a.studentId = normId(a.studentId);
                                 if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
                                 assessments.push(a);
                             });
@@ -7742,6 +7744,7 @@ refreshResultsView() {
                     this.saveStudents();
                 }
                 if (fbAssessments.length > 0) {
+                    fbAssessments.forEach(a => { if (a.studentId) a.studentId = normId(a.studentId); });
                     this.assessments = fbAssessments;
                     this.saveAssessments();
                 }
@@ -8719,6 +8722,9 @@ refreshResultsView() {
         }
     };
 
+    // 🔗 ID normalizer — dashes/spaces/case mismatch fix (studentId linking)
+    const normId = (v) => (v || '').toString().replace(/[-\s]/g, '').toUpperCase();
+
     // ── FAST vault loader: cached + parallel + class-scoped ──
     app.VaultEnsureAssessments = async function(force = false) {
         if (!this.firebaseReady || !this.db) return 0;
@@ -8775,7 +8781,9 @@ refreshResultsView() {
                     if (!snap) return;
                     snap.forEach(d => {
                         if (!existing.has(d.id)) {
-                            this.assessments.push({ ...d.data(), id: d.id });
+                            const ad = { ...d.data(), id: d.id };
+                            if (ad.studentId) ad.studentId = normId(ad.studentId);
+                            this.assessments.push(ad);
                             existing.add(d.id); added++;
                         }
                     });
