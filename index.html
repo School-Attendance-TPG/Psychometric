@@ -4916,7 +4916,12 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
                             assessments.push(a);
                         });
-                    } catch (e) { }
+                    } catch (e) {
+                        // 🔍 Diagnostic — silent-ah fail aaga koodathu
+                        if (e && e.code === 'permission-denied') {
+                            this.showToast('⚠️ RULES BLOCK! Firebase Console → Firestore → Rules-la "students/{myKid}" keela "match /assessments" rule illa. Update pannunga!', 'error');
+                        }
+                    }
                     if (assessments.length === 0) {
                         try {
                             const assQuery = query(collection(this.db, 'assessments'), where('studentId', '==', student.id));
@@ -4926,7 +4931,11 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                                 if (!this.assessments.find(ex => ex.id === a.id)) this.assessments.push(a);
                                 assessments.push(a);
                             });
-                        } catch (e) { }
+                        } catch (e) {
+                            if (e && e.code === 'permission-denied') {
+                                this.showToast('⚠️ Top-level assessments um block aagudhu. Rules update thaan fix!', 'error');
+                            }
+                        }
                     }
                     assessments.sort((a,b) => b.date.localeCompare(a.date));
                 }
@@ -7798,7 +7807,12 @@ refreshResultsView() {
                     count++;
                 }
                 if (count > 0) console.log('[MANASU Lab] assessments backfill done:', count);
-            } catch (e) { console.error('assessments backfill failed:', e); }
+            } catch (e) {
+                console.error('assessments backfill failed:', e);
+                if (e && e.code === 'permission-denied') {
+                    this.showToast('⚠️ BACKFILL BLOCKED! Rules-la students/{myKid}/assessments write rule illa — parent portal work aagaathu. Rules update pannunga!', 'error');
+                }
+            }
         },
 
         async deleteStudentFromFirebase(id) {
