@@ -4555,11 +4555,47 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             this.syncFromFirebase().catch(err => {
                 console.warn('Post-login sync failed');
             });
+            // 🔍 Auto connection self-test — failures-a alert pannum (once per session)
+            if (this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'teacher') && !this._selfTestDone) {
+                this._selfTestDone = true;
+                setTimeout(() => this.runConnectionTest(), 1500);
+            }
         } else {
             this.currentUser = null;
         }
     });
 },
+
+        // 🔍 Connection self-test — exact Firebase error codes report pannum
+        async runConnectionTest() {
+            if (!this.firebaseReady || !this.db) return;
+            const out = [];
+            out.push('Account: ' + (this.currentUser ? this.currentUser.email + ' (' + this.currentUser.role + ')' : 'none'));
+            const tryRead = async (label, path) => {
+                try {
+                    const snap = await window.fb.getDocs(window.fb.collection(this.db, path));
+                    out.push(label + ': OK (' + snap.size + ' docs)');
+                } catch (e) {
+                    out.push(label + ': FAILED [' + (e && e.code ? e.code : e) + ']');
+                }
+            };
+            await tryRead('students', 'students');
+            await tryRead('assessments', 'assessments');
+            await tryRead('studentData', 'studentData');
+            await tryRead('stemMissions', 'stemMissions');
+            try {
+                const u = await window.fb.getDoc(window.fb.doc(this.db, 'users', this.currentUser.uid));
+                out.push('users/{my uid}: ' + (u.exists() ? 'OK (role=' + (u.data().role || 'NONE') + ')' : 'DOC MISSING!'));
+            } catch (e) {
+                out.push('users/{my uid}: FAILED [' + (e && e.code ? e.code : e) + ']');
+            }
+            const failed = out.filter(l => l.includes('FAILED') || l.includes('MISSING'));
+            if (failed.length > 0) {
+                alert('\U0001F50D MANASU Connection Test\n\n' + out.join('\n') + '\n\nFAILED items-ah Firebase Rules-la check pannunga!');
+            } else {
+                console.log('[SELFTEST] all reads OK:', out.join(' | '));
+            }
+        },
 
         // ═══════════════════════════════════════════════════════════════
         // PWA INSTALL PROMPT
