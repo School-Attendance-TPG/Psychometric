@@ -8622,14 +8622,21 @@ refreshResultsView() {
     // ── Dashboard sync: supplement from vault (top-level mirror lacks pre-vault assessments) ──
     const __origSync = app.syncFromFirebase.bind(app);
     app.syncFromFirebase = async function() {
-        await __origSync();
+        try { await __origSync(); } catch (e) {
+            console.error('[SYNC] base sync failed:', e && e.code ? e.code : e);
+        }
         if (!this.firebaseReady || !this.db) return;
         const role = this.currentUser ? this.currentUser.role : null;
         if (role !== 'admin' && role !== 'teacher') return;
         // ✅ Slow sequential loop REMOVED — fast cached loader use pannu
-        const added = await this.VaultEnsureAssessments(true);
+        try { await this.VaultEnsureAssessments(true); } catch (e) {
+            console.warn('[SYNC] vault load failed:', e && e.code ? e.code : e);
+        }
         // ✅ Auto-heal: top-level mirror → students/{id}/assessments (parent read path)
-        if (role === 'admin') this.backfillAssessments();
+        if (role === 'admin') {
+            try { this.backfillAssessments().catch(e => console.warn('[BACKFILL] failed:', e && e.code ? e.code : e)); }
+            catch (e) { console.warn('[BACKFILL] failed:', e && e.code ? e.code : e); }
+        }
         if (added > 0) {
             console.log('[VAULT] synced from vault:', added, 'assessments (' + role + ')');
             this.renderAssessmentsTable();
