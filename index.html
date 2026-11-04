@@ -7969,6 +7969,8 @@ refreshResultsView() {
             } else if (mission.fileUrl) {
                 window.open(mission.fileUrl, '_blank');
             } else {
+                // 🔍 Debug — console-la mission data kaatum
+                console.warn('[STEM] No file found for mission:', mission.id, '| files field:', JSON.stringify(mission.files || null), '| fileData:', mission.fileData ? 'exists' : 'null', '| fileUrl:', mission.fileUrl || 'null');
                 document.getElementById('stemNoFileModal').classList.add('show');
             }
         },
@@ -8626,6 +8628,8 @@ refreshResultsView() {
         if (role !== 'admin' && role !== 'teacher') return;
         // ✅ Slow sequential loop REMOVED — fast cached loader use pannu
         const added = await this.VaultEnsureAssessments(true);
+        // ✅ Auto-heal: top-level mirror → students/{id}/assessments (parent read path)
+        if (role === 'admin') this.backfillAssessments();
         if (added > 0) {
             console.log('[VAULT] synced from vault:', added, 'assessments (' + role + ')');
             this.renderAssessmentsTable();
