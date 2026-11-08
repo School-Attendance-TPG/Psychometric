@@ -2337,6 +2337,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -3197,10 +3198,9 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;" data-i18n="form_file_url_hint"><i class="fas fa-info-circle"></i> Paste a direct download link. OR upload a small file below.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label data-i18n="form_upload_file">Upload File Directly (Small files only, &lt; 400KB)</label>
+                        <label data-i18n="form_upload_file">Upload Files (Select multiple at once, max 10MB each)</label>
                         <label class="file-upload-zone" id="missionFileDropZone">
-                            <input type="file" id="stemMissionFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.png" hidden
-                                   onchange="app.handleMissionFileUpload(this); var f=this.files[0]; var t=document.getElementById('missionFileTitle'); if(t) t.textContent = f ? ('✓ ' + f.name) : 'Choose a file or drag &amp; drop';">
+                            <input type="file" id="stemMissionFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.png" multiple hidden onchange="app.handleMissionFileUpload(this);">
                             <span class="file-upload-inner">
                                 <span class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
                                 <span class="file-upload-title" id="missionFileTitle">Choose a file or drag &amp; drop</span>
@@ -3642,7 +3642,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'Instructions for Students',
                 form_file_url: 'File URL (Google Drive, Dropbox, etc.)',
                 form_file_url_hint: 'Paste a direct download link. OR upload a small file below.',
-                form_upload_file: 'Upload File Directly (Small files only, < 400KB)',
+                form_upload_file: 'Upload Files (Select multiple at once, max 10MB each)',
                 btn_publish_mission: 'Publish Mission',
                 toast_student_added: 'Student added!',
                 toast_student_updated: 'Student updated!',
@@ -3896,7 +3896,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'மாணவர்களுக்கான வழிமுறைகள்',
                 form_file_url: 'கோப்பு URL (Google Drive, Dropbox, முதலியன)',
                 form_file_url_hint: 'நேரடி பதிவிறக்க இணைப்பை ஒட்டவும். அல்லது கீழே ஒரு சிறிய கோப்பை பதிவேற்றம் செய்யவும்.',
-                form_upload_file: 'கோப்பை நேரடியாக பதிவேற்றம் செய்யவும் (சிறிய கோப்புகள் மட்டும், < 400KB)',
+                form_upload_file: 'கோப்புகளை பதிவேற்றவும் (ஒரே நேரத்தில் பல கோப்புகள் தேர்ந்தெடுக்கலாம்)',
                 btn_publish_mission: 'பணியை வெளியிடவும்',
                 toast_student_added: 'மாணவர் சேர்க்கப்பட்டார்!',
                 toast_student_updated: 'மாணவர் புதுப்பிக்கப்பட்டார்!',
@@ -4150,7 +4150,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 form_mission_instructions: 'Arahan untuk Pelajar',
                 form_file_url: 'URL Fail (Google Drive, Dropbox, dll)',
                 form_file_url_hint: 'Tampal pautan muat turun terus. ATAU muat naik fail kecil di bawah.',
-                form_upload_file: 'Muat Naik Fail Terus (Fail kecil sahaja, < 400KB)',
+                form_upload_file: 'Muat Naik Fail (Pilih berbilang fail sekaligus, maks 10MB setiap satu)',
                 btn_publish_mission: 'Terbitkan Misi',
                 toast_student_added: 'Pelajar ditambah!',
                 toast_student_updated: 'Pelajar dikemas kini!',
@@ -7930,8 +7930,28 @@ refreshResultsView() {
             const student = this.currentStemStudent;
             const activeMissions = this.stemMissions.filter(m => m.status === 'active');
 
-            let html = `
-                <div class="results-header">
+            const filesLabel = { en: 'Attached Files', ta: 'இணைக்கப்பட்ட கோப்புகள்', ms: 'Fail Dilampirkan' }[this.currentLang] || 'Attached Files';
+            const allLabel = { en: 'All', ta: 'அனைத்தும்', ms: 'Semua' }[this.currentLang] || 'All';
+
+            const getMissionFiles = (mission) => {
+                if (mission.files && Array.isArray(mission.files) && mission.files.length > 0) return mission.files;
+                if (mission.fileData) return [{ name: mission.fileName || 'mission-file', data: mission.fileData, mimeType: mission.mimeType || '' }];
+                return [];
+            };
+            const fileIcon = (name, mime) => {
+                const n = (name || '').toLowerCase();
+                if ((mime || '').startsWith('image/')) return 'fa-image';
+                if (n.endsWith('.pdf')) return 'fa-file-pdf';
+                if (/\.(doc|docx)$/.test(n)) return 'fa-file-word';
+                if (/\.(ppt|pptx)$/.test(n)) return 'fa-file-powerpoint';
+                if (n.endsWith('.zip')) return 'fa-file-archive';
+                return 'fa-file';
+            };
+
+            // ✅ Outer wrapper — gap vachu card-ku card-ku perfect spacing
+            let h = `
+            <div style="display:flex; flex-direction:column; gap:22px;">
+                <div class="results-header" style="margin-bottom:0;">
                     <div class="child-profile">
                         <div class="child-avatar" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6);"><i class="fas fa-user-astronaut"></i></div>
                         <div class="child-info">
@@ -7943,14 +7963,14 @@ refreshResultsView() {
                         <button class="btn btn-sm btn-outline" onclick="app.goBackFromStemView()"><i class="fas fa-arrow-left"></i> ${this.t('stem_back')}</button>
                     </div>
                 </div>
-                <div class="glass-card result-card-full" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.06)); border:1px solid rgba(139,92,246,0.18);">
+                <div class="glass-card result-card-full" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(37,99,235,0.06)); border:1px solid rgba(139,92,246,0.18); margin:0;">
                     <h4 style="display:flex; align-items:center; gap:10px; color:#7c3aed; margin:0;"><i class="fas fa-rocket"></i> ${this.t('stem_active_missions')} <span style="background:#7c3aed; color:white; font-size:0.75rem; padding:2px 12px; border-radius:50px;">${activeMissions.length}</span></h4>
                 </div>
             `;
 
             if (activeMissions.length === 0) {
-                html += `
-                    <div class="glass-card result-card-full" style="text-align:center; padding:50px 20px;">
+                h += `
+                    <div class="glass-card result-card-full" style="text-align:center; padding:50px 20px; margin:0;">
                         <i class="fas fa-rocket" style="font-size:3rem; opacity:0.25; margin-bottom:16px; color:#8b5cf6;"></i>
                         <h4 style="color:var(--text-secondary); margin-bottom:8px;">${this.t('stem_no_missions')}</h4>
                         <p style="color:var(--text-muted); font-size:0.85rem;">${this.t('stem_check_back')}</p>
@@ -7958,9 +7978,21 @@ refreshResultsView() {
                 `;
             } else {
                 activeMissions.forEach((mission, idx) => {
-                    const fileChip = mission.fileName ? `<span style="font-size:0.75rem; background:rgba(0,0,0,0.04); padding:4px 12px; border-radius:50px; color:var(--text-secondary);"><i class="fas fa-paperclip" style="margin-right:4px;"></i>${this.sanitizeHTML(mission.fileName)}</span>` : '';
-                    html += `
-                    <div class="glass-card result-card-full" style="border-left:4px solid #8b5cf6; animation:fadeInUp 0.5s ease ${idx * 0.12}s both;">
+                    const files = getMissionFiles(mission);
+                    const filesHtml = files.length ? `
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:0.75rem; font-weight:700; color:#7c3aed; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;"><i class="fas fa-paperclip" style="margin-right:6px;"></i>${filesLabel} (${files.length})</div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${files.map((f, fi) => `
+                                <div onclick="app.downloadMissionFileAt('${mission.id}', ${fi})" style="display:flex; align-items:center; gap:12px; background:var(--card-bg); border:1px solid rgba(139,92,246,0.18); border-radius:12px; padding:10px 14px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='#8b5cf6';this.style.transform='translateX(3px)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.18)';this.style.transform='none'">
+                                    <span style="width:36px; height:36px; border-radius:10px; background:rgba(139,92,246,0.12); color:#7c3aed; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fas ${fileIcon(f.name, f.mimeType)}"></i></span>
+                                    <span style="flex:1; min-width:0; font-size:0.85rem; font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this.sanitizeHTML(f.name || ('File ' + (fi + 1)))}</span>
+                                    <i class="fas fa-download" style="color:#7c3aed; font-size:0.85rem; flex-shrink:0;"></i>
+                                </div>`).join('')}
+                            </div>
+                        </div>` : '';
+                    h += `
+                    <div class="glass-card result-card-full" style="border-left:4px solid #8b5cf6; margin:0; animation:fadeInUp 0.5s ease ${idx * 0.12}s both;">
                         <div style="display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;">
                             <div style="width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg, #8b5cf6, #3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:1.4rem; flex-shrink:0; box-shadow:0 8px 20px rgba(139,92,246,0.25);"><i class="fas fa-rocket"></i></div>
                             <div style="flex:1; min-width:260px;">
@@ -7975,10 +8007,10 @@ refreshResultsView() {
                                     <div style="font-size:0.78rem; font-weight:700; color:#7c3aed; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;"><i class="fas fa-list-ol" style="margin-right:6px;"></i>${this.t('stem_instructions')}</div>
                                     <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.7; white-space:pre-line;">${this.sanitizeHTML(mission.instructions)}</div>
                                 </div>` : ''}
+                                ${filesHtml}
                                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                                    <button class="btn btn-sm" onclick="app.downloadMissionFile('${mission.id}')" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6); color:white;"><i class="fas fa-file-download"></i> ${this.t('stem_download')}</button>
+                                    <button class="btn btn-sm" onclick="app.downloadMissionFile('${mission.id}')" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6); color:white;"><i class="fas fa-file-download"></i> ${files.length > 1 ? this.t('stem_download') + ' (' + allLabel + ')' : this.t('stem_download')}</button>
                                     <button class="btn btn-sm" onclick="app.submitMissionWhatsApp('${mission.id}')" style="background:#25d366; color:white;"><i class="fab fa-whatsapp"></i> ${this.t('stem_submit_whatsapp')}</button>
-                                    ${fileChip}
                                 </div>
                             </div>
                         </div>
@@ -7986,7 +8018,8 @@ refreshResultsView() {
                     `;
                 });
             }
-            container.innerHTML = html;
+            h += `</div>`;
+            container.innerHTML = h;
         },
 
         // DOWNLOAD click — file illama irundha POPUP kaattum
@@ -8027,6 +8060,13 @@ refreshResultsView() {
                 document.getElementById('stemNoFileModal').classList.add('show');
             }
         },
+            downloadMissionFileAt(missionId, fileIndex) {
+                const mission = this.stemMissions.find(m => m.id === missionId);
+                if (!mission) return;
+                const files = (mission.files && Array.isArray(mission.files) && mission.files.length > 0) ? mission.files : (mission.fileData ? [{ name: mission.fileName || 'mission-file', data: mission.fileData }] : []);
+                const f = files[fileIndex];
+                if (f) this.triggerFileDownload(f);
+            },
 
         // ☁️ Cloudinary URL → force download (browser-la open aagama, save dialog varum)
         async _forceDownload(url, filename) {
@@ -8352,37 +8392,50 @@ refreshResultsView() {
         },
 
         handleMissionFileUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-            // ☁️ Cloudinary free plan: max 10MB per file
-            if (file.size > CLOUDINARY_MAX_SIZE) {
-                this.showToast('File too large! Max 10MB allowed for direct upload.', 'error');
-                input.value = '';
+            const files = Array.from(input.files || []);
+            input.value = '';
+            if (!files.length) return;
+            // Size check — ellaa files-ayum munadiye verify pannu
+            const tooBig = files.find(f => f.size > CLOUDINARY_MAX_SIZE);
+            if (tooBig) {
+                this.showToast('"' + tooBig.name + '" too large! Max 10MB per file.', 'error');
                 return;
             }
             if (!this._missionFiles) this._missionFiles = [];
             const t = document.getElementById('missionFileTitle');
-            if (t) t.textContent = '☁️ Uploading to Cloudinary...';
             const zone = document.getElementById('missionFileDropZone');
             if (zone) zone.style.pointerEvents = 'none';
-            this.uploadToCloudinary(file).then((result) => {
-                this._missionFiles.push({
-                    name: file.name,
-                    mimeType: file.type || 'application/octet-stream',
-                    size: file.size,
-                    url: result.secure_url,
-                    publicId: result.public_id
+            let done = 0, failed = 0;
+            // Sequential upload — order preserved, list-la one-by-one add aagum
+            const uploadNext = (i) => {
+                if (i >= files.length) {
+                    if (t) t.textContent = done > 1 ? ('✓ ' + done + ' files uploaded — you can add more') : (done === 1 ? '✓ ' + files[0].name + ' — add more files if needed' : 'Choose files or drag & drop');
+                    if (zone) zone.style.pointerEvents = '';
+                    if (failed > 0) this.showToast(done + ' uploaded, ' + failed + ' failed. Failed files-a thirumba select pannunga.', 'error');
+                    else if (done > 1) this.showToast(done + ' files uploaded to Cloudinary!', 'success');
+                    return;
+                }
+                const file = files[i];
+                if (t) t.textContent = '☁️ Uploading ' + (i + 1) + ' of ' + files.length + ': ' + file.name;
+                this.uploadToCloudinary(file).then((result) => {
+                    this._missionFiles.push({
+                        name: file.name,
+                        mimeType: file.type || 'application/octet-stream',
+                        size: file.size,
+                        url: result.secure_url,
+                        publicId: result.public_id
+                    });
+                    done++;
+                    document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
+                    this.renderMissionFilesList();
+                    uploadNext(i + 1);
+                }).catch(() => {
+                    failed++;
+                    this.showToast('Upload failed for "' + file.name + '" — next file-kku pogudhu...', 'error');
+                    uploadNext(i + 1);
                 });
-                document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
-                this.renderMissionFilesList();
-                if (t) t.textContent = '✓ ' + file.name;
-                this.showToast('File uploaded to Cloudinary!', 'success');
-                input.value = '';
-            }).catch((err) => {
-                this.showToast('Upload failed: ' + (err && err.message ? err.message : 'Check Cloudinary settings'), 'error');
-            }).finally(() => {
-                if (zone) zone.style.pointerEvents = '';
-            });
+            };
+            uploadNext(0);
         },
 
         // ✅ Multi-file list renderer — count + delete (website theme-la)
