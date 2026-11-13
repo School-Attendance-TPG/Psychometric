@@ -353,21 +353,17 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         .admin-sidebar-header { padding: 0 12px 20px; border-bottom: 1px solid var(--glass-border); margin-bottom: 10px; }
         .admin-sidebar-header h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         .admin-sidebar-header p { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-        .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; color: var(--text-secondary); background: none; border: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s; text-align: left; width: 100%; }
+        .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; color: var(--text-secondary); background: none; border: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-align: left; width: 100%; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .admin-nav-item:hover, .admin-nav-item.active { background: rgba(0,0,0,0.03); color: var(--text-primary); }
         .admin-nav-item.active { background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(13,148,136,0.06)); border: 1px solid rgba(13,148,136,0.15); }
         .admin-nav-item i { width: 24px; text-align: center; }
         .admin-sidebar-footer { margin-top: auto; padding: 20px 12px 24px; border-top: 1px solid var(--glass-border); text-align: center; color: var(--text-muted); font-size: 0.75rem; }
         .admin-main { flex: 1; margin-left: 270px; padding: 30px; max-width: calc(100% - 270px); }
-        .admin-page { 
-            display: none; 
-            opacity: 0; 
-            transition: opacity 0.2s ease; 
-        }
-        .admin-page.active { 
-            display: block; 
-            opacity: 1; 
-        }
+        .admin-page { display: none; }
+        .admin-page.active { display: block; animation: adminPageIn 0.28s ease-out both; }
+        @keyframes adminPageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        body.pdf-mode .admin-page.active { animation: none; }
+        @media (prefers-reduced-motion: reduce) { .admin-page.active { animation: none; } }
 
         .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .admin-stat-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 24px; position: relative; overflow: hidden; transition: all 0.3s ease; }
@@ -4710,6 +4706,17 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     if (target) target.classList.add('active');
     document.querySelectorAll(`[data-admin-nav="${page}"]`).forEach(el => el.classList.add('active'));
 
+    window.scrollTo({ top: 0, behavior: 'auto' });
+
+    // ✅ Let the browser paint the tab switch first, then do heavy rendering
+    const token = (this._adminNavToken = (this._adminNavToken || 0) + 1);
+    requestAnimationFrame(() => setTimeout(() => {
+        if (token !== this._adminNavToken) return; // user already clicked another tab
+        this._renderAdminPage(page);
+    }, 0));
+},
+
+_renderAdminPage(page) {
     // ✅ Smart render: only re-render if data changed or first visit
     const now = Date.now();
     const cacheKey = '_lastRender_' + page;
@@ -9391,4 +9398,4 @@ if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
 </script>
 
 </body>
-</html>       
+</html>
