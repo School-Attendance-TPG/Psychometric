@@ -5240,7 +5240,8 @@ _renderAdminPage(page) {
                 const clsTrimmed = cls.trim();
                 filteredStudents = this.students.filter(s => s.class && s.class.trim() === clsTrimmed);
                 const studentIds = filteredStudents.map(s => s.id);
-                filteredAssessments = this.assessments.filter(a => studentIds.includes(a.studentId));
+                const idSet = new Set(studentIds.map(i => this._nid(i)));
+                filteredAssessments = this.assessments.filter(a => idSet.has(this._nid(a.studentId)));
             }
 
             const flagged = filteredAssessments.filter(a => a.severity === 'moderate' || a.severity === 'severe').length;
@@ -5283,8 +5284,8 @@ _renderAdminPage(page) {
 
             tbody.innerHTML = filtered.map(s => {
                 const latest = this.assessments
-                    .filter(a => a.studentId === s.id)
-                    .sort((a, b) => b.date.localeCompare(a.date))[0];
+                    .filter(a => this._nid(a.studentId) === this._nid(s.id))
+                    .sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
                 const score = latest ? latest.overallScore.toFixed(1) : '-';
                 const severity = latest ? this.getSeverityBadge(latest.severity) : '<span class="severity-badge sev-normal">' + this.t('empty_no_assessments') + '</span>';
                 const status = latest ? latest.status : '-';
@@ -5331,11 +5332,12 @@ _renderAdminPage(page) {
 
             const clsTrimmed = cls.trim();
             const classStudentIds = this.students.filter(s => s.class && s.class.trim() === clsTrimmed).map(s => s.id);
-            let filtered = this.assessments.filter(a => classStudentIds.includes(a.studentId));
+            const classIdSet = new Set(classStudentIds.map(i => this._nid(i)));
+            let filtered = this.assessments.filter(a => classIdSet.has(this._nid(a.studentId)));
 
             if (search) {
                 filtered = filtered.filter(a => {
-                    const s = this.students.find(st => st.id === a.studentId);
+                    const s = this.students.find(st => this._nid(st.id) === this._nid(a.studentId));
                     return (s && s.name.toLowerCase().includes(search)) || a.date.includes(search);
                 });
             }
@@ -5349,7 +5351,7 @@ _renderAdminPage(page) {
             }
 
             tbody.innerHTML = filtered.map(a => {
-                const s = this.students.find(st => st.id === a.studentId);
+                const s = this.students.find(st => this._nid(st.id) === this._nid(a.studentId));
                 return '<tr>' +
                     '<td>' + this.formatDate(a.date) + '</td>' +
                     '<td><strong>' + this.sanitizeHTML(s ? s.name : 'Unknown') + '</strong></td>' +
@@ -5371,7 +5373,7 @@ _renderAdminPage(page) {
             this.viewSource = "teacher";
             const student = this.students.find(s => s.id === studentId);
             if (!student) return;
-            const assessments = this.assessments.filter(a => a.studentId === student.id).sort((a, b) => b.date.localeCompare(a.date));
+            const assessments = this.assessments.filter(a => this._nid(a.studentId) === this._nid(student.id)).sort((a, b) => String(b.date).localeCompare(String(a.date)));
             if (assessments.length === 0) {
                 this.showToast(this.t('toast_no_assessments_found'), 'info');
                 return;
@@ -8933,6 +8935,7 @@ refreshResultsView() {
 
     // 🔗 ID normalizer — dashes/spaces/case mismatch fix (studentId linking)
     const normId = (v) => (v || '').toString().replace(/[-\s]/g, '').toUpperCase();
+    app._nid = normId; // Teacher panel: dash/case-safe studentId matching
 
     // ── FAST vault loader: cached + parallel + class-scoped ──
     app.VaultEnsureAssessments = async function(force = false) {
@@ -8978,6 +8981,21 @@ refreshResultsView() {
                         ));
                         fbSnaps.forEach((snap, j) => { if (snap) snaps[missing[j]] = snap; });
                     }
+                    // ✅ FALLBACK 2: top-level 'assessments' collection (studentId field) —
+                    // parent portal already reads this path, teacher panel was skipping it
+                    const stillMissing = [];
+                    snaps.forEach((snap, i) => { if (!snap || snap.empty) stillMissing.push(targets[i]); });
+                    if (stillMissing.length > 0) {
+                        const { query, where } = window.fb;
+                        const ids = [...new Set(stillMissing.flatMap(id => [id, normId(id)]))];
+                        const chunks = [];
+                        for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10));
+                        const topSnaps = await Promise.all(chunks.map(ch =>
+                            getDocs(query(collection(this.db, 'assessments'), where('studentId', 'in', ch)))
+                                .catch(e => { console.warn('[VAULT] top-level assessments read failed:', e && e.code); return null; })
+                        ));
+                        snaps.push(...topSnaps.filter(Boolean));
+                    }
                 } else if (targets === null) {
                     // Fallback: students array innum load aagala — all profiles (parallel)
                     const profs = await getDocs(collection(this.db, 'studentData'));
@@ -8991,7 +9009,11 @@ refreshResultsView() {
                     snap.forEach(d => {
                         if (!existing.has(d.id)) {
                             const ad = { ...d.data(), id: d.id };
-                            if (ad.studentId) ad.studentId = normId(ad.studentId);
+                            if (ad.studentId) {
+                                // map back to the student's REAL id so matching never fails
+                                const real = this.students.find(st => normId(st.id) === normId(ad.studentId));
+                                ad.studentId = real ? real.id : normId(ad.studentId);
+                            }
                             this.assessments.push(ad);
                             existing.add(d.id); added++;
                         }
