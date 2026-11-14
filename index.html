@@ -7323,6 +7323,7 @@ refreshResultsView() {
             if (!res) return;
             const { rows, meta } = res;
             const st = this._reportStats(rows);
+            this._lastReport = { rows, meta, st }; // PDF uses exactly what the preview shows
             const SEV = this._sevMap();
             const esc = v => this.sanitizeHTML(String(v == null ? '' : v));
             const fmtD = d => { const x = new Date(String(d).slice(0, 10) + 'T00:00:00'); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB'); };
@@ -7388,26 +7389,132 @@ refreshResultsView() {
             const box = document.getElementById('reportPreview');
             if (box) { box.style.display = 'none'; box.innerHTML = ''; }
         },
+        _pdfPageShell(isCont) {
+            const pg = document.createElement('div');
+            pg.className = 'pdf-page';
+            pg.style.cssText = 'width:794px;height:1116px;box-sizing:border-box;padding:30px 36px 0;position:relative;background:#ffffff;color:#0f172a;font-family:Poppins,Arial,sans-serif;overflow:hidden;';
+            const body = document.createElement('div');
+            body.className = 'pdf-body';
+            body.style.cssText = 'height:1038px;overflow:hidden;';
+            const ft = document.createElement('div');
+            ft.style.cssText = 'position:absolute;left:36px;right:36px;bottom:18px;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:6px;';
+            ft.innerHTML = '<span>Confidential — MANASU Lab • SJKT Telok Panglima Garang</span><span class="pg"></span>';
+            pg.appendChild(body); pg.appendChild(ft);
+            return { pg, body, isCont: !!isCont };
+        },
         async downloadReportPDF() {
-            const el = document.getElementById('reportPaper');
-            if (!el) { this.showToast('Generate the report first', 'error'); return; }
+            const rep = this._lastReport;
+            if (!rep) { this.showToast('Generate the report first', 'error'); return; }
             if (typeof html2pdf === 'undefined') { this.showToast('PDF tool not loaded. Check your internet and refresh.', 'error'); return; }
             this.showToast('Preparing PDF…', 'info');
+
+            const { rows, meta, st } = rep;
+            const SEV = this._sevMap();
+            const esc = v => this.sanitizeHTML(String(v == null ? '' : v));
+            const fmtD = d => { const x = new Date(String(d).slice(0, 10) + 'T00:00:00'); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB'); };
+            const th = this.settings.thresholds;
+            const scoreCol = v => v < th.moderate ? '#b91c1c' : v < th.mild ? '#c2410c' : v < th.normal ? '#a16207' : '#15803d';
+            const card = (label, val, color) => '<div style="flex:1; padding:12px; border:1px solid #e2e8f0; border-radius:10px; text-align:center; background:#f8fafc;"><div style="font-size:22px; font-weight:800; color:' + color + ';">' + val + '</div><div style="font-size:11px; color:#64748b; margin-top:2px;">' + label + '</div></div>';
+            const bar = (label, text, pct, color) => '<div style="margin-bottom:9px;"><div style="display:flex; justify-content:space-between; font-size:11px; color:#334155; margin-bottom:3px;"><span>' + label + '</span><strong>' + text + '</strong></div><div style="height:7px; background:#e2e8f0; border-radius:5px; overflow:hidden;"><div style="height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; background:' + color + ';"></div></div></div>';
+            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(SEV[k].label, st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, SEV[k].css)).join('');
+            const domBars = this._reportDomains().map(([k, n]) => bar(n, st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, '#0d9488')).join('');
+
+            const headerHtml = (small) =>
+                '<div style="display:flex; align-items:center; gap:12px; border-bottom:3px solid #0d9488; padding-bottom:' + (small ? '8' : '12') + 'px; margin-bottom:' + (small ? '12' : '14') + 'px;">' +
+                  '<img src="icon-192.png" alt="" style="width:' + (small ? '34' : '48') + 'px; height:' + (small ? '34' : '48') + 'px; object-fit:contain;">' +
+                  '<div style="flex:1;"><div style="font-size:' + (small ? '15' : '19') + 'px; font-weight:700;">MANASU Lab — Assessment Report</div>' + (small ? '' : '<div style="font-size:11px; color:#64748b;">SJKT Telok Panglima Garang • Psychometric Wellness</div>') + '</div>' +
+                  '<div style="text-align:right; font-size:10px; color:#64748b;">Generated<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
+                '</div>';
+            const page1Html = headerHtml(false) +
+                '<div style="font-size:11.5px; color:#334155; background:#f1f5f9; padding:9px 12px; border-radius:8px; margin-bottom:14px;"><strong>Filters:</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
+                '<div style="display:flex; gap:10px; margin-bottom:16px;">' + card('Assessments', st.total, '#2563eb') + card('Students covered', st.students, '#0d9488') + card('Average score', st.avg.toFixed(1), scoreCol(st.avg)) + card('Flagged cases', st.flagged, '#b91c1c') + '</div>' +
+                '<div style="display:flex; gap:26px; margin-bottom:16px;">' +
+                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">Severity Distribution</div>' + sevBars + '</div>' +
+                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">Average by Domain</div>' + domBars + '</div>' +
+                '</div>';
+            const rowHtml = (r, i) => {
+                const a = r.a, s = r.s, sv = SEV[a.severity] || SEV.normal;
+                return '<tr style="' + (i % 2 ? 'background:#f8fafc;' : '') + '">' +
+                    '<td style="padding:6px 8px; white-space:nowrap;">' + fmtD(a.date) + '</td>' +
+                    '<td style="padding:6px 8px; font-weight:600;">' + esc(s ? s.name : 'Unknown') + '</td>' +
+                    '<td style="padding:6px 8px; white-space:nowrap;">' + esc(s ? s.class : '') + '</td>' +
+                    '<td style="padding:6px 8px; font-weight:700; color:' + scoreCol(Number(a.overallScore)) + ';">' + (Number(a.overallScore) || 0).toFixed(1) + '</td>' +
+                    '<td style="padding:6px 8px; white-space:nowrap;"><span style="padding:2px 9px; border-radius:20px; font-size:10px; font-weight:600; background:' + sv.cssBg + '; color:' + sv.css + ';">' + sv.label + '</span></td>' +
+                    '<td style="padding:6px 8px; white-space:nowrap;">' + (a.status === 'resolved' ? 'Resolved' : 'Active') + '</td></tr>';
+            };
+            const tableHtml = (cont) =>
+                '<div class="tbl-wrap"><div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0d9488;">Assessment Records' + (cont ? ' (continued)' : '') + '</div>' +
+                '<table style="width:100%; border-collapse:collapse; font-size:11px;"><thead><tr style="background:#0d9488; color:#fff; text-align:left;">' +
+                '<th style="padding:7px 8px;">Date</th><th style="padding:7px 8px;">Student</th><th style="padding:7px 8px;">Class</th><th style="padding:7px 8px;">Score</th><th style="padding:7px 8px;">Severity</th><th style="padding:7px 8px;">Status</th>' +
+                '</tr></thead><tbody></tbody></table></div>';
+
+            const host = document.createElement('div');
+            host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;z-index:-1;';
+            document.body.appendChild(host);
             try {
-                const prevMin = el.style.minWidth;
-                el.style.minWidth = '0';
-                await html2pdf().set({
-                    margin: [8, 8, 10, 8],
+                const pages = [];
+                let cur = null;
+                const newPage = (cont) => { cur = this._pdfPageShell(cont); host.appendChild(cur.pg); pages.push(cur); return cur; };
+                const over = () => cur.body.scrollHeight > cur.body.clientHeight + 1;
+                const startTable = (cont) => {
+                    const w = document.createElement('div');
+                    w.innerHTML = tableHtml(cont);
+                    cur.body.appendChild(w.firstChild);
+                    return cur.body.lastElementChild.querySelector('tbody');
+                };
+
+                newPage(false);
+                cur.body.insertAdjacentHTML('beforeend', page1Html);
+                let tbody = startTable(false);
+                let i = 0;
+                while (i < rows.length) {
+                    tbody.insertAdjacentHTML('beforeend', rowHtml(rows[i], i));
+                    const tr = tbody.lastElementChild;
+                    if (over()) {
+                        const n = tbody.children.length;
+                        if (!cur.isCont && n <= 3) {
+                            // too little room on page 1 → move the whole table to the next page
+                            cur.body.lastElementChild.remove();
+                            newPage(true);
+                            cur.body.insertAdjacentHTML('beforeend', headerHtml(true));
+                            tbody = startTable(true);
+                            continue;
+                        }
+                        if (n === 1) { i++; continue; } // a single oversize row — keep it, avoid endless loop
+                        tr.remove();
+                        newPage(true);
+                        cur.body.insertAdjacentHTML('beforeend', headerHtml(true));
+                        tbody = startTable(true);
+                        continue; // retry the same row on the new page
+                    }
+                    i++;
+                }
+                pages.forEach((p, k) => { p.pg.querySelector('.pg').textContent = 'Page ' + (k + 1) + ' of ' + pages.length; });
+
+                // wait for logo + fonts so nothing renders blank
+                if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+                await Promise.all([...host.querySelectorAll('img')].map(im => im.complete ? 1 : new Promise(r => { im.onload = im.onerror = r; })));
+
+                const opt = {
+                    margin: 0,
                     filename: 'MANASU_Lab_Report_' + new Date().toISOString().split('T')[0] + '.pdf',
-                    image: { type: 'jpeg', quality: 0.96 },
-                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 900 },
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
-                }).from(el).save();
-                el.style.minWidth = prevMin;
+                    pagebreak: { mode: [] } // every .pdf-page is already exactly one A4 page
+                };
+                let worker = html2pdf().set(opt).from(pages[0].pg).toContainer().toCanvas().toPdf();
+                for (let k = 1; k < pages.length; k++) {
+                    const el = pages[k].pg;
+                    worker = worker.get('pdf').then(pdf => { pdf.addPage(); }).from(el).toContainer().toCanvas().toPdf();
+                }
+                await worker.save();
+                this.showToast('PDF downloaded (' + pages.length + ' page' + (pages.length > 1 ? 's' : '') + ')', 'success');
             } catch (e) {
                 console.error('PDF failed', e);
-                this.showToast('PDF export failed', 'error');
+                this.showToast('PDF export failed — see console', 'error');
+            } finally {
+                host.remove();
             }
         },
         _loadScriptOnce(src) {
