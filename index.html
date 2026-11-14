@@ -2840,7 +2840,9 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                     <div class="glass-card" style="margin-bottom:24px;">
                         <h4 style="margin-bottom:16px;" data-i18n="report_generate_title">Generate Report</h4>
                         <div class="form-grid">
-                            <div class="form-group"><label data-i18n="form_report_type">Report Type</label><select class="input-premium" id="reportType"><option value="all" data-i18n="report_all">All Assessments</option><option value="flagged" data-i18n="report_flagged">Flagged Cases Only</option><option value="student" data-i18n="report_by_student">By Student</option></select></div>
+                            <div class="form-group"><label data-i18n="form_report_type">Report Type</label><select class="input-premium" id="reportType" onchange="app.onReportTypeChange()"><option value="all" data-i18n="report_all">All Assessments</option><option value="flagged" data-i18n="report_flagged">Flagged Cases Only</option><option value="student" data-i18n="report_by_student">By Student</option></select></div>
+                            <div class="form-group" id="reportStudentGroup" style="display:none;"><label>Student</label><select class="input-premium" id="reportStudent"><option value="">-- Select Student --</option></select></div>
+                            <div class="form-group"><label>Class</label><select class="input-premium" id="reportClass"><option value="">All Classes</option></select></div>
                             <div class="form-group"><label data-i18n="form_date_from">Date From</label><input type="date" class="input-premium" id="reportDateFrom"></div>
                             <div class="form-group"><label data-i18n="form_date_to">Date To</label><input type="date" class="input-premium" id="reportDateTo"></div>
                         </div>
@@ -2849,6 +2851,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                             <button class="btn btn-teal" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> <span data-i18n="btn_export_excel">Export Excel</span></button>
                         </div>
                     </div>
+                    <div id="reportPreview" style="display:none; margin-bottom:24px;"></div>
                     <div class="glass-card">
                         <h4 style="margin-bottom:16px;" data-i18n="qr_generator">QR Code Generator</h4>
                         <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;" data-i18n="qr_desc">Generate a QR code that parents can scan to directly access their child's latest result.</p>
@@ -4756,6 +4759,7 @@ _renderAdminPage(page) {
         localStorage.setItem(dataKey, currentDataHash);
     }
     if (page === 'settings') this.loadSettings();
+    if (page === 'reports') this._initReportFilters();
     if (page === 'stemMissions' && isStale) {
         this.loadStemMissionsFromFirebase().then(() => this.renderAdminStemMissions());
         localStorage.setItem(cacheKey, String(now));
@@ -7230,45 +7234,375 @@ refreshResultsView() {
         },
 
         // ═══════════════════════════════════════════════════════════════
-        // REPORTS & EXPORT
+        // REPORTS & EXPORT  (v2 — filters, live report preview, PDF, styled Excel)
         // ═══════════════════════════════════════════════════════════════
-        generateReport() {
-            this.showToast(this.t('toast_report_generated'), 'info');
+        _sevMap() {
+            return {
+                severe:   { label: 'Severe Concern',   bg: 'FFFEE2E2', fg: 'FFB91C1C', css: '#b91c1c', cssBg: '#fee2e2' },
+                moderate: { label: 'Moderate Concern', bg: 'FFFFEDD5', fg: 'FFC2410C', css: '#c2410c', cssBg: '#ffedd5' },
+                mild:     { label: 'Mild Concern',     bg: 'FFFEF9C3', fg: 'FFA16207', css: '#a16207', cssBg: '#fef9c3' },
+                normal:   { label: 'Normal',           bg: 'FFDCFCE7', fg: 'FF15803D', css: '#15803d', cssBg: '#dcfce7' }
+            };
         },
-                exportReportExcel() {
-            const data = this.assessments.map(a => {
-                const s = this.students.find(st => st.id === a.studentId);
-                return {
-                    'Date': a.date,
-                    'Student Name': s ? s.name : 'Unknown',
-                    'Class': s ? s.class : '',
-                    'Overall Score': a.overallScore,
-                    'Severity': a.severity,
-                    'Status': a.status,
-                    'Verbal-Linguistic': a.domains.verbal,
-'Logical-Mathematical': a.domains.logical,
-'Visual-Spatial': a.domains.visual,
-'Musical': a.domains.musical,
-'Bodily-Kinesthetic': a.domains.kinesthetic,
-'Interpersonal': a.domains.interpersonal,
-'Intrapersonal': a.domains.intrapersonal,
-'Naturalist': a.domains.naturalist,
-'Existential': a.domains.existential,
-                                        'Counselor Notes (EN)': (a.notes && typeof a.notes === 'object' ? a.notes.en : a.notes) || '',
-                    'Counselor Notes (MS)': (a.notes && typeof a.notes === 'object' ? a.notes.ms : '') || '',
-                    'Counselor Notes (TA)': (a.notes && typeof a.notes === 'object' ? a.notes.ta : '') || '',
-                };
+        _reportDomains() {
+            return [
+                ['verbal', 'Verbal-Linguistic'], ['logical', 'Logical-Mathematical'], ['visual', 'Visual-Spatial'],
+                ['musical', 'Musical'], ['kinesthetic', 'Bodily-Kinesthetic'], ['interpersonal', 'Interpersonal'],
+                ['intrapersonal', 'Intrapersonal'], ['naturalist', 'Naturalist'], ['existential', 'Existential']
+            ];
+        },
+        _initReportFilters() {
+            const classSel = document.getElementById('reportClass');
+            const stuSel = document.getElementById('reportStudent');
+            if (classSel) {
+                const keep = classSel.value;
+                const classes = [...new Set(this.students.map(s => (s.class || '').trim()).filter(Boolean))].sort();
+                classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
+                if (keep && classes.includes(keep)) classSel.value = keep;
+            }
+            if (stuSel) {
+                const keep = stuSel.value;
+                const list = [...this.students].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                stuSel.innerHTML = '<option value="">-- Select Student --</option>' + list.map(s => '<option value="' + this.sanitizeHTML(s.id) + '">' + this.sanitizeHTML(s.name) + (s.class ? ' (' + this.sanitizeHTML(s.class) + ')' : '') + '</option>').join('');
+                if (keep && list.some(s => s.id === keep)) stuSel.value = keep;
+            }
+            this.onReportTypeChange();
+        },
+        onReportTypeChange() {
+            const type = document.getElementById('reportType')?.value;
+            const g = document.getElementById('reportStudentGroup');
+            if (g) g.style.display = (type === 'student') ? '' : 'none';
+        },
+        _reportRows() {
+            const type = document.getElementById('reportType')?.value || 'all';
+            const from = document.getElementById('reportDateFrom')?.value || '';
+            const to = document.getElementById('reportDateTo')?.value || '';
+            const cls = document.getElementById('reportClass')?.value || '';
+            const stuId = document.getElementById('reportStudent')?.value || '';
+            if (type === 'student' && !stuId) { this.showToast(this.t('toast_select_student'), 'error'); return null; }
+            if (from && to && from > to) { this.showToast('"Date From" must be before "Date To"', 'error'); return null; }
+            const nid = v => this._nid(v);
+            const stuMap = new Map(this.students.map(s => [nid(s.id), s]));
+            let rows = (this.assessments || []).map(a => ({ a, s: stuMap.get(nid(a.studentId)) || null }));
+            if (type === 'flagged') rows = rows.filter(r => r.a.severity === 'moderate' || r.a.severity === 'severe');
+            if (type === 'student') rows = rows.filter(r => nid(r.a.studentId) === nid(stuId));
+            if (cls) rows = rows.filter(r => r.s && (r.s.class || '').trim() === cls);
+            if (from) rows = rows.filter(r => String(r.a.date).slice(0, 10) >= from);
+            if (to) rows = rows.filter(r => String(r.a.date).slice(0, 10) <= to);
+            rows.sort((x, y) => String(y.a.date).localeCompare(String(x.a.date)) || ((x.s && x.s.name) || '').localeCompare((y.s && y.s.name) || ''));
+            if (rows.length === 0) { this.showToast(this.t('toast_no_data_export'), 'error'); return null; }
+            return { rows, meta: { type, from, to, cls, student: type === 'student' ? stuMap.get(nid(stuId)) : null } };
+        },
+        _reportStats(rows) {
+            const sev = { severe: 0, moderate: 0, mild: 0, normal: 0 };
+            const dSum = {}, dCnt = {};
+            let sum = 0;
+            const uniq = new Set();
+            rows.forEach(({ a }) => {
+                sum += Number(a.overallScore) || 0;
+                uniq.add(this._nid(a.studentId));
+                sev[a.severity] = (sev[a.severity] || 0) + 1;
+                this._reportDomains().forEach(([k]) => {
+                    const v = a.domains ? Number(a.domains[k]) : NaN;
+                    if (!isNaN(v)) { dSum[k] = (dSum[k] || 0) + v; dCnt[k] = (dCnt[k] || 0) + 1; }
+                });
             });
-            
-            if (typeof XLSX !== 'undefined') {
-                const ws = XLSX.utils.json_to_sheet(data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Assessments');
-                XLSX.writeFile(wb, `MANASU_Lab_Assessments_${new Date().toISOString().split('T')[0]}.xlsx`);
-                this.showToast(this.t('toast_excel_exported'), 'success');
-            } else {
-                this.downloadCSV(`MANASU_Lab_Assessments_${new Date().toISOString().split('T')[0]}.csv`, data, ['Class']);
-                this.showToast(this.t('toast_csv_exported'), 'success');
+            const dAvg = {};
+            this._reportDomains().forEach(([k]) => { dAvg[k] = dCnt[k] ? dSum[k] / dCnt[k] : 0; });
+            return { total: rows.length, students: uniq.size, avg: rows.length ? sum / rows.length : 0, sev, dAvg, flagged: sev.severe + sev.moderate };
+        },
+        _reportFilterText(meta) {
+            const parts = [];
+            parts.push(meta.type === 'flagged' ? 'Flagged cases only' : meta.type === 'student' ? 'Student: ' + (meta.student ? meta.student.name : '') : 'All assessments');
+            if (meta.cls) parts.push('Class: ' + meta.cls);
+            if (meta.from || meta.to) parts.push('Date: ' + (meta.from || 'start') + ' → ' + (meta.to || 'today'));
+            return parts.join('  •  ');
+        },
+        generateReport() {
+            const res = this._reportRows();
+            if (!res) return;
+            const { rows, meta } = res;
+            const st = this._reportStats(rows);
+            const SEV = this._sevMap();
+            const esc = v => this.sanitizeHTML(String(v == null ? '' : v));
+            const fmtD = d => { const x = new Date(String(d).slice(0, 10) + 'T00:00:00'); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB'); };
+            const scoreCol = v => v < this.settings.thresholds.moderate ? '#b91c1c' : v < this.settings.thresholds.mild ? '#c2410c' : v < this.settings.thresholds.normal ? '#a16207' : '#15803d';
+            const MAX_ROWS = 200;
+            const card = (label, val, color) => '<div style="flex:1; min-width:120px; padding:14px; border:1px solid #e2e8f0; border-radius:12px; text-align:center; background:#f8fafc;"><div style="font-size:1.6rem; font-weight:800; color:' + color + ';">' + val + '</div><div style="font-size:0.75rem; color:#64748b; margin-top:2px;">' + label + '</div></div>';
+            const bar = (label, text, pct, color) => '<div style="margin-bottom:8px;"><div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#334155; margin-bottom:3px;"><span>' + label + '</span><strong>' + text + '</strong></div><div style="height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden;"><div style="height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; background:' + color + '; border-radius:6px;"></div></div></div>';
+
+            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(SEV[k].label, st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, SEV[k].css)).join('');
+            const domBars = this._reportDomains().map(([k, n]) => bar(n, st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, '#0d9488')).join('');
+            const trs = rows.slice(0, MAX_ROWS).map(({ a, s }, i) => {
+                const sv = SEV[a.severity] || SEV.normal;
+                return '<tr style="' + (i % 2 ? 'background:#f8fafc;' : '') + 'page-break-inside:avoid;">' +
+                    '<td style="padding:7px 8px;">' + fmtD(a.date) + '</td>' +
+                    '<td style="padding:7px 8px; font-weight:600;">' + esc(s ? s.name : 'Unknown') + '</td>' +
+                    '<td style="padding:7px 8px;">' + esc(s ? s.class : '') + '</td>' +
+                    '<td style="padding:7px 8px; font-weight:700; color:' + scoreCol(Number(a.overallScore)) + ';">' + (Number(a.overallScore) || 0).toFixed(1) + '</td>' +
+                    '<td style="padding:7px 8px;"><span style="padding:2px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; background:' + sv.cssBg + '; color:' + sv.css + ';">' + sv.label + '</span></td>' +
+                    '<td style="padding:7px 8px;">' + (a.status === 'resolved' ? 'Resolved' : 'Active') + '</td></tr>';
+            }).join('');
+            const more = rows.length > MAX_ROWS ? '<p style="font-size:0.78rem; color:#64748b; margin-top:8px;">Showing first ' + MAX_ROWS + ' of ' + rows.length + ' records. Use <strong>Export Excel</strong> for the complete list.</p>' : '';
+
+            const html =
+                '<div class="glass-card" style="padding:20px;">' +
+                  '<div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:16px;">' +
+                    '<h4 style="margin:0;"><i class="fas fa-file-alt" style="color:var(--healing-teal); margin-right:8px;"></i>Report Preview</h4>' +
+                    '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
+                      '<button class="btn btn-primary" style="padding:10px 18px;" onclick="app.downloadReportPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>' +
+                      '<button class="btn btn-teal" style="padding:10px 18px;" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>' +
+                      '<button class="btn" style="padding:10px 14px; background:rgba(0,0,0,0.05); color:var(--text-secondary);" onclick="app.closeReportPreview()"><i class="fas fa-times"></i></button>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div style="overflow-x:auto;">' +
+                  '<div id="reportPaper" style="background:#ffffff; color:#0f172a; padding:28px; border-radius:12px; border:1px solid #e2e8f0; font-family:Poppins,Arial,sans-serif; min-width:640px;">' +
+                    '<div style="display:flex; align-items:center; gap:14px; border-bottom:3px solid #0d9488; padding-bottom:14px; margin-bottom:16px;">' +
+                      '<img src="icon-192.png" alt="" style="width:52px; height:52px; object-fit:contain;">' +
+                      '<div style="flex:1;"><div style="font-size:1.25rem; font-weight:700;">MANASU Lab — Assessment Report</div><div style="font-size:0.8rem; color:#64748b;">SJKT Telok Panglima Garang • Psychometric Wellness</div></div>' +
+                      '<div style="text-align:right; font-size:0.75rem; color:#64748b;">Generated<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
+                    '</div>' +
+                    '<div style="font-size:0.82rem; color:#334155; background:#f1f5f9; padding:10px 14px; border-radius:10px; margin-bottom:16px;"><strong>Filters:</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
+                    '<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">' +
+                      card('Assessments', st.total, '#2563eb') + card('Students covered', st.students, '#0d9488') + card('Average score', st.avg.toFixed(1), scoreCol(st.avg)) + card('Flagged cases', st.flagged, '#b91c1c') +
+                    '</div>' +
+                    '<div style="display:flex; gap:28px; flex-wrap:wrap; margin-bottom:20px;">' +
+                      '<div style="flex:1; min-width:260px;"><div style="font-weight:700; margin-bottom:10px; color:#0d9488;">Severity Distribution</div>' + sevBars + '</div>' +
+                      '<div style="flex:1; min-width:260px;"><div style="font-weight:700; margin-bottom:10px; color:#0d9488;">Average by Domain</div>' + domBars + '</div>' +
+                    '</div>' +
+                    '<div style="font-weight:700; margin-bottom:8px; color:#0d9488;">Assessment Records</div>' +
+                    '<table style="width:100%; border-collapse:collapse; font-size:0.8rem;">' +
+                      '<thead><tr style="background:#0d9488; color:#fff; text-align:left;"><th style="padding:8px;">Date</th><th style="padding:8px;">Student</th><th style="padding:8px;">Class</th><th style="padding:8px;">Score</th><th style="padding:8px;">Severity</th><th style="padding:8px;">Status</th></tr></thead>' +
+                      '<tbody>' + trs + '</tbody></table>' + more +
+                    '<div style="margin-top:18px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:0.7rem; color:#94a3b8; text-align:center;">Confidential — for counselor and school use only • MANASU Lab</div>' +
+                  '</div></div></div>';
+
+            const box = document.getElementById('reportPreview');
+            if (!box) return;
+            box.innerHTML = html;
+            box.style.display = 'block';
+            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this.showToast('Report generated — ' + rows.length + ' assessment(s)', 'success');
+        },
+        closeReportPreview() {
+            const box = document.getElementById('reportPreview');
+            if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+        },
+        async downloadReportPDF() {
+            const el = document.getElementById('reportPaper');
+            if (!el) { this.showToast('Generate the report first', 'error'); return; }
+            if (typeof html2pdf === 'undefined') { this.showToast('PDF tool not loaded. Check your internet and refresh.', 'error'); return; }
+            this.showToast('Preparing PDF…', 'info');
+            try {
+                const prevMin = el.style.minWidth;
+                el.style.minWidth = '0';
+                await html2pdf().set({
+                    margin: [8, 8, 10, 8],
+                    filename: 'MANASU_Lab_Report_' + new Date().toISOString().split('T')[0] + '.pdf',
+                    image: { type: 'jpeg', quality: 0.96 },
+                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 900 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+                }).from(el).save();
+                el.style.minWidth = prevMin;
+            } catch (e) {
+                console.error('PDF failed', e);
+                this.showToast('PDF export failed', 'error');
+            }
+        },
+        _loadScriptOnce(src) {
+            this._scriptCache = this._scriptCache || {};
+            if (this._scriptCache[src]) return this._scriptCache[src];
+            this._scriptCache[src] = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src; s.onload = resolve;
+                s.onerror = () => { delete this._scriptCache[src]; reject(new Error('script load failed')); };
+                document.head.appendChild(s);
+            });
+            return this._scriptCache[src];
+        },
+        async exportReportExcel() {
+            const res = this._reportRows();
+            if (!res) return;
+            const { rows, meta } = res;
+            const SEV = this._sevMap();
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    this.showToast('Preparing Excel…', 'info');
+                    await this._loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
+                }
+            } catch (e) {
+                // Offline / blocked → plain CSV fallback so export never fails
+                const data = rows.map(({ a, s }) => ({
+                    'Date': a.date, 'Student Name': s ? s.name : 'Unknown', 'MyKid Number': s ? s.icNumber : '', 'Class': s ? s.class : '',
+                    'Overall Score': a.overallScore, 'Severity': a.severity, 'Status': a.status
+                }));
+                this.downloadCSV('MANASU_Lab_Assessments_' + dateStr + '.csv', data, ['MyKid Number', 'Class']);
+                this.showToast('Excel tool unavailable — exported as CSV instead', 'info');
+                return;
+            }
+
+            try {
+                const st = this._reportStats(rows);
+                const th = this.settings.thresholds;
+                const wb = new ExcelJS.Workbook();
+                wb.creator = 'MANASU Lab'; wb.created = new Date();
+                const TEAL = 'FF0D9488', LINE = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+                const border = { top: LINE, left: LINE, bottom: LINE, right: LINE };
+                const head = (cell) => {
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 11 };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TEAL } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                    cell.border = border;
+                };
+                const domFill = (v) => v < th.moderate ? 'FFFEE2E2' : v < th.mild ? 'FFFFEDD5' : v < th.normal ? 'FFFEF9C3' : 'FFDCFCE7';
+                const scoreFont = (v) => v < th.moderate ? 'FFB91C1C' : v < th.mild ? 'FFC2410C' : v < th.normal ? 'FFA16207' : 'FF15803D';
+
+                // ───────── Sheet 1: Summary ─────────
+                const sm = wb.addWorksheet('Summary', { views: [{ showGridLines: false }] });
+                sm.columns = [{ width: 30 }, { width: 22 }, { width: 14 }];
+                sm.mergeCells('A1:C1');
+                sm.getCell('A1').value = 'MANASU Lab — Assessment Report';
+                sm.getCell('A1').font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' } };
+                sm.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TEAL } };
+                sm.getCell('A1').alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                sm.getRow(1).height = 36;
+                sm.mergeCells('A2:C2');
+                sm.getCell('A2').value = 'SJKT Telok Panglima Garang • Psychometric Wellness Portal';
+                sm.getCell('A2').font = { italic: true, color: { argb: 'FF64748B' } };
+                sm.getCell('A2').alignment = { indent: 1 };
+
+                let r = 4;
+                const kv = (k, v, fmt) => {
+                    const row = sm.getRow(r++);
+                    row.getCell(1).value = k; row.getCell(1).font = { bold: true, color: { argb: 'FF334155' } };
+                    row.getCell(2).value = v; if (fmt) row.getCell(2).numFmt = fmt;
+                    row.getCell(2).alignment = { horizontal: 'left' };
+                    [1, 2].forEach(c => { row.getCell(c).border = border; row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; });
+                };
+                const section = (t) => { r++; const row = sm.getRow(r++); row.getCell(1).value = t; [1, 2, 3].forEach(c => head(row.getCell(c))); row.getCell(1).alignment = { horizontal: 'left', indent: 1 }; };
+
+                section('Report Details');
+                kv('Generated on', new Date(), 'dd/mm/yyyy hh:mm');
+                kv('Report type', meta.type === 'flagged' ? 'Flagged cases only' : meta.type === 'student' ? 'By student' : 'All assessments');
+                if (meta.student) kv('Student', meta.student.name);
+                kv('Class', meta.cls || 'All classes');
+                kv('Date range', (meta.from || 'Start') + '  →  ' + (meta.to || 'Today'));
+
+                section('Key Numbers');
+                kv('Total assessments', st.total);
+                kv('Students covered', st.students);
+                kv('Average overall score', Number(st.avg.toFixed(2)), '0.0');
+                kv('Flagged (moderate + severe)', st.flagged);
+
+                section('Severity Distribution');
+                ['severe', 'moderate', 'mild', 'normal'].forEach(k => {
+                    const row = sm.getRow(r++);
+                    row.getCell(1).value = SEV[k].label; row.getCell(2).value = st.sev[k]; row.getCell(3).value = st.sev[k] / st.total; row.getCell(3).numFmt = '0%';
+                    row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SEV[k].bg } };
+                    row.getCell(1).font = { bold: true, color: { argb: SEV[k].fg } };
+                    [1, 2, 3].forEach(c => { row.getCell(c).border = border; });
+                    row.getCell(2).alignment = { horizontal: 'left' };
+                });
+
+                section('Average Score by Domain (out of 10)');
+                this._reportDomains().forEach(([k, n]) => {
+                    const row = sm.getRow(r++);
+                    row.getCell(1).value = n; row.getCell(2).value = Number(st.dAvg[k].toFixed(2)); row.getCell(2).numFmt = '0.0';
+                    row.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: domFill(st.dAvg[k]) } };
+                    row.getCell(2).alignment = { horizontal: 'left' };
+                    [1, 2].forEach(c => { row.getCell(c).border = border; });
+                });
+
+                // ───────── Sheet 2: Assessments ─────────
+                const ws = wb.addWorksheet('Assessments', { views: [{ state: 'frozen', xSplit: 3, ySplit: 1 }] });
+                const cols = [
+                    ['No.', 6], ['Date', 12], ['Student Name', 30], ['MyKid Number', 16], ['Class', 12], ['Age', 6],
+                    ['Overall Score', 10], ['Severity', 18], ['Status', 12]
+                ];
+                this._reportDomains().forEach(([k, n]) => cols.push([n, 13]));
+                cols.push(['Counselor', 18], ['Counselor Notes (EN)', 55], ['Counselor Notes (MS)', 45], ['Counselor Notes (TA)', 45]);
+                ws.columns = cols.map(([h, w]) => ({ header: h, width: w }));
+                ws.getRow(1).height = 34;
+                ws.getRow(1).eachCell(head);
+                ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: cols.length } };
+
+                const noteOf = (a, l) => (a.notes && typeof a.notes === 'object' ? a.notes[l] : (l === 'en' ? a.notes : '')) || '';
+                rows.forEach(({ a, s }, i) => {
+                    const d = new Date(String(a.date).slice(0, 10) + 'T00:00:00');
+                    const vals = [i + 1, isNaN(d) ? a.date : d, s ? s.name : 'Unknown', s ? String(s.icNumber || '') : '', s ? s.class : '', s && s.age != null ? s.age : '',
+                        Number(a.overallScore) || 0, (SEV[a.severity] || SEV.normal).label, a.status === 'resolved' ? 'Resolved' : 'Active'];
+                    this._reportDomains().forEach(([k]) => { const v = a.domains ? Number(a.domains[k]) : NaN; vals.push(isNaN(v) ? '' : v); });
+                    vals.push(a.counselorName || '', noteOf(a, 'en'), noteOf(a, 'ms'), noteOf(a, 'ta'));
+                    const row = ws.addRow(vals);
+                    row.height = 22;
+                    row.eachCell({ includeEmpty: true }, (cell, c) => {
+                        cell.border = border;
+                        cell.alignment = { vertical: 'middle', horizontal: (c === 3 || c >= cols.length - 3) ? 'left' : 'center', wrapText: c >= cols.length - 2 };
+                        if (i % 2) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                    });
+                    row.getCell(2).numFmt = 'dd/mm/yyyy';
+                    row.getCell(4).numFmt = '@';
+                    row.getCell(7).numFmt = '0.0';
+                    row.getCell(7).font = { bold: true, color: { argb: scoreFont(Number(a.overallScore)) } };
+                    const sv = SEV[a.severity] || SEV.normal;
+                    row.getCell(8).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sv.bg } };
+                    row.getCell(8).font = { bold: true, color: { argb: sv.fg } };
+                    this._reportDomains().forEach(([k], j) => {
+                        const v = a.domains ? Number(a.domains[k]) : NaN;
+                        if (!isNaN(v)) { const cell = row.getCell(10 + j); cell.numFmt = '0.0'; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: domFill(v) } }; }
+                    });
+                });
+                ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+
+                // ───────── Sheet 3: Students overview ─────────
+                const byStu = new Map();
+                rows.forEach(({ a, s }) => {
+                    const key = this._nid(a.studentId);
+                    if (!byStu.has(key)) byStu.set(key, { s, list: [] });
+                    byStu.get(key).list.push(a);
+                });
+                const so = wb.addWorksheet('Students Overview', { views: [{ state: 'frozen', ySplit: 1 }] });
+                const sCols = [['No.', 6], ['Student Name', 30], ['MyKid Number', 16], ['Class', 12], ['Assessments', 13], ['Latest Date', 13], ['Latest Score', 12], ['Average Score', 13], ['Latest Severity', 18], ['Flagged?', 11]];
+                so.columns = sCols.map(([h, w]) => ({ header: h, width: w }));
+                so.getRow(1).height = 30; so.getRow(1).eachCell(head);
+                so.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: sCols.length } };
+                const stuList = [...byStu.values()].sort((x, y) => ((x.s && x.s.class) || '').localeCompare((y.s && y.s.class) || '') || ((x.s && x.s.name) || '').localeCompare((y.s && y.s.name) || ''));
+                stuList.forEach(({ s, list }, i) => {
+                    const latest = list[0]; // rows already sorted newest-first
+                    const avg = list.reduce((t, a) => t + (Number(a.overallScore) || 0), 0) / list.length;
+                    const sv = SEV[latest.severity] || SEV.normal;
+                    const d = new Date(String(latest.date).slice(0, 10) + 'T00:00:00');
+                    const row = so.addRow([i + 1, s ? s.name : 'Unknown', s ? String(s.icNumber || '') : '', s ? s.class : '', list.length, isNaN(d) ? latest.date : d,
+                        Number(latest.overallScore) || 0, Number(avg.toFixed(2)), sv.label, (latest.severity === 'severe' || latest.severity === 'moderate') ? 'Yes' : 'No']);
+                    row.height = 22;
+                    row.eachCell({ includeEmpty: true }, (cell, c) => {
+                        cell.border = border;
+                        cell.alignment = { vertical: 'middle', horizontal: c === 2 ? 'left' : 'center' };
+                        if (i % 2) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                    });
+                    row.getCell(3).numFmt = '@'; row.getCell(6).numFmt = 'dd/mm/yyyy'; row.getCell(7).numFmt = '0.0'; row.getCell(8).numFmt = '0.0';
+                    row.getCell(7).font = { bold: true, color: { argb: scoreFont(Number(latest.overallScore)) } };
+                    row.getCell(9).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sv.bg } };
+                    row.getCell(9).font = { bold: true, color: { argb: sv.fg } };
+                    if (row.getCell(10).value === 'Yes') row.getCell(10).font = { bold: true, color: { argb: 'FFB91C1C' } };
+                });
+
+                // ───────── Download ─────────
+                const tag = meta.type === 'flagged' ? 'Flagged' : meta.type === 'student' && meta.student ? meta.student.name.replace(/[^A-Za-z0-9]+/g, '_').slice(0, 30) : 'All';
+                const buf = await wb.xlsx.writeBuffer();
+                const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url; link.download = 'MANASU_Lab_Report_' + tag + '_' + dateStr + '.xlsx';
+                document.body.appendChild(link); link.click(); link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                this.showToast(this.t('toast_excel_exported') + ' (' + rows.length + ' records)', 'success');
+            } catch (e) {
+                console.error('Excel export failed', e);
+                this.showToast('Excel export failed — see console', 'error');
             }
         },
                                exportStudents() {
