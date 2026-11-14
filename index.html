@@ -351,6 +351,41 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 }
 
         .admin-sidebar-header { padding: 6px 8px 18px; border-bottom: 1px solid var(--glass-border); margin-bottom: 12px; }
+        /* ── Report preview: follows light / dark mode (PDF + Excel always stay light/print-friendly) ── */
+        .rp-paper { --rp-bg:#ffffff; --rp-text:#0f172a; --rp-sub:#64748b; --rp-line:#e2e8f0; --rp-soft:#f8fafc; --rp-soft2:#f1f5f9; --rp-body:#334155; --rp-track:#e2e8f0; --rp-zebra:#f8fafc;
+            --rp-severe:#b91c1c; --rp-severe-bg:#fee2e2; --rp-moderate:#c2410c; --rp-moderate-bg:#ffedd5; --rp-mild:#a16207; --rp-mild-bg:#fef9c3; --rp-normal:#15803d; --rp-normal-bg:#dcfce7; --rp-blue:#2563eb; --rp-teal:#0d9488;
+            background:var(--rp-bg); color:var(--rp-text); padding:28px; border-radius:12px; border:1px solid var(--rp-line); min-width:640px; transition:background-color .25s ease, color .25s ease, border-color .25s ease; }
+        body.dark-mode .rp-paper { --rp-bg:#0f172a; --rp-text:#f1f5f9; --rp-sub:#94a3b8; --rp-line:rgba(255,255,255,0.10); --rp-soft:rgba(255,255,255,0.04); --rp-soft2:rgba(255,255,255,0.06); --rp-body:#cbd5e1; --rp-track:rgba(255,255,255,0.12); --rp-zebra:rgba(255,255,255,0.03);
+            --rp-severe:#f87171; --rp-severe-bg:rgba(248,113,113,0.16); --rp-moderate:#fb923c; --rp-moderate-bg:rgba(251,146,60,0.16); --rp-mild:#facc15; --rp-mild-bg:rgba(250,204,21,0.14); --rp-normal:#4ade80; --rp-normal-bg:rgba(74,222,128,0.14); --rp-blue:#60a5fa; --rp-teal:#2dd4bf; }
+        .rp-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:16px; }
+        .rp-btns { display:flex; gap:8px; flex-wrap:wrap; }
+        .rp-head { display:flex; align-items:center; gap:14px; border-bottom:3px solid var(--rp-teal); padding-bottom:14px; margin-bottom:16px; }
+        .rp-logo { width:52px; height:52px; object-fit:contain; background:#fff; border-radius:10px; padding:4px; }
+        .rp-title { font-size:1.25rem; font-weight:700; }
+        .rp-sub { font-size:0.78rem; color:var(--rp-sub); }
+        .rp-strong { color:var(--rp-text); }
+        .rp-filters { font-size:0.82rem; color:var(--rp-body); background:var(--rp-soft2); padding:10px 14px; border-radius:10px; margin-bottom:16px; }
+        .rp-cards { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+        .rp-card { flex:1; min-width:120px; padding:14px; border:1px solid var(--rp-line); border-radius:12px; text-align:center; background:var(--rp-soft); }
+        .rp-card-v { font-size:1.6rem; font-weight:800; }
+        .rp-cols { display:flex; gap:28px; flex-wrap:wrap; margin-bottom:20px; }
+        .rp-cols > div { flex:1; min-width:260px; }
+        .rp-h { font-weight:700; margin-bottom:10px; color:var(--rp-teal); }
+        .rp-bar { margin-bottom:8px; }
+        .rp-bar-h { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--rp-body); margin-bottom:3px; }
+        .rp-track { height:8px; background:var(--rp-track); border-radius:6px; overflow:hidden; }
+        .rp-fill { height:100%; border-radius:6px; }
+        .rp-f-severe { background:var(--rp-severe); } .rp-f-moderate { background:var(--rp-moderate); } .rp-f-mild { background:var(--rp-mild); } .rp-f-normal { background:var(--rp-normal); } .rp-f-teal { background:var(--rp-teal); }
+        .rp-t-severe { color:var(--rp-severe); } .rp-t-moderate { color:var(--rp-moderate); } .rp-t-mild { color:var(--rp-mild); } .rp-t-normal { color:var(--rp-normal); } .rp-t-blue { color:var(--rp-blue); } .rp-t-teal { color:var(--rp-teal); }
+        .rp-table { width:100%; border-collapse:collapse; font-size:0.8rem; color:var(--rp-text); }
+        .rp-table th { background:var(--rp-teal); color:#fff; text-align:left; padding:8px; }
+        body.dark-mode .rp-table th { background:rgba(13,148,136,0.55); }
+        .rp-table td { padding:7px 8px; border-bottom:1px solid var(--rp-line); }
+        .rp-table tbody tr:nth-child(even) { background:var(--rp-zebra); }
+        .rp-b { font-weight:700; }
+        .rp-pill { padding:2px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; white-space:nowrap; }
+        .rp-p-severe { background:var(--rp-severe-bg); color:var(--rp-severe); } .rp-p-moderate { background:var(--rp-moderate-bg); color:var(--rp-moderate); } .rp-p-mild { background:var(--rp-mild-bg); color:var(--rp-mild); } .rp-p-normal { background:var(--rp-normal-bg); color:var(--rp-normal); }
+        .rp-foot { margin-top:18px; padding-top:10px; border-top:1px solid var(--rp-line); font-size:0.7rem; color:var(--rp-sub); text-align:center; }
         .asb-brand { display: flex; align-items: center; gap: 12px; }
         .asb-logo { width: 44px; height: 44px; flex: none; object-fit: contain; padding: 6px; border-radius: 12px; background: #fff; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .asb-text { min-width: 0; }
@@ -2841,8 +2876,8 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <h4 style="margin-bottom:16px;" data-i18n="report_generate_title">Generate Report</h4>
                         <div class="form-grid">
                             <div class="form-group"><label data-i18n="form_report_type">Report Type</label><select class="input-premium" id="reportType" onchange="app.onReportTypeChange()"><option value="all" data-i18n="report_all">All Assessments</option><option value="flagged" data-i18n="report_flagged">Flagged Cases Only</option><option value="student" data-i18n="report_by_student">By Student</option></select></div>
-                            <div class="form-group" id="reportStudentGroup" style="display:none;"><label>Student</label><select class="input-premium" id="reportStudent"><option value="">-- Select Student --</option></select></div>
-                            <div class="form-group"><label>Class</label><select class="input-premium" id="reportClass"><option value="">All Classes</option></select></div>
+                            <div class="form-group" id="reportStudentGroup" style="display:none;"><label id="reportStudentLabel">Student</label><select class="input-premium" id="reportStudent"><option value="">-- Select Student --</option></select></div>
+                            <div class="form-group"><label id="reportClassLabel">Class</label><select class="input-premium" id="reportClass"><option value="">All Classes</option></select></div>
                             <div class="form-group"><label data-i18n="form_date_from">Date From</label><input type="date" class="input-premium" id="reportDateFrom"></div>
                             <div class="form-group"><label data-i18n="form_date_to">Date To</label><input type="date" class="input-premium" id="reportDateTo"></div>
                         </div>
@@ -4824,7 +4859,7 @@ _renderAdminPage(page) {
                     if (pageId === 'dash') this.updateDashboard();
                     if (pageId === 'students') this.renderStudentsTable();
                     if (pageId === 'assessments') this.renderAssessmentsTable();
-                    if (pageId === 'reports') { /* no table to refresh */ }
+                    if (pageId === 'reports') { this._initReportFilters(); this._refreshReportLang(); }
                     if (pageId === 'stemMissions') this.renderAdminStemMissions();
                     if (pageId === 'settings') this.loadSettings();
                 }
@@ -7236,6 +7271,58 @@ refreshResultsView() {
         // ═══════════════════════════════════════════════════════════════
         // REPORTS & EXPORT  (v2 — filters, live report preview, PDF, styled Excel)
         // ═══════════════════════════════════════════════════════════════
+        _RP: {
+            en: {
+                title: 'MANASU Lab — Assessment Report', school: 'SJKT Telok Panglima Garang • Psychometric Wellness', preview: 'Report Preview', pdf: 'Download PDF', excel: 'Export Excel',
+                generated: 'Generated', filters: 'Filters', f_all: 'All assessments', f_flagged: 'Flagged cases only', f_student: 'Student', f_class: 'Class', f_date: 'Date', start: 'start', today: 'today',
+                c_assess: 'Assessments', c_students: 'Students covered', c_avg: 'Average score', c_flagged: 'Flagged cases',
+                sev_dist: 'Severity Distribution', dom_avg: 'Average by Domain', records: 'Assessment Records', cont: 'continued',
+                th_date: 'Date', th_student: 'Student', th_class: 'Class', th_score: 'Score', th_sev: 'Severity', th_status: 'Status', active: 'Active', resolved: 'Resolved',
+                showing: 'Showing first {n} of {m} records. Use Export Excel for the complete list.', confidential: 'Confidential — for counselor and school use only • MANASU Lab', page: 'Page {n} of {m}',
+                toast_gen: 'Report generated — {n} assessment(s)', toast_first: 'Generate the report first', toast_pdf_prep: 'Preparing PDF…', toast_pdf_done: 'PDF downloaded ({n} page(s))', toast_pdf_fail: 'PDF export failed — see console', toast_pdf_notool: 'PDF tool not loaded. Check your internet and refresh.',
+                toast_xl_prep: 'Preparing Excel…', toast_xl_csv: 'Excel tool unavailable — exported as CSV instead', toast_xl_done: 'Excel exported ({n} records)', toast_xl_fail: 'Excel export failed — see console', toast_date_order: '"Date From" must be before "Date To"',
+                lbl_student: 'Student', lbl_class: 'Class', all_classes: 'All Classes', sel_student: '-- Select Student --',
+                x_summary: 'Summary', x_students_sheet: 'Students Overview', x_details: 'Report Details', x_gen_on: 'Generated on', x_type: 'Report type', x_type_all: 'All assessments', x_type_flagged: 'Flagged cases only', x_type_student: 'By student', x_class_all: 'All classes', x_range: 'Date range', x_start: 'Start', x_today: 'Today', x_key: 'Key Numbers', x_total: 'Total assessments', x_avg_overall: 'Average overall score', x_flagged_ms: 'Flagged (moderate + severe)', x_sev: 'Severity Distribution', x_dom: 'Average Score by Domain (out of 10)',
+                col_no: 'No.', col_date: 'Date', col_name: 'Student Name', col_mykid: 'MyKid Number', col_class: 'Class', col_age: 'Age', col_overall: 'Overall Score', col_sev: 'Severity', col_status: 'Status', col_counselor: 'Counselor', col_notes: 'Counselor Notes', col_count: 'Assessments', col_latest_date: 'Latest Date', col_latest_score: 'Latest Score', col_avg: 'Average Score', col_latest_sev: 'Latest Severity', col_flagged_q: 'Flagged?', yes: 'Yes', no: 'No', unknown: 'Unknown'
+            },
+            ms: {
+                title: 'MANASU Lab — Laporan Penilaian', school: 'SJKT Telok Panglima Garang • Kesejahteraan Psikometrik', preview: 'Pratonton Laporan', pdf: 'Muat Turun PDF', excel: 'Eksport Excel',
+                generated: 'Dijana', filters: 'Penapis', f_all: 'Semua penilaian', f_flagged: 'Kes bertanda sahaja', f_student: 'Pelajar', f_class: 'Kelas', f_date: 'Tarikh', start: 'permulaan', today: 'hari ini',
+                c_assess: 'Penilaian', c_students: 'Pelajar diliputi', c_avg: 'Purata skor', c_flagged: 'Kes bertanda',
+                sev_dist: 'Taburan Tahap Keterukan', dom_avg: 'Purata mengikut Domain', records: 'Rekod Penilaian', cont: 'bersambung',
+                th_date: 'Tarikh', th_student: 'Pelajar', th_class: 'Kelas', th_score: 'Skor', th_sev: 'Keterukan', th_status: 'Status', active: 'Aktif', resolved: 'Selesai',
+                showing: 'Memaparkan {n} rekod pertama daripada {m}. Gunakan Eksport Excel untuk senarai penuh.', confidential: 'Sulit — untuk kegunaan kaunselor dan sekolah sahaja • MANASU Lab', page: 'Halaman {n} daripada {m}',
+                toast_gen: 'Laporan dijana — {n} penilaian', toast_first: 'Sila jana laporan dahulu', toast_pdf_prep: 'Menyediakan PDF…', toast_pdf_done: 'PDF dimuat turun ({n} halaman)', toast_pdf_fail: 'Eksport PDF gagal — lihat console', toast_pdf_notool: 'Alat PDF tidak dimuatkan. Semak internet dan muat semula.',
+                toast_xl_prep: 'Menyediakan Excel…', toast_xl_csv: 'Alat Excel tidak tersedia — dieksport sebagai CSV', toast_xl_done: 'Excel dieksport ({n} rekod)', toast_xl_fail: 'Eksport Excel gagal — lihat console', toast_date_order: '"Dari Tarikh" mesti sebelum "Hingga Tarikh"',
+                lbl_student: 'Pelajar', lbl_class: 'Kelas', all_classes: 'Semua Kelas', sel_student: '-- Pilih Pelajar --',
+                x_summary: 'Ringkasan', x_students_sheet: 'Ringkasan Pelajar', x_details: 'Butiran Laporan', x_gen_on: 'Dijana pada', x_type: 'Jenis laporan', x_type_all: 'Semua penilaian', x_type_flagged: 'Kes bertanda sahaja', x_type_student: 'Mengikut pelajar', x_class_all: 'Semua kelas', x_range: 'Julat tarikh', x_start: 'Permulaan', x_today: 'Hari ini', x_key: 'Nombor Utama', x_total: 'Jumlah penilaian', x_avg_overall: 'Purata skor keseluruhan', x_flagged_ms: 'Bertanda (sederhana + teruk)', x_sev: 'Taburan Tahap Keterukan', x_dom: 'Purata Skor mengikut Domain (daripada 10)',
+                col_no: 'No.', col_date: 'Tarikh', col_name: 'Nama Pelajar', col_mykid: 'Nombor MyKid', col_class: 'Kelas', col_age: 'Umur', col_overall: 'Skor Keseluruhan', col_sev: 'Keterukan', col_status: 'Status', col_counselor: 'Kaunselor', col_notes: 'Nota Kaunselor', col_count: 'Penilaian', col_latest_date: 'Tarikh Terkini', col_latest_score: 'Skor Terkini', col_avg: 'Purata Skor', col_latest_sev: 'Keterukan Terkini', col_flagged_q: 'Bertanda?', yes: 'Ya', no: 'Tidak', unknown: 'Tidak diketahui'
+            },
+            ta: {
+                title: 'MANASU Lab — மதிப்பீட்டு அறிக்கை', school: 'SJKT தெலோக் பங்லிமா காராங் • உளவியல் நலம்', preview: 'அறிக்கை முன்னோட்டம்', pdf: 'PDF பதிவிறக்கு', excel: 'Excel ஏற்றுமதி',
+                generated: 'உருவாக்கப்பட்டது', filters: 'வடிகட்டிகள்', f_all: 'அனைத்து மதிப்பீடுகள்', f_flagged: 'குறிக்கப்பட்ட வழக்குகள் மட்டும்', f_student: 'மாணவர்', f_class: 'வகுப்பு', f_date: 'தேதி', start: 'தொடக்கம்', today: 'இன்று',
+                c_assess: 'மதிப்பீடுகள்', c_students: 'உள்ளடக்கிய மாணவர்கள்', c_avg: 'சராசரி மதிப்பெண்', c_flagged: 'குறிக்கப்பட்ட வழக்குகள்',
+                sev_dist: 'தீவிரத்தன்மை பரவல்', dom_avg: 'களம் வாரியான சராசரி', records: 'மதிப்பீட்டுப் பதிவுகள்', cont: 'தொடர்ச்சி',
+                th_date: 'தேதி', th_student: 'மாணவர்', th_class: 'வகுப்பு', th_score: 'மதிப்பெண்', th_sev: 'தீவிரம்', th_status: 'நிலை', active: 'செயலில்', resolved: 'தீர்க்கப்பட்டது',
+                showing: 'முதல் {n} பதிவுகள் ({m} இல்) காட்டப்படுகின்றன. முழு பட்டியலுக்கு Excel ஏற்றுமதியைப் பயன்படுத்தவும்.', confidential: 'ரகசியம் — ஆலோசகர் மற்றும் பள்ளி பயன்பாட்டிற்கு மட்டும் • MANASU Lab', page: 'பக்கம் {n} / {m}',
+                toast_gen: 'அறிக்கை உருவாக்கப்பட்டது — {n} மதிப்பீடுகள்', toast_first: 'முதலில் அறிக்கையை உருவாக்கவும்', toast_pdf_prep: 'PDF தயாராகிறது…', toast_pdf_done: 'PDF பதிவிறக்கப்பட்டது ({n} பக்கங்கள்)', toast_pdf_fail: 'PDF ஏற்றுமதி தோல்வி — console-ஐப் பார்க்கவும்', toast_pdf_notool: 'PDF கருவி ஏற்றப்படவில்லை. இணையத்தைச் சரிபார்த்து புதுப்பிக்கவும்.',
+                toast_xl_prep: 'Excel தயாராகிறது…', toast_xl_csv: 'Excel கருவி கிடைக்கவில்லை — CSV ஆக ஏற்றுமதி செய்யப்பட்டது', toast_xl_done: 'Excel ஏற்றுமதி செய்யப்பட்டது ({n} பதிவுகள்)', toast_xl_fail: 'Excel ஏற்றுமதி தோல்வி — console-ஐப் பார்க்கவும்', toast_date_order: '"தொடக்க தேதி" "முடிவு தேதி"க்கு முன் இருக்க வேண்டும்',
+                lbl_student: 'மாணவர்', lbl_class: 'வகுப்பு', all_classes: 'அனைத்து வகுப்புகள்', sel_student: '-- மாணவரைத் தேர்ந்தெடுக்கவும் --',
+                x_summary: 'சுருக்கம்', x_students_sheet: 'மாணவர் கண்ணோட்டம்', x_details: 'அறிக்கை விவரங்கள்', x_gen_on: 'உருவாக்கிய நேரம்', x_type: 'அறிக்கை வகை', x_type_all: 'அனைத்து மதிப்பீடுகள்', x_type_flagged: 'குறிக்கப்பட்ட வழக்குகள் மட்டும்', x_type_student: 'மாணவர் வாரியாக', x_class_all: 'அனைத்து வகுப்புகள்', x_range: 'தேதி வரம்பு', x_start: 'தொடக்கம்', x_today: 'இன்று', x_key: 'முக்கிய எண்கள்', x_total: 'மொத்த மதிப்பீடுகள்', x_avg_overall: 'சராசரி ஒட்டுமொத்த மதிப்பெண்', x_flagged_ms: 'குறிக்கப்பட்டவை (மிதமான + கடுமையான)', x_sev: 'தீவிரத்தன்மை பரவல்', x_dom: 'களம் வாரியான சராசரி மதிப்பெண் (10 இல்)',
+                col_no: 'எண்', col_date: 'தேதி', col_name: 'மாணவர் பெயர்', col_mykid: 'MyKid எண்', col_class: 'வகுப்பு', col_age: 'வயது', col_overall: 'ஒட்டுமொத்த மதிப்பெண்', col_sev: 'தீவிரம்', col_status: 'நிலை', col_counselor: 'ஆலோசகர்', col_notes: 'ஆலோசகர் குறிப்புகள்', col_count: 'மதிப்பீடுகள்', col_latest_date: 'சமீபத்திய தேதி', col_latest_score: 'சமீபத்திய மதிப்பெண்', col_avg: 'சராசரி மதிப்பெண்', col_latest_sev: 'சமீபத்திய தீவிரம்', col_flagged_q: 'குறிக்கப்பட்டதா?', yes: 'ஆம்', no: 'இல்லை', unknown: 'தெரியவில்லை'
+            }
+        },
+        _rt(key, vars) {
+            const d = this._RP[this.currentLang] || this._RP.en;
+            let s = (d[key] != null ? d[key] : this._RP.en[key]) || key;
+            if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
+            return s;
+        },
+        _domName(k) {
+            try { const d = this.getDomainInfo(k); if (d && d.name) return d.name[this.currentLang] || d.name.en; } catch (e) {}
+            const f = this._reportDomains().find(x => x[0] === k); return f ? f[1] : k;
+        },
+        _sevLabel(k) { const v = this.t('filter_' + k); return (v && v !== 'filter_' + k) ? v : this._sevMap()[k].label; },
         _sevMap() {
             return {
                 severe:   { label: 'Severe Concern',   bg: 'FFFEE2E2', fg: 'FFB91C1C', css: '#b91c1c', cssBg: '#fee2e2' },
@@ -7257,15 +7344,17 @@ refreshResultsView() {
             if (classSel) {
                 const keep = classSel.value;
                 const classes = [...new Set(this.students.map(s => (s.class || '').trim()).filter(Boolean))].sort();
-                classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
+                classSel.innerHTML = '<option value="">' + this._rt('all_classes') + '</option>' + classes.map(c => '<option value="' + this.sanitizeHTML(c) + '">' + this.sanitizeHTML(c) + '</option>').join('');
                 if (keep && classes.includes(keep)) classSel.value = keep;
             }
             if (stuSel) {
                 const keep = stuSel.value;
                 const list = [...this.students].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                stuSel.innerHTML = '<option value="">-- Select Student --</option>' + list.map(s => '<option value="' + this.sanitizeHTML(s.id) + '">' + this.sanitizeHTML(s.name) + (s.class ? ' (' + this.sanitizeHTML(s.class) + ')' : '') + '</option>').join('');
+                stuSel.innerHTML = '<option value="">' + this._rt('sel_student') + '</option>' + list.map(s => '<option value="' + this.sanitizeHTML(s.id) + '">' + this.sanitizeHTML(s.name) + (s.class ? ' (' + this.sanitizeHTML(s.class) + ')' : '') + '</option>').join('');
                 if (keep && list.some(s => s.id === keep)) stuSel.value = keep;
             }
+            const l1 = document.getElementById('reportStudentLabel'); if (l1) l1.textContent = this._rt('lbl_student');
+            const l2 = document.getElementById('reportClassLabel'); if (l2) l2.textContent = this._rt('lbl_class');
             this.onReportTypeChange();
         },
         onReportTypeChange() {
@@ -7280,7 +7369,7 @@ refreshResultsView() {
             const cls = document.getElementById('reportClass')?.value || '';
             const stuId = document.getElementById('reportStudent')?.value || '';
             if (type === 'student' && !stuId) { this.showToast(this.t('toast_select_student'), 'error'); return null; }
-            if (from && to && from > to) { this.showToast('"Date From" must be before "Date To"', 'error'); return null; }
+            if (from && to && from > to) { this.showToast(this._rt('toast_date_order'), 'error'); return null; }
             const nid = v => this._nid(v);
             const stuMap = new Map(this.students.map(s => [nid(s.id), s]));
             let rows = (this.assessments || []).map(a => ({ a, s: stuMap.get(nid(a.studentId)) || null }));
@@ -7313,77 +7402,81 @@ refreshResultsView() {
         },
         _reportFilterText(meta) {
             const parts = [];
-            parts.push(meta.type === 'flagged' ? 'Flagged cases only' : meta.type === 'student' ? 'Student: ' + (meta.student ? meta.student.name : '') : 'All assessments');
-            if (meta.cls) parts.push('Class: ' + meta.cls);
-            if (meta.from || meta.to) parts.push('Date: ' + (meta.from || 'start') + ' → ' + (meta.to || 'today'));
+            parts.push(meta.type === 'flagged' ? this._rt('f_flagged') : meta.type === 'student' ? this._rt('f_student') + ': ' + (meta.student ? meta.student.name : '') : this._rt('f_all'));
+            if (meta.cls) parts.push(this._rt('f_class') + ': ' + meta.cls);
+            if (meta.from || meta.to) parts.push(this._rt('f_date') + ': ' + (meta.from || this._rt('start')) + ' → ' + (meta.to || this._rt('today')));
             return parts.join('  •  ');
         },
         generateReport() {
             const res = this._reportRows();
             if (!res) return;
             const { rows, meta } = res;
-            const st = this._reportStats(rows);
-            this._lastReport = { rows, meta, st }; // PDF uses exactly what the preview shows
-            const SEV = this._sevMap();
+            this._lastReport = { rows, meta, st: this._reportStats(rows) }; // preview, PDF and Excel all use exactly this
+            this._renderReportPreview(true);
+            this.showToast(this._rt('toast_gen', { n: rows.length }), 'success');
+        },
+        _refreshReportLang() {
+            const box = document.getElementById('reportPreview');
+            if (this._lastReport && box && box.style.display !== 'none' && box.innerHTML) this._renderReportPreview(false);
+        },
+        _renderReportPreview(scroll) {
+            const rep = this._lastReport;
+            const box = document.getElementById('reportPreview');
+            if (!rep || !box) return;
+            const { rows, meta, st } = rep;
+            const th = this.settings.thresholds;
+            const R = k => this._rt(k);
             const esc = v => this.sanitizeHTML(String(v == null ? '' : v));
             const fmtD = d => { const x = new Date(String(d).slice(0, 10) + 'T00:00:00'); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB'); };
-            const scoreCol = v => v < this.settings.thresholds.moderate ? '#b91c1c' : v < this.settings.thresholds.mild ? '#c2410c' : v < this.settings.thresholds.normal ? '#a16207' : '#15803d';
+            const lvl = v => v < th.moderate ? 'severe' : v < th.mild ? 'moderate' : v < th.normal ? 'mild' : 'normal';
             const MAX_ROWS = 200;
-            const card = (label, val, color) => '<div style="flex:1; min-width:120px; padding:14px; border:1px solid #e2e8f0; border-radius:12px; text-align:center; background:#f8fafc;"><div style="font-size:1.6rem; font-weight:800; color:' + color + ';">' + val + '</div><div style="font-size:0.75rem; color:#64748b; margin-top:2px;">' + label + '</div></div>';
-            const bar = (label, text, pct, color) => '<div style="margin-bottom:8px;"><div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#334155; margin-bottom:3px;"><span>' + label + '</span><strong>' + text + '</strong></div><div style="height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden;"><div style="height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; background:' + color + '; border-radius:6px;"></div></div></div>';
+            const card = (label, val, cls) => '<div class="rp-card"><div class="rp-card-v rp-t-' + cls + '">' + val + '</div><div class="rp-sub">' + label + '</div></div>';
+            const bar = (label, text, pct, cls) => '<div class="rp-bar"><div class="rp-bar-h"><span>' + label + '</span><strong>' + text + '</strong></div><div class="rp-track"><div class="rp-fill rp-f-' + cls + '" style="width:' + Math.max(0, Math.min(100, pct)) + '%;"></div></div></div>';
 
-            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(SEV[k].label, st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, SEV[k].css)).join('');
-            const domBars = this._reportDomains().map(([k, n]) => bar(n, st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, '#0d9488')).join('');
-            const trs = rows.slice(0, MAX_ROWS).map(({ a, s }, i) => {
-                const sv = SEV[a.severity] || SEV.normal;
-                return '<tr style="' + (i % 2 ? 'background:#f8fafc;' : '') + 'page-break-inside:avoid;">' +
-                    '<td style="padding:7px 8px;">' + fmtD(a.date) + '</td>' +
-                    '<td style="padding:7px 8px; font-weight:600;">' + esc(s ? s.name : 'Unknown') + '</td>' +
-                    '<td style="padding:7px 8px;">' + esc(s ? s.class : '') + '</td>' +
-                    '<td style="padding:7px 8px; font-weight:700; color:' + scoreCol(Number(a.overallScore)) + ';">' + (Number(a.overallScore) || 0).toFixed(1) + '</td>' +
-                    '<td style="padding:7px 8px;"><span style="padding:2px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; background:' + sv.cssBg + '; color:' + sv.css + ';">' + sv.label + '</span></td>' +
-                    '<td style="padding:7px 8px;">' + (a.status === 'resolved' ? 'Resolved' : 'Active') + '</td></tr>';
+            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(esc(this._sevLabel(k)), st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, k)).join('');
+            const domBars = this._reportDomains().map(([k]) => bar(esc(this._domName(k)), st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, 'teal')).join('');
+            const trs = rows.slice(0, MAX_ROWS).map(({ a, s }) => {
+                const sev = SEV_OK(a.severity);
+                return '<tr>' +
+                    '<td>' + fmtD(a.date) + '</td>' +
+                    '<td class="rp-b">' + esc(s ? s.name : R('unknown')) + '</td>' +
+                    '<td>' + esc(s ? s.class : '') + '</td>' +
+                    '<td class="rp-b rp-t-' + lvl(Number(a.overallScore)) + '">' + (Number(a.overallScore) || 0).toFixed(1) + '</td>' +
+                    '<td><span class="rp-pill rp-p-' + sev + '">' + esc(this._sevLabel(sev)) + '</span></td>' +
+                    '<td>' + (a.status === 'resolved' ? R('resolved') : R('active')) + '</td></tr>';
             }).join('');
-            const more = rows.length > MAX_ROWS ? '<p style="font-size:0.78rem; color:#64748b; margin-top:8px;">Showing first ' + MAX_ROWS + ' of ' + rows.length + ' records. Use <strong>Export Excel</strong> for the complete list.</p>' : '';
+            function SEV_OK(x) { return ['severe', 'moderate', 'mild', 'normal'].includes(x) ? x : 'normal'; }
+            const more = rows.length > MAX_ROWS ? '<p class="rp-sub" style="margin-top:8px;">' + esc(this._rt('showing', { n: MAX_ROWS, m: rows.length })) + '</p>' : '';
 
-            const html =
+            box.innerHTML =
                 '<div class="glass-card" style="padding:20px;">' +
-                  '<div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:16px;">' +
-                    '<h4 style="margin:0;"><i class="fas fa-file-alt" style="color:var(--healing-teal); margin-right:8px;"></i>Report Preview</h4>' +
-                    '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
-                      '<button class="btn btn-primary" style="padding:10px 18px;" onclick="app.downloadReportPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>' +
-                      '<button class="btn btn-teal" style="padding:10px 18px;" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>' +
-                      '<button class="btn" style="padding:10px 14px; background:rgba(0,0,0,0.05); color:var(--text-secondary);" onclick="app.closeReportPreview()"><i class="fas fa-times"></i></button>' +
+                  '<div class="rp-actions">' +
+                    '<h4 style="margin:0;"><i class="fas fa-file-alt" style="color:var(--healing-teal); margin-right:8px;"></i>' + R('preview') + '</h4>' +
+                    '<div class="rp-btns">' +
+                      '<button class="btn btn-primary" style="padding:10px 18px;" onclick="app.downloadReportPDF()"><i class="fas fa-file-pdf"></i> ' + R('pdf') + '</button>' +
+                      '<button class="btn btn-teal" style="padding:10px 18px;" onclick="app.exportReportExcel()"><i class="fas fa-file-excel"></i> ' + R('excel') + '</button>' +
+                      '<button class="btn btn-outline" style="padding:10px 14px;" onclick="app.closeReportPreview()"><i class="fas fa-times"></i></button>' +
                     '</div>' +
                   '</div>' +
                   '<div style="overflow-x:auto;">' +
-                  '<div id="reportPaper" style="background:#ffffff; color:#0f172a; padding:28px; border-radius:12px; border:1px solid #e2e8f0; font-family:Poppins,Arial,sans-serif; min-width:640px;">' +
-                    '<div style="display:flex; align-items:center; gap:14px; border-bottom:3px solid #0d9488; padding-bottom:14px; margin-bottom:16px;">' +
-                      '<img src="icon-192.png" alt="" style="width:52px; height:52px; object-fit:contain;">' +
-                      '<div style="flex:1;"><div style="font-size:1.25rem; font-weight:700;">MANASU Lab — Assessment Report</div><div style="font-size:0.8rem; color:#64748b;">SJKT Telok Panglima Garang • Psychometric Wellness</div></div>' +
-                      '<div style="text-align:right; font-size:0.75rem; color:#64748b;">Generated<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
+                  '<div id="reportPaper" class="rp-paper">' +
+                    '<div class="rp-head">' +
+                      '<img src="icon-192.png" alt="" class="rp-logo">' +
+                      '<div style="flex:1;"><div class="rp-title">' + esc(R('title')) + '</div><div class="rp-sub">' + esc(R('school')) + '</div></div>' +
+                      '<div class="rp-sub" style="text-align:right;">' + R('generated') + '<br><strong class="rp-strong">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
                     '</div>' +
-                    '<div style="font-size:0.82rem; color:#334155; background:#f1f5f9; padding:10px 14px; border-radius:10px; margin-bottom:16px;"><strong>Filters:</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
-                    '<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">' +
-                      card('Assessments', st.total, '#2563eb') + card('Students covered', st.students, '#0d9488') + card('Average score', st.avg.toFixed(1), scoreCol(st.avg)) + card('Flagged cases', st.flagged, '#b91c1c') +
+                    '<div class="rp-filters"><strong>' + R('filters') + ':</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
+                    '<div class="rp-cards">' + card(R('c_assess'), st.total, 'blue') + card(R('c_students'), st.students, 'teal') + card(R('c_avg'), st.avg.toFixed(1), lvl(st.avg)) + card(R('c_flagged'), st.flagged, 'severe') + '</div>' +
+                    '<div class="rp-cols">' +
+                      '<div><div class="rp-h">' + R('sev_dist') + '</div>' + sevBars + '</div>' +
+                      '<div><div class="rp-h">' + R('dom_avg') + '</div>' + domBars + '</div>' +
                     '</div>' +
-                    '<div style="display:flex; gap:28px; flex-wrap:wrap; margin-bottom:20px;">' +
-                      '<div style="flex:1; min-width:260px;"><div style="font-weight:700; margin-bottom:10px; color:#0d9488;">Severity Distribution</div>' + sevBars + '</div>' +
-                      '<div style="flex:1; min-width:260px;"><div style="font-weight:700; margin-bottom:10px; color:#0d9488;">Average by Domain</div>' + domBars + '</div>' +
-                    '</div>' +
-                    '<div style="font-weight:700; margin-bottom:8px; color:#0d9488;">Assessment Records</div>' +
-                    '<table style="width:100%; border-collapse:collapse; font-size:0.8rem;">' +
-                      '<thead><tr style="background:#0d9488; color:#fff; text-align:left;"><th style="padding:8px;">Date</th><th style="padding:8px;">Student</th><th style="padding:8px;">Class</th><th style="padding:8px;">Score</th><th style="padding:8px;">Severity</th><th style="padding:8px;">Status</th></tr></thead>' +
-                      '<tbody>' + trs + '</tbody></table>' + more +
-                    '<div style="margin-top:18px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:0.7rem; color:#94a3b8; text-align:center;">Confidential — for counselor and school use only • MANASU Lab</div>' +
+                    '<div class="rp-h">' + R('records') + '</div>' +
+                    '<table class="rp-table"><thead><tr><th>' + R('th_date') + '</th><th>' + R('th_student') + '</th><th>' + R('th_class') + '</th><th>' + R('th_score') + '</th><th>' + R('th_sev') + '</th><th>' + R('th_status') + '</th></tr></thead><tbody>' + trs + '</tbody></table>' + more +
+                    '<div class="rp-foot">' + esc(R('confidential')) + '</div>' +
                   '</div></div></div>';
-
-            const box = document.getElementById('reportPreview');
-            if (!box) return;
-            box.innerHTML = html;
             box.style.display = 'block';
-            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            this.showToast('Report generated — ' + rows.length + ' assessment(s)', 'success');
+            if (scroll) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
         },
         closeReportPreview() {
             const box = document.getElementById('reportPreview');
@@ -7398,61 +7491,63 @@ refreshResultsView() {
             body.style.cssText = 'height:1038px;overflow:hidden;';
             const ft = document.createElement('div');
             ft.style.cssText = 'position:absolute;left:36px;right:36px;bottom:18px;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:6px;';
-            ft.innerHTML = '<span>Confidential — MANASU Lab • SJKT Telok Panglima Garang</span><span class="pg"></span>';
+            ft.innerHTML = '<span>' + this.sanitizeHTML(this._rt('confidential')) + '</span><span class="pg"></span>';
             pg.appendChild(body); pg.appendChild(ft);
             return { pg, body, isCont: !!isCont };
         },
         async downloadReportPDF() {
             const rep = this._lastReport;
-            if (!rep) { this.showToast('Generate the report first', 'error'); return; }
-            if (typeof html2canvas === 'undefined' || (typeof html2pdf === 'undefined' && !(window.jspdf || window.jsPDF))) { this.showToast('PDF tool not loaded. Check your internet and refresh.', 'error'); return; }
-            this.showToast('Preparing PDF…', 'info');
+            if (!rep) { this.showToast(this._rt('toast_first'), 'error'); return; }
+            if (typeof html2canvas === 'undefined' || (typeof html2pdf === 'undefined' && !(window.jspdf || window.jsPDF))) { this.showToast(this._rt('toast_pdf_notool'), 'error'); return; }
+            this.showToast(this._rt('toast_pdf_prep'), 'info');
 
             const { rows, meta, st } = rep;
             const SEV = this._sevMap();
+            const R = k => this.sanitizeHTML(this._rt(k));
             const esc = v => this.sanitizeHTML(String(v == null ? '' : v));
             const fmtD = d => { const x = new Date(String(d).slice(0, 10) + 'T00:00:00'); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB'); };
             const th = this.settings.thresholds;
             const scoreCol = v => v < th.moderate ? '#b91c1c' : v < th.mild ? '#c2410c' : v < th.normal ? '#a16207' : '#15803d';
             const card = (label, val, color) => '<div style="flex:1; padding:12px; border:1px solid #e2e8f0; border-radius:10px; text-align:center; background:#f8fafc;"><div style="font-size:22px; font-weight:800; color:' + color + ';">' + val + '</div><div style="font-size:11px; color:#64748b; margin-top:2px;">' + label + '</div></div>';
             const bar = (label, text, pct, color) => '<div style="margin-bottom:9px;"><div style="display:flex; justify-content:space-between; font-size:11px; color:#334155; margin-bottom:3px;"><span>' + label + '</span><strong>' + text + '</strong></div><div style="height:7px; background:#e2e8f0; border-radius:5px; overflow:hidden;"><div style="height:100%; width:' + Math.max(0, Math.min(100, pct)) + '%; background:' + color + ';"></div></div></div>';
-            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(SEV[k].label, st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, SEV[k].css)).join('');
-            const domBars = this._reportDomains().map(([k, n]) => bar(n, st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, '#0d9488')).join('');
+            const sevBars = ['severe', 'moderate', 'mild', 'normal'].map(k => bar(esc(this._sevLabel(k)), st.sev[k] + ' (' + Math.round(st.sev[k] / st.total * 100) + '%)', st.sev[k] / st.total * 100, SEV[k].css)).join('');
+            const domBars = this._reportDomains().map(([k]) => bar(esc(this._domName(k)), st.dAvg[k].toFixed(1) + ' / 10', st.dAvg[k] * 10, '#0d9488')).join('');
 
             const headerHtml = (small) =>
                 '<div style="display:flex; align-items:center; gap:12px; border-bottom:3px solid #0d9488; padding-bottom:' + (small ? '8' : '12') + 'px; margin-bottom:' + (small ? '12' : '14') + 'px;">' +
                   '<img src="icon-192.png" alt="" style="width:' + (small ? '34' : '48') + 'px; height:' + (small ? '34' : '48') + 'px; object-fit:contain;">' +
-                  '<div style="flex:1;"><div style="font-size:' + (small ? '15' : '19') + 'px; font-weight:700;">MANASU Lab — Assessment Report</div>' + (small ? '' : '<div style="font-size:11px; color:#64748b;">SJKT Telok Panglima Garang • Psychometric Wellness</div>') + '</div>' +
-                  '<div style="text-align:right; font-size:10px; color:#64748b;">Generated<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
+                  '<div style="flex:1;"><div style="font-size:' + (small ? '15' : '19') + 'px; font-weight:700;">' + R('title') + '</div>' + (small ? '' : '<div style="font-size:11px; color:#64748b;">' + R('school') + '</div>') + '</div>' +
+                  '<div style="text-align:right; font-size:10px; color:#64748b;">' + R('generated') + '<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
                 '</div>';
             const page1Html = headerHtml(false) +
-                '<div style="font-size:11.5px; color:#334155; background:#f1f5f9; padding:9px 12px; border-radius:8px; margin-bottom:14px;"><strong>Filters:</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
-                '<div style="display:flex; gap:10px; margin-bottom:16px;">' + card('Assessments', st.total, '#2563eb') + card('Students covered', st.students, '#0d9488') + card('Average score', st.avg.toFixed(1), scoreCol(st.avg)) + card('Flagged cases', st.flagged, '#b91c1c') + '</div>' +
+                '<div style="font-size:11.5px; color:#334155; background:#f1f5f9; padding:9px 12px; border-radius:8px; margin-bottom:14px;"><strong>' + R('filters') + ':</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
+                '<div style="display:flex; gap:10px; margin-bottom:16px;">' + card(R('c_assess'), st.total, '#2563eb') + card(R('c_students'), st.students, '#0d9488') + card(R('c_avg'), st.avg.toFixed(1), scoreCol(st.avg)) + card(R('c_flagged'), st.flagged, '#b91c1c') + '</div>' +
                 '<div style="display:flex; gap:26px; margin-bottom:16px;">' +
-                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">Severity Distribution</div>' + sevBars + '</div>' +
-                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">Average by Domain</div>' + domBars + '</div>' +
+                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">' + R('sev_dist') + '</div>' + sevBars + '</div>' +
+                  '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">' + R('dom_avg') + '</div>' + domBars + '</div>' +
                 '</div>';
             const rowHtml = (r, i) => {
                 const a = r.a, s = r.s, sv = SEV[a.severity] || SEV.normal;
                 return '<tr style="' + (i % 2 ? 'background:#f8fafc;' : '') + '">' +
                     '<td style="padding:6px 8px; white-space:nowrap;">' + fmtD(a.date) + '</td>' +
-                    '<td style="padding:6px 8px; font-weight:600;">' + esc(s ? s.name : 'Unknown') + '</td>' +
+                    '<td style="padding:6px 8px; font-weight:600;">' + esc(s ? s.name : this._rt('unknown')) + '</td>' +
                     '<td style="padding:6px 8px; white-space:nowrap;">' + esc(s ? s.class : '') + '</td>' +
                     '<td style="padding:6px 8px; font-weight:700; color:' + scoreCol(Number(a.overallScore)) + ';">' + (Number(a.overallScore) || 0).toFixed(1) + '</td>' +
-                    '<td style="padding:6px 8px; white-space:nowrap;"><span style="padding:2px 9px; border-radius:20px; font-size:10px; font-weight:600; background:' + sv.cssBg + '; color:' + sv.css + ';">' + sv.label + '</span></td>' +
-                    '<td style="padding:6px 8px; white-space:nowrap;">' + (a.status === 'resolved' ? 'Resolved' : 'Active') + '</td></tr>';
+                    '<td style="padding:6px 8px; white-space:nowrap;"><span style="padding:2px 9px; border-radius:20px; font-size:10px; font-weight:600; background:' + sv.cssBg + '; color:' + sv.css + ';">' + esc(this._sevLabel(SEV[a.severity] ? a.severity : 'normal')) + '</span></td>' +
+                    '<td style="padding:6px 8px; white-space:nowrap;">' + (a.status === 'resolved' ? R('resolved') : R('active')) + '</td></tr>';
             };
             const tableHtml = (cont) =>
-                '<div class="tbl-wrap"><div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0d9488;">Assessment Records' + (cont ? ' (continued)' : '') + '</div>' +
+                '<div class="tbl-wrap"><div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#0d9488;">' + R('records') + (cont ? ' (' + R('cont') + ')' : '') + '</div>' +
                 '<table style="width:100%; border-collapse:collapse; font-size:11px;"><thead><tr style="background:#0d9488; color:#fff; text-align:left;">' +
-                '<th style="padding:7px 8px;">Date</th><th style="padding:7px 8px;">Student</th><th style="padding:7px 8px;">Class</th><th style="padding:7px 8px;">Score</th><th style="padding:7px 8px;">Severity</th><th style="padding:7px 8px;">Status</th>' +
+                '<th style="padding:7px 8px;">' + R('th_date') + '</th><th style="padding:7px 8px;">' + R('th_student') + '</th><th style="padding:7px 8px;">' + R('th_class') + '</th><th style="padding:7px 8px;">' + R('th_score') + '</th><th style="padding:7px 8px;">' + R('th_sev') + '</th><th style="padding:7px 8px;">' + R('th_status') + '</th>' +
                 '</tr></thead><tbody></tbody></table></div>';
 
             const host = document.createElement('div');
             host.id = 'pdfHost';
             host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;z-index:-1;';
             // Reset text rendering: site-wide optimizeLegibility / web-font kerning makes html2canvas glue letters together
-            host.innerHTML = '<style>#pdfHost, #pdfHost * { text-rendering:auto !important; font-kerning:none !important; font-variant-ligatures:none !important; font-feature-settings:normal !important; letter-spacing:normal !important; word-spacing:normal !important; font-family:Arial,Helvetica,sans-serif !important; -webkit-font-smoothing:auto !important; font-synthesis:weight style !important; text-transform:none !important; }</style>';
+            const isTa = this.currentLang === 'ta';
+            host.innerHTML = '<style>#pdfHost, #pdfHost * { text-rendering:auto !important; font-kerning:none !important; ' + (isTa ? '' : 'font-variant-ligatures:none !important; ') + 'font-feature-settings:normal !important; letter-spacing:normal !important; word-spacing:normal !important; font-family:' + (isTa ? "Arial,'Noto Sans Tamil','Nirmala UI','Latha',sans-serif" : 'Arial,Helvetica,sans-serif') + ' !important; -webkit-font-smoothing:auto !important; font-synthesis:weight style !important; text-transform:none !important; }</style>';
             document.body.appendChild(host);
             try {
                 const pages = [];
@@ -7492,7 +7587,7 @@ refreshResultsView() {
                     }
                     i++;
                 }
-                pages.forEach((p, k) => { p.pg.querySelector('.pg').textContent = 'Page ' + (k + 1) + ' of ' + pages.length; });
+                pages.forEach((p, k) => { p.pg.querySelector('.pg').textContent = this._rt('page', { n: k + 1, m: pages.length }); });
 
                 // wait for logo + fonts so nothing renders blank
                 if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
@@ -7531,10 +7626,10 @@ refreshResultsView() {
                     pdf.addImage(canvases[k].toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
                 }
                 pdf.save(fileName);
-                this.showToast('PDF downloaded (' + pages.length + ' page' + (pages.length > 1 ? 's' : '') + ')', 'success');
+                this.showToast(this._rt('toast_pdf_done', { n: pages.length }), 'success');
             } catch (e) {
                 console.error('PDF failed', e);
-                this.showToast('PDF export failed — see console', 'error');
+                this.showToast(this._rt('toast_pdf_fail'), 'error');
             } finally {
                 host.remove();
             }
@@ -7559,17 +7654,17 @@ refreshResultsView() {
 
             try {
                 if (typeof ExcelJS === 'undefined') {
-                    this.showToast('Preparing Excel…', 'info');
+                    this.showToast(this._rt('toast_xl_prep'), 'info');
                     await this._loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
                 }
             } catch (e) {
                 // Offline / blocked → plain CSV fallback so export never fails
                 const data = rows.map(({ a, s }) => ({
-                    'Date': a.date, 'Student Name': s ? s.name : 'Unknown', 'MyKid Number': s ? s.icNumber : '', 'Class': s ? s.class : '',
-                    'Overall Score': a.overallScore, 'Severity': a.severity, 'Status': a.status
+                    [this._rt('col_date')]: a.date, [this._rt('col_name')]: s ? s.name : this._rt('unknown'), [this._rt('col_mykid')]: s ? s.icNumber : '', [this._rt('col_class')]: s ? s.class : '',
+                    [this._rt('col_overall')]: a.overallScore, [this._rt('col_sev')]: this._sevLabel(a.severity), [this._rt('col_status')]: a.status === 'resolved' ? this._rt('resolved') : this._rt('active')
                 }));
-                this.downloadCSV('MANASU_Lab_Assessments_' + dateStr + '.csv', data, ['MyKid Number', 'Class']);
-                this.showToast('Excel tool unavailable — exported as CSV instead', 'info');
+                this.downloadCSV('MANASU_Lab_Assessments_' + dateStr + '.csv', data, [this._rt('col_mykid'), this._rt('col_class')]);
+                this.showToast(this._rt('toast_xl_csv'), 'info');
                 return;
             }
 
@@ -7590,16 +7685,16 @@ refreshResultsView() {
                 const scoreFont = (v) => v < th.moderate ? 'FFB91C1C' : v < th.mild ? 'FFC2410C' : v < th.normal ? 'FFA16207' : 'FF15803D';
 
                 // ───────── Sheet 1: Summary ─────────
-                const sm = wb.addWorksheet('Summary', { views: [{ showGridLines: false }] });
-                sm.columns = [{ width: 30 }, { width: 22 }, { width: 14 }];
+                const sm = wb.addWorksheet(this._rt('x_summary'), { views: [{ showGridLines: false }] });
+                sm.columns = [{ width: 38 }, { width: 26 }, { width: 14 }];
                 sm.mergeCells('A1:C1');
-                sm.getCell('A1').value = 'MANASU Lab — Assessment Report';
+                sm.getCell('A1').value = this._rt('title');
                 sm.getCell('A1').font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' } };
                 sm.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TEAL } };
                 sm.getCell('A1').alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
                 sm.getRow(1).height = 36;
                 sm.mergeCells('A2:C2');
-                sm.getCell('A2').value = 'SJKT Telok Panglima Garang • Psychometric Wellness Portal';
+                sm.getCell('A2').value = this._rt('school');
                 sm.getCell('A2').font = { italic: true, color: { argb: 'FF64748B' } };
                 sm.getCell('A2').alignment = { indent: 1 };
 
@@ -7613,46 +7708,46 @@ refreshResultsView() {
                 };
                 const section = (t) => { r++; const row = sm.getRow(r++); row.getCell(1).value = t; [1, 2, 3].forEach(c => head(row.getCell(c))); row.getCell(1).alignment = { horizontal: 'left', indent: 1 }; };
 
-                section('Report Details');
-                kv('Generated on', new Date(), 'dd/mm/yyyy hh:mm');
-                kv('Report type', meta.type === 'flagged' ? 'Flagged cases only' : meta.type === 'student' ? 'By student' : 'All assessments');
-                if (meta.student) kv('Student', meta.student.name);
-                kv('Class', meta.cls || 'All classes');
-                kv('Date range', (meta.from || 'Start') + '  →  ' + (meta.to || 'Today'));
+                section(this._rt('x_details'));
+                kv(this._rt('x_gen_on'), new Date(), 'dd/mm/yyyy hh:mm');
+                kv(this._rt('x_type'), meta.type === 'flagged' ? this._rt('x_type_flagged') : meta.type === 'student' ? this._rt('x_type_student') : this._rt('x_type_all'));
+                if (meta.student) kv(this._rt('f_student'), meta.student.name);
+                kv(this._rt('f_class'), meta.cls || this._rt('x_class_all'));
+                kv(this._rt('x_range'), (meta.from || this._rt('x_start')) + '  →  ' + (meta.to || this._rt('x_today')));
 
-                section('Key Numbers');
-                kv('Total assessments', st.total);
-                kv('Students covered', st.students);
-                kv('Average overall score', Number(st.avg.toFixed(2)), '0.0');
-                kv('Flagged (moderate + severe)', st.flagged);
+                section(this._rt('x_key'));
+                kv(this._rt('x_total'), st.total);
+                kv(this._rt('c_students'), st.students);
+                kv(this._rt('x_avg_overall'), Number(st.avg.toFixed(2)), '0.0');
+                kv(this._rt('x_flagged_ms'), st.flagged);
 
-                section('Severity Distribution');
+                section(this._rt('x_sev'));
                 ['severe', 'moderate', 'mild', 'normal'].forEach(k => {
                     const row = sm.getRow(r++);
-                    row.getCell(1).value = SEV[k].label; row.getCell(2).value = st.sev[k]; row.getCell(3).value = st.sev[k] / st.total; row.getCell(3).numFmt = '0%';
+                    row.getCell(1).value = this._sevLabel(k); row.getCell(2).value = st.sev[k]; row.getCell(3).value = st.sev[k] / st.total; row.getCell(3).numFmt = '0%';
                     row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SEV[k].bg } };
                     row.getCell(1).font = { bold: true, color: { argb: SEV[k].fg } };
                     [1, 2, 3].forEach(c => { row.getCell(c).border = border; });
                     row.getCell(2).alignment = { horizontal: 'left' };
                 });
 
-                section('Average Score by Domain (out of 10)');
-                this._reportDomains().forEach(([k, n]) => {
+                section(this._rt('x_dom'));
+                this._reportDomains().forEach(([k]) => {
                     const row = sm.getRow(r++);
-                    row.getCell(1).value = n; row.getCell(2).value = Number(st.dAvg[k].toFixed(2)); row.getCell(2).numFmt = '0.0';
+                    row.getCell(1).value = this._domName(k); row.getCell(2).value = Number(st.dAvg[k].toFixed(2)); row.getCell(2).numFmt = '0.0';
                     row.getCell(2).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: domFill(st.dAvg[k]) } };
                     row.getCell(2).alignment = { horizontal: 'left' };
                     [1, 2].forEach(c => { row.getCell(c).border = border; });
                 });
 
                 // ───────── Sheet 2: Assessments ─────────
-                const ws = wb.addWorksheet('Assessments', { views: [{ state: 'frozen', xSplit: 3, ySplit: 1 }] });
+                const ws = wb.addWorksheet(this._rt('c_assess'), { views: [{ state: 'frozen', xSplit: 3, ySplit: 1 }] });
                 const cols = [
-                    ['No.', 6], ['Date', 12], ['Student Name', 30], ['MyKid Number', 16], ['Class', 12], ['Age', 6],
-                    ['Overall Score', 10], ['Severity', 18], ['Status', 12]
+                    [this._rt('col_no'), 6], [this._rt('col_date'), 12], [this._rt('col_name'), 30], [this._rt('col_mykid'), 16], [this._rt('col_class'), 12], [this._rt('col_age'), 6],
+                    [this._rt('col_overall'), 12], [this._rt('col_sev'), 18], [this._rt('col_status'), 12]
                 ];
-                this._reportDomains().forEach(([k, n]) => cols.push([n, 13]));
-                cols.push(['Counselor', 18], ['Counselor Notes (EN)', 55], ['Counselor Notes (MS)', 45], ['Counselor Notes (TA)', 45]);
+                this._reportDomains().forEach(([k]) => cols.push([this._domName(k), 14]));
+                cols.push([this._rt('col_counselor'), 18], [this._rt('col_notes') + ' (EN)', 55], [this._rt('col_notes') + ' (MS)', 45], [this._rt('col_notes') + ' (TA)', 45]);
                 ws.columns = cols.map(([h, w]) => ({ header: h, width: w }));
                 ws.getRow(1).height = 34;
                 ws.getRow(1).eachCell(head);
@@ -7661,8 +7756,8 @@ refreshResultsView() {
                 const noteOf = (a, l) => (a.notes && typeof a.notes === 'object' ? a.notes[l] : (l === 'en' ? a.notes : '')) || '';
                 rows.forEach(({ a, s }, i) => {
                     const d = new Date(String(a.date).slice(0, 10) + 'T00:00:00');
-                    const vals = [i + 1, isNaN(d) ? a.date : d, s ? s.name : 'Unknown', s ? String(s.icNumber || '') : '', s ? s.class : '', s && s.age != null ? s.age : '',
-                        Number(a.overallScore) || 0, (SEV[a.severity] || SEV.normal).label, a.status === 'resolved' ? 'Resolved' : 'Active'];
+                    const vals = [i + 1, isNaN(d) ? a.date : d, s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', s && s.age != null ? s.age : '',
+                        Number(a.overallScore) || 0, this._sevLabel(SEV[a.severity] ? a.severity : 'normal'), a.status === 'resolved' ? this._rt('resolved') : this._rt('active')];
                     this._reportDomains().forEach(([k]) => { const v = a.domains ? Number(a.domains[k]) : NaN; vals.push(isNaN(v) ? '' : v); });
                     vals.push(a.counselorName || '', noteOf(a, 'en'), noteOf(a, 'ms'), noteOf(a, 'ta'));
                     const row = ws.addRow(vals);
@@ -7693,8 +7788,8 @@ refreshResultsView() {
                     if (!byStu.has(key)) byStu.set(key, { s, list: [] });
                     byStu.get(key).list.push(a);
                 });
-                const so = wb.addWorksheet('Students Overview', { views: [{ state: 'frozen', ySplit: 1 }] });
-                const sCols = [['No.', 6], ['Student Name', 30], ['MyKid Number', 16], ['Class', 12], ['Assessments', 13], ['Latest Date', 13], ['Latest Score', 12], ['Average Score', 13], ['Latest Severity', 18], ['Flagged?', 11]];
+                const so = wb.addWorksheet(this._rt('x_students_sheet'), { views: [{ state: 'frozen', ySplit: 1 }] });
+                const sCols = [[this._rt('col_no'), 6], [this._rt('col_name'), 30], [this._rt('col_mykid'), 16], [this._rt('col_class'), 12], [this._rt('col_count'), 14], [this._rt('col_latest_date'), 14], [this._rt('col_latest_score'), 14], [this._rt('col_avg'), 14], [this._rt('col_latest_sev'), 18], [this._rt('col_flagged_q'), 12]];
                 so.columns = sCols.map(([h, w]) => ({ header: h, width: w }));
                 so.getRow(1).height = 30; so.getRow(1).eachCell(head);
                 so.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: sCols.length } };
@@ -7704,8 +7799,8 @@ refreshResultsView() {
                     const avg = list.reduce((t, a) => t + (Number(a.overallScore) || 0), 0) / list.length;
                     const sv = SEV[latest.severity] || SEV.normal;
                     const d = new Date(String(latest.date).slice(0, 10) + 'T00:00:00');
-                    const row = so.addRow([i + 1, s ? s.name : 'Unknown', s ? String(s.icNumber || '') : '', s ? s.class : '', list.length, isNaN(d) ? latest.date : d,
-                        Number(latest.overallScore) || 0, Number(avg.toFixed(2)), sv.label, (latest.severity === 'severe' || latest.severity === 'moderate') ? 'Yes' : 'No']);
+                    const row = so.addRow([i + 1, s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', list.length, isNaN(d) ? latest.date : d,
+                        Number(latest.overallScore) || 0, Number(avg.toFixed(2)), this._sevLabel(SEV[latest.severity] ? latest.severity : 'normal'), (latest.severity === 'severe' || latest.severity === 'moderate') ? this._rt('yes') : this._rt('no')]);
                     row.height = 22;
                     row.eachCell({ includeEmpty: true }, (cell, c) => {
                         cell.border = border;
@@ -7716,7 +7811,7 @@ refreshResultsView() {
                     row.getCell(7).font = { bold: true, color: { argb: scoreFont(Number(latest.overallScore)) } };
                     row.getCell(9).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sv.bg } };
                     row.getCell(9).font = { bold: true, color: { argb: sv.fg } };
-                    if (row.getCell(10).value === 'Yes') row.getCell(10).font = { bold: true, color: { argb: 'FFB91C1C' } };
+                    if (row.getCell(10).value === this._rt('yes')) row.getCell(10).font = { bold: true, color: { argb: 'FFB91C1C' } };
                 });
 
                 // ───────── Download ─────────
@@ -7728,10 +7823,10 @@ refreshResultsView() {
                 link.href = url; link.download = 'MANASU_Lab_Report_' + tag + '_' + dateStr + '.xlsx';
                 document.body.appendChild(link); link.click(); link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
-                this.showToast(this.t('toast_excel_exported') + ' (' + rows.length + ' records)', 'success');
+                this.showToast(this._rt('toast_xl_done', { n: rows.length }), 'success');
             } catch (e) {
                 console.error('Excel export failed', e);
-                this.showToast('Excel export failed — see console', 'error');
+                this.showToast(this._rt('toast_xl_fail'), 'error');
             }
         },
                                exportStudents() {
