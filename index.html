@@ -7392,7 +7392,7 @@ refreshResultsView() {
         _pdfPageShell(isCont) {
             const pg = document.createElement('div');
             pg.className = 'pdf-page';
-            pg.style.cssText = 'width:794px;height:1116px;box-sizing:border-box;padding:30px 36px 0;position:relative;background:#ffffff;color:#0f172a;font-family:Poppins,Arial,sans-serif;overflow:hidden;';
+            pg.style.cssText = 'width:794px;height:1116px;box-sizing:border-box;padding:30px 36px 0;position:relative;background:#ffffff;color:#0f172a;font-family:Arial,Helvetica,sans-serif;overflow:hidden;';
             const body = document.createElement('div');
             body.className = 'pdf-body';
             body.style.cssText = 'height:1038px;overflow:hidden;';
@@ -7405,7 +7405,7 @@ refreshResultsView() {
         async downloadReportPDF() {
             const rep = this._lastReport;
             if (!rep) { this.showToast('Generate the report first', 'error'); return; }
-            if (typeof html2pdf === 'undefined') { this.showToast('PDF tool not loaded. Check your internet and refresh.', 'error'); return; }
+            if (typeof html2canvas === 'undefined' || (typeof html2pdf === 'undefined' && !(window.jspdf || window.jsPDF))) { this.showToast('PDF tool not loaded. Check your internet and refresh.', 'error'); return; }
             this.showToast('Preparing PDF…', 'info');
 
             const { rows, meta, st } = rep;
@@ -7449,7 +7449,10 @@ refreshResultsView() {
                 '</tr></thead><tbody></tbody></table></div>';
 
             const host = document.createElement('div');
+            host.id = 'pdfHost';
             host.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;z-index:-1;';
+            // Reset text rendering: site-wide optimizeLegibility / web-font kerning makes html2canvas glue letters together
+            host.innerHTML = '<style>#pdfHost, #pdfHost * { text-rendering:auto !important; font-kerning:none !important; font-variant-ligatures:none !important; font-feature-settings:normal !important; letter-spacing:normal !important; word-spacing:normal !important; font-family:Arial,Helvetica,sans-serif !important; -webkit-font-smoothing:auto !important; font-synthesis:weight style !important; text-transform:none !important; }</style>';
             document.body.appendChild(host);
             try {
                 const pages = [];
@@ -7495,20 +7498,39 @@ refreshResultsView() {
                 if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
                 await Promise.all([...host.querySelectorAll('img')].map(im => im.complete ? 1 : new Promise(r => { im.onload = im.onerror = r; })));
 
-                const opt = {
-                    margin: 0,
-                    filename: 'MANASU_Lab_Report_' + new Date().toISOString().split('T')[0] + '.pdf',
-                    image: { type: 'jpeg', quality: 0.95 },
-                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: [] } // every .pdf-page is already exactly one A4 page
-                };
-                let worker = html2pdf().set(opt).from(pages[0].pg).toContainer().toCanvas().toPdf();
-                for (let k = 1; k < pages.length; k++) {
-                    const el = pages[k].pg;
-                    worker = worker.get('pdf').then(pdf => { pdf.addPage(); }).from(el).toContainer().toCanvas().toPdf();
+                const W = 794 * 2;                          // canvas width at scale 2
+                const H = Math.floor(W * 297 / 210);        // exact A4 ratio → never spills onto a 2nd page
+                const canvases = [];
+                for (const p of pages) {
+                    const raw = await html2canvas(p.pg, {
+                        scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+                        scrollX: 0, scrollY: 0, windowWidth: 1200,
+                        onclone: (doc) => { const h = doc.getElementById('pdfHost'); if (h) { h.style.left = '0'; h.style.top = '0'; } }
+                    });
+                    const c = document.createElement('canvas');
+                    c.width = W; c.height = H;
+                    const ctx = c.getContext('2d');
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+                    ctx.drawImage(raw, 0, 0);
+                    canvases.push(c);
                 }
-                await worker.save();
+
+                const fileName = 'MANASU_Lab_Report_' + new Date().toISOString().split('T')[0] + '.pdf';
+                const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+                let pdf, startAt = 0;
+                if (JsPDF) {
+                    pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+                } else {
+                    // jsPDF is bundled inside html2pdf — borrow it; page 1 gets added by html2pdf itself
+                    pdf = await html2pdf().set({ margin: 0, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: [] }, image: { type: 'jpeg', quality: 0.95 } })
+                        .from(canvases[0], 'canvas').toPdf().get('pdf');
+                    startAt = 1;
+                }
+                for (let k = startAt; k < canvases.length; k++) {
+                    if (k > 0) pdf.addPage('a4', 'portrait');
+                    pdf.addImage(canvases[k].toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+                }
+                pdf.save(fileName);
                 this.showToast('PDF downloaded (' + pages.length + ' page' + (pages.length > 1 ? 's' : '') + ')', 'success');
             } catch (e) {
                 console.error('PDF failed', e);
