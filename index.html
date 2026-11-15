@@ -5433,7 +5433,7 @@ _renderAdminPage(page) {
                 const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
-                domainHtml += '<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span><i class="fas ' + dIcon + '" style="color:' + dColor + '; margin-right:8px;"></i>' + dName + '</span><strong style="color:' + this.getScoreColor(val) + '">' + val + '/10</strong></div>';
+                domainHtml += '<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span><i class="fas ' + dIcon + '" style="color:' + dColor + '; margin-right:8px;"></i>' + dName + '</span><strong style="color:' + this.getScoreColor(val, d.max || 10) + '">' + val + '/' + (d.max || 10) + '</strong></div>';
             });
 
             document.getElementById('viewAssessmentContent').innerHTML = 
@@ -5493,9 +5493,10 @@ showCloudResults(student, assessments) {
     let barsHtml = '';
     if (latest.domains) {
         Object.entries(latest.domains).forEach(([key, val]) => {
-            const pct = val * 10;
-            const color = this.getScoreColor(val);
             const d = this.getDomainInfo(key);
+            const max = d.max || 10;
+            const pct = Math.min(100, (val / max) * 100);
+            const color = this.getScoreColor(val, max);
             const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
             const dIcon = d ? d.icon : 'fa-question-circle';
             const dColor = d ? d.color : '#94a3b8';
@@ -5503,7 +5504,7 @@ showCloudResults(student, assessments) {
                 <div style="margin-bottom:14px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
                         <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
-                        <span style="font-weight:700; color:${color}">${val}/10</span>
+                        <span style="font-weight:700; color:${color}">${val}/${max}</span>
                     </div>
                     <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
                 </div>
@@ -5516,8 +5517,9 @@ showCloudResults(student, assessments) {
     if (latest.domains) {
         Object.entries(latest.domains).forEach(([key, val]) => {
             const d = this.getDomainInfo(key);
-            const color = this.getScoreColor(val);
-            const level = this.getScoreLabel(val);
+            const max = d.max || 10;
+            const color = this.getScoreColor(val, max);
+            const level = this.getScoreLabel(val, max);
             const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
             const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
             const dIcon = d ? d.icon : 'fa-question-circle';
@@ -5529,7 +5531,7 @@ showCloudResults(student, assessments) {
                             <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
                             ${dName}
                         </div>
-                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
+                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/${max}</span></div>
                     </div>
                     <div class="domain-desc">${dDesc}</div>
                     <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
@@ -5785,7 +5787,7 @@ showCloudResults(student, assessments) {
             if (!domains || Object.keys(domains).length === 0) return [];
             const normalizedDomains = {};
             Object.entries(domains).forEach(([key, val]) => {
-                const norm = key.toLowerCase().replace(/[-\s]/g, '');
+                const norm = key.toLowerCase().replace(/[-\s_]/g, ''); // also strip _ so age-10 keys (verbal_concept, math_numeric…) really map
                 const map = {
                     'verbal': 'verbal', 'verballinguistic': 'verbal',
                     'logical': 'logical', 'logicalmathematical': 'logical',
@@ -5801,8 +5803,11 @@ showCloudResults(student, assessments) {
                     'mathnumeric': 'logical', 'mathperception': 'visual', 'problemsolving': 'logical'
                 };
                 const mapped = map[norm] || norm;
-                if (!normalizedDomains[mapped] || normalizedDomains[mapped] < val) {
-                    normalizedDomains[mapped] = val;
+                const info = this.getDomainInfo(key);
+                const mx = (info && info.max) || 10;
+                const val10 = (Number(val) / mx) * 10; // age-10 domains have different max (5, 7, 15, 20…)
+                if (!normalizedDomains[mapped] || normalizedDomains[mapped] < val10) {
+                    normalizedDomains[mapped] = val10;
                 }
             });
             const results = this.careers.map(career => {
@@ -5830,7 +5835,8 @@ showCloudResults(student, assessments) {
                 container.innerHTML = '<div class="career-empty"><img src="icon-192.png" alt="MANASU Lab" style="width:48px;height:48px;object-fit:contain;opacity:0.4;margin-bottom:12px;"><h4>' + this.t('career_no_data') + '</h4></div>';
                 return;
             }
-            const domainEntries = Object.entries(domains).sort((a, b) => b[1] - a[1]).slice(0, 2);
+            const pctOf = ([k, v]) => v / ((this.getDomainInfo(k) || {}).max || 10);
+            const domainEntries = Object.entries(domains).sort((a, b) => pctOf(b) - pctOf(a)).slice(0, 2);
             const topDomainNames = domainEntries.map(([key, val]) => {
                 const d = this.getDomainInfo(key);
                 return d && d.name ? (d.name[lang] || d.name.en) : key;
@@ -6532,9 +6538,10 @@ refreshResultsView() {
     let barsHtml = '';
     if (selected.domains) {
         Object.entries(selected.domains).forEach(([key, val]) => {
-            const pct = val * 10;
-            const color = this.getScoreColor(val);
             const d = this.getDomainInfo(key);
+            const max = d.max || 10;
+            const pct = Math.min(100, (val / max) * 100);
+            const color = this.getScoreColor(val, max);
             const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
             const dIcon = d ? d.icon : 'fa-question-circle';
             const dColor = d ? d.color : '#94a3b8';
@@ -6542,7 +6549,7 @@ refreshResultsView() {
                 <div style="margin-bottom:14px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem;">
                         <span style="color:var(--text-secondary)"><i class="fas ${dIcon}" style="margin-right:6px; color:${dColor}"></i>${dName}</span>
-                        <span style="font-weight:700; color:${color}">${val}/10</span>
+                        <span style="font-weight:700; color:${color}">${val}/${max}</span>
                     </div>
                     <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
                 </div>
@@ -6556,8 +6563,9 @@ refreshResultsView() {
     if (selected.domains) {
         Object.entries(selected.domains).forEach(([key, val]) => {
             const d = this.getDomainInfo(key);
-            const color = this.getScoreColor(val);
-            const level = this.getScoreLabel(val);
+            const max = d.max || 10;
+            const color = this.getScoreColor(val, max);
+            const level = this.getScoreLabel(val, max);
             const dName = d && d.name ? (d.name[this.currentLang] || d.name.en) : key;
             const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
             const dIcon = d ? d.icon : 'fa-question-circle';
@@ -6569,7 +6577,7 @@ refreshResultsView() {
                             <div class="domain-icon" style="background:${dColor}20; color:${dColor};"><i class="fas ${dIcon}"></i></div>
                             ${dName}
                         </div>
-                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/10</span></div>
+                        <div class="domain-score" style="color:${color};">${val}<span style="font-size:0.75rem; opacity:0.7;">/${max}</span></div>
                     </div>
                     <div class="domain-desc">${dDesc}</div>
                     <div class="domain-level" style="background:${color}15; color:${color};">${level}</div>
@@ -7237,7 +7245,7 @@ refreshResultsView() {
                 const dDesc = d && d.desc ? (d.desc[this.currentLang] || d.desc.en) : '';
                 const dIcon = d ? d.icon : 'fa-question-circle';
                 const dColor = d ? d.color : '#94a3b8';
-                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val)}">${val}/10</strong></div>`;
+                domainHtml += `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--card-bg); border:1px solid var(--glass-border); border-radius:10px;"><span><i class="fas ${dIcon}" style="color:${dColor}; margin-right:8px;"></i>${dName}</span><strong style="color:${this.getScoreColor(val, d.max || 10)}">${val}/${d.max || 10}</strong></div>`;
             });
             document.getElementById('viewAssessmentContent').innerHTML = `
                 <div style="margin-bottom:20px;"><h4 style="margin-bottom:4px;">${this.sanitizeHTML(s ? s.name : 'Unknown')}</h4><p style="color:var(--text-muted); font-size:0.9rem;">${this.formatDate(a.date)} • ${s ? s.class : ''}</p></div>
