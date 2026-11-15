@@ -1786,14 +1786,10 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
             transform: scale(1.1);
         }
 
-        /* Smooth theme transition */
-        body, body * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        /* Exclude from transition: particles, animations */
-        .orb, .progress-fill, .ring-progress, .brain-glow, .brain-icon, .ring, .p-bar-fill, .career-match-bar-fill, .toast, .modal-overlay, canvas {
-            transition: none !important;
-        }
+        /* Smooth theme switch: the page is snapshotted and cross-faded by the GPU (View Transitions).
+           The old rule animated 4 properties on EVERY element at once → heavy lag. */
+        html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.28s; animation-timing-function: ease; }
     
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM PDF EXPORT STYLES — A4 Print-Optimized
@@ -7528,8 +7524,12 @@ refreshResultsView() {
                   '<div style="flex:1;"><div style="font-size:' + (small ? '15' : '19') + 'px; font-weight:700;">' + R('title') + '</div>' + (small ? '' : '<div style="font-size:11px; color:#64748b;">' + R('school') + '</div>') + '</div>' +
                   '<div style="text-align:right; font-size:10px; color:#64748b;">' + R('generated') + '<br><strong style="color:#0f172a;">' + new Date().toLocaleString('en-GB') + '</strong></div>' +
                 '</div>';
+            const typeLabel = meta.type === 'flagged' ? this._rt('f_flagged') : ['severe', 'moderate', 'mild', 'normal'].includes(meta.type) ? this._sevLabel(meta.type) : this._rt('f_all');
+            const infoLine = (meta.type === 'student' && meta.student)
+                ? '<strong>' + R('f_student') + ':</strong> ' + esc(meta.student.name) + '&nbsp;&nbsp;&nbsp;<strong>MyKid:</strong> [' + esc(meta.student.icNumber || '-') + ']'
+                : '<strong>' + esc(typeLabel) + '</strong>' + (meta.cls ? '&nbsp;&nbsp;•&nbsp;&nbsp;<strong>' + R('f_class') + ':</strong> ' + esc(meta.cls) : '');
             const page1Html = headerHtml(false) +
-                '<div style="font-size:11.5px; color:#334155; background:#f1f5f9; padding:9px 12px; border-radius:8px; margin-bottom:14px;"><strong>' + R('filters') + ':</strong> ' + esc(this._reportFilterText(meta)) + '</div>' +
+                '<div style="font-size:12px; color:#334155; background:#f1f5f9; padding:9px 12px; border-radius:8px; margin-bottom:14px;">' + infoLine + '</div>' +
                 '<div style="display:flex; gap:10px; margin-bottom:16px;">' + card(R('c_assess'), st.total, '#2563eb') + card(R('c_students'), st.students, '#0d9488') + card(R('c_avg'), st.avg.toFixed(1), scoreCol(st.avg)) + card(R('c_flagged'), st.flagged, '#b91c1c') + '</div>' +
                 '<div style="display:flex; gap:26px; margin-bottom:16px;">' +
                   '<div style="flex:1;"><div style="font-weight:700; font-size:13px; margin-bottom:9px; color:#0d9488;">' + R('sev_dist') + '</div>' + sevBars + '</div>' +
@@ -7680,6 +7680,9 @@ refreshResultsView() {
             try {
                 const st = this._reportStats(rows);
                 const th = this.settings.thresholds;
+                // ExcelJS writes the UTC value as-is, so shift to local wall-clock time (otherwise the time is hours off / dates can slip a day)
+                const xlNow = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+                const xlDate = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v)); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : v; };
                 const wb = new ExcelJS.Workbook();
                 wb.creator = 'MANASU Lab'; wb.created = new Date();
                 const TEAL = 'FF0D9488', LINE = { style: 'thin', color: { argb: 'FFE2E8F0' } };
@@ -7718,7 +7721,7 @@ refreshResultsView() {
                 const section = (t) => { r++; const row = sm.getRow(r++); row.getCell(1).value = t; [1, 2, 3].forEach(c => head(row.getCell(c))); row.getCell(1).alignment = { horizontal: 'left', indent: 1 }; };
 
                 section(this._rt('x_details'));
-                kv(this._rt('x_gen_on'), new Date(), 'dd/mm/yyyy hh:mm');
+                kv(this._rt('x_gen_on'), xlNow(), 'dd/mm/yyyy hh:mm');
                 kv(this._rt('x_type'), meta.type === 'flagged' ? this._rt('x_type_flagged') : meta.type === 'student' ? this._rt('x_type_student') : ['severe', 'moderate', 'mild', 'normal'].includes(meta.type) ? this._sevLabel(meta.type) : this._rt('x_type_all'));
                 if (meta.student) kv(this._rt('f_student'), meta.student.name);
                 kv(this._rt('f_class'), meta.cls || this._rt('x_class_all'));
@@ -7764,8 +7767,7 @@ refreshResultsView() {
 
                 const noteOf = (a, l) => (a.notes && typeof a.notes === 'object' ? a.notes[l] : (l === 'en' ? a.notes : '')) || '';
                 rows.forEach(({ a, s }, i) => {
-                    const d = new Date(String(a.date).slice(0, 10) + 'T00:00:00');
-                    const vals = [i + 1, isNaN(d) ? a.date : d, s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', s && s.age != null ? s.age : '',
+                    const vals = [i + 1, xlDate(a.date), s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', s && s.age != null ? s.age : '',
                         Number(a.overallScore) || 0, this._sevLabel(SEV[a.severity] ? a.severity : 'normal'), a.status === 'resolved' ? this._rt('resolved') : this._rt('active')];
                     this._reportDomains().forEach(([k]) => { const v = a.domains ? Number(a.domains[k]) : NaN; vals.push(isNaN(v) ? '' : v); });
                     vals.push(a.counselorName || '', noteOf(a, 'en'), noteOf(a, 'ms'), noteOf(a, 'ta'));
@@ -7807,8 +7809,7 @@ refreshResultsView() {
                     const latest = list[0]; // rows already sorted newest-first
                     const avg = list.reduce((t, a) => t + (Number(a.overallScore) || 0), 0) / list.length;
                     const sv = SEV[latest.severity] || SEV.normal;
-                    const d = new Date(String(latest.date).slice(0, 10) + 'T00:00:00');
-                    const row = so.addRow([i + 1, s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', list.length, isNaN(d) ? latest.date : d,
+                    const row = so.addRow([i + 1, s ? s.name : this._rt('unknown'), s ? String(s.icNumber || '') : '', s ? s.class : '', list.length, xlDate(latest.date),
                         Number(latest.overallScore) || 0, Number(avg.toFixed(2)), this._sevLabel(SEV[latest.severity] ? latest.severity : 'normal'), (latest.severity === 'severe' || latest.severity === 'moderate') ? this._rt('yes') : this._rt('no')]);
                     row.height = 22;
                     row.eachCell({ includeEmpty: true }, (cell, c) => {
@@ -8258,10 +8259,26 @@ refreshResultsView() {
         },
 
         toggleDarkMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('manasu_darkMode', isDark);
-            this.updateDarkModeIcons(isDark);
-            this.showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'info');
+            const root = document.documentElement;
+            const apply = () => {
+                const isDark = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('manasu_darkMode', isDark);
+                this.updateDarkModeIcons(isDark);
+            };
+            const finish = () => {
+                // keep transitions disabled until the new theme has painted, then restore
+                requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
+                const isDark = document.body.classList.contains('dark-mode');
+                setTimeout(() => this.showToast(isDark ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'info'), 60);
+            };
+            root.classList.add('theme-switching');
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (document.startViewTransition && !reduce) {
+                try { document.startViewTransition(apply).finished.then(finish, finish); }
+                catch (e) { apply(); finish(); }
+            } else {
+                apply(); finish();
+            }
         },
 
         updateDarkModeIcons(isDark) {
