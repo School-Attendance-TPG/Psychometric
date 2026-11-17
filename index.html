@@ -33,7 +33,7 @@
     <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFfjz8ldW5g.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -3261,11 +3261,10 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <textarea id="stemMissionInstructions" class="input-premium" placeholder="Step-by-step instructions..." style="min-height:100px;"></textarea>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label><i class="fas fa-play-circle" style="color:#8b5cf6; margin-right:6px;"></i>Learning Resource Link (YouTube / Website)</label>
-                        <input type="url" id="stemMissionFileUrl" class="input-premium" placeholder="https://www.youtube.com/watch?v=...">
-                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px; line-height:1.6;"><i class="fas fa-lightbulb" style="color:#f59e0b;"></i> Add a YouTube or learning website link. Students will see it as a separate Learning Resource card — it will NOT appear under Download File.</p>
-                        <label style="display:block; margin-top:12px;">Resource Title (optional)</label>
-                        <input type="text" id="stemMissionResourceTitle" class="input-premium" placeholder="e.g. Watch: How Rockets Work">
+                        <label><i class="fas fa-link" style="color:#8b5cf6; margin-right:6px;"></i>Resource Links (YouTube, Facebook, Instagram, TikTok, Google Drive, Dropbox, OneDrive, website...)</label>
+                        <div id="missionResourcesList" style="display:flex; flex-direction:column; gap:10px; margin-top:6px;"></div>
+                        <button type="button" class="btn btn-sm btn-outline" style="margin-top:10px;" onclick="app.addMissionResourceRow()"><i class="fas fa-plus"></i> Add another link</button>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.6;"><i class="fas fa-lightbulb" style="color:#f59e0b;"></i> Each link is shown to students as its own card with the platform's original logo. Uploaded files below stay separate &amp; download one by one.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_upload_file">Upload Files (Select multiple at once, max 10MB each)</label>
@@ -4402,7 +4401,13 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         }
     });
 
-        // ✅ RESTORE LAST SECTION AFTER REFRESH
+        // ✅ FRESH LAUNCH (site/PWA closed & reopened) → always open HOME page, never Admin Login
+    try {
+        if (!sessionStorage.getItem('manasu_sessionActive')) {
+            ['manasu_lastSection','manasu_lastAdminPage','manasu_lastTeacherPage','manasu_lastTeacherClass'].forEach(k => localStorage.removeItem(k));
+            sessionStorage.setItem('manasu_sessionActive', '1');
+        }
+    } catch (e) {}
     const lastSection = localStorage.getItem('manasu_lastSection');
     const lastAdminPage = localStorage.getItem('manasu_lastAdminPage');
     const lastSearchedIC = null;
@@ -4706,7 +4711,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     }
 
     // ✅ Save current section to localStorage
-    localStorage.setItem('manasu_lastSection', id);
+    if (id !== 'adminLogin' && id !== 'teacherLogin') localStorage.setItem('manasu_lastSection', id); // login pages are never restored
     
     // ✅ Browser history for back button support
     if (!this.navigatingViaHistory) {
@@ -5783,47 +5788,98 @@ showCloudResults(student, assessments) {
             { id: 'data_analyst', name: { en: 'Data Analyst / Statistician', ms: 'Penganalisis Data / Statistik', ta: 'தரவு பகுப்பாய்வாளர்' }, icon: 'fa-database', color: '#6366f1', desc: { en: 'Extracting insights from data to drive decisions', ms: 'Mengekstrak pandangan dari data untuk memacu keputusan', ta: 'முடிவுகளை எடுக்க தரவிலிருந்து நுண்ணறிவுகளைப் பெறுதல்' }, weights: { verbal: 0.4, logical: 1.0, visual: 0.5, musical: 0.2, kinesthetic: 0.3, interpersonal: 0.3, intrapersonal: 0.7, naturalist: 0.3, existential: 0.3 } }
         ],
 
-        getCareerPredictions(domains) {
+        // ── Extra careers (v2 engine) — 20 more paths so the Top-5 is far more specific ──
+        getAllCareers() {
+            if (this._allCareers) return this._allCareers;
+            const W = (a,b,c,d,e,f,g,h,i) => ({ verbal:a, logical:b, visual:c, musical:d, kinesthetic:e, interpersonal:f, intrapersonal:g, naturalist:h, existential:i });
+            const C = (id,en,ms,ta,icon,color,desc,w) => ({ id, name:{en,ms,ta}, icon, color, desc:{en:desc}, weights:w });
+            const extra = [
+                C('pharmacist','Pharmacist','Ahli Farmasi','மருந்தாளுநர்','fa-pills','#0ea5e9','Dispensing medicines and advising patients on safe drug use',W(.5,.9,.5,.1,.4,.6,.6,.6,.3)),
+                C('dentist','Dentist','Doktor Gigi','பல் மருத்துவர்','fa-tooth','#22d3ee','Caring for oral health with precise hands-on procedures',W(.5,.7,.8,.1,.95,.8,.6,.3,.2)),
+                C('vet','Veterinarian','Doktor Haiwan','கால்நடை மருத்துவர்','fa-paw','#84cc16','Diagnosing and treating animals, protecting animal welfare',W(.5,.8,.5,.1,.8,.7,.6,1.0,.4)),
+                C('ai_engineer','AI / Machine Learning Engineer','Jurutera AI / Pembelajaran Mesin','AI பொறியாளர்','fa-robot','#7c3aed','Building intelligent systems that learn from data',W(.5,1.0,.7,.2,.3,.4,.7,.2,.5)),
+                C('cyber','Cybersecurity Specialist','Pakar Keselamatan Siber','சைபர் பாதுகாப்பு நிபுணர்','fa-shield-alt','#0f766e','Defending systems and data from digital threats',W(.4,1.0,.6,.1,.3,.3,.8,.1,.3)),
+                C('game_anim','Game Developer / Animator','Pembangun Permainan / Animator','கேம் / அனிமேஷன் வடிவமைப்பாளர்','fa-gamepad','#db2777','Creating interactive worlds, characters and animation',W(.4,.8,.95,.5,.4,.4,.6,.2,.4)),
+                C('civil','Civil Engineer','Jurutera Awam','சிவில் பொறியாளர்','fa-hard-hat','#ca8a04','Planning and building roads, bridges and infrastructure',W(.4,.9,.9,.1,.7,.5,.5,.5,.2)),
+                C('interior','Interior / Fashion Designer','Pereka Dalaman / Fesyen','உள்அலங்கார / ஆடை வடிவமைப்பாளர்','fa-couch','#be185d','Shaping spaces and style with colour, form and taste',W(.4,.5,.95,.4,.6,.6,.6,.4,.4)),
+                C('film','Filmmaker / Photographer','Pembikin Filem / Jurugambar','திரைப்பட / புகைப்படக் கலைஞர்','fa-camera','#9333ea','Telling powerful stories through images and motion',W(.5,.4,.95,.7,.5,.6,.7,.5,.6)),
+                C('diplomat','Diplomat / Public Leader','Diplomat / Pemimpin Awam','தூதர் / பொதுத் தலைவர்','fa-landmark','#1d4ed8','Representing and leading communities through persuasion and policy',W(.95,.7,.3,.2,.3,.95,.7,.2,.7)),
+                C('hr','HR / People Manager','Pengurus HR','மனிதவள மேலாளர்','fa-users','#0891b2','Building teams and supporting people at work',W(.8,.6,.3,.2,.3,.95,.8,.2,.4)),
+                C('marketing','Marketing / Advertising','Pemasaran / Pengiklanan','சந்தைப்படுத்தல் நிபுணர்','fa-bullhorn','#ea580c','Understanding audiences and creating persuasive campaigns',W(.85,.7,.7,.4,.3,.9,.6,.2,.4)),
+                C('special_ed','Special Education / Child Therapist','Pendidikan Khas / Terapis Kanak-kanak','சிறப்புக் கல்வி / குழந்தை சிகிச்சையாளர்','fa-child','#16a34a','Supporting children with unique learning needs',W(.7,.5,.5,.5,.5,1.0,.9,.4,.6)),
+                C('physio','Physiotherapist','Ahli Fisioterapi','இயன்முறை மருத்துவர்','fa-walking','#0d9488','Restoring movement and strength through therapy',W(.5,.7,.5,.2,.95,.9,.6,.5,.3)),
+                C('agritech','Agriculture / Agritech Specialist','Pakar Pertanian / Agroteknologi','வேளாண் தொழில்நுட்ப நிபுணர்','fa-seedling','#65a30d','Improving food production with science and technology',W(.4,.8,.5,.1,.7,.5,.6,1.0,.5)),
+                C('uniform','Police / Armed Forces Officer','Pegawai Polis / Angkatan Tentera','காவல் / இராணுவ அதிகாரி','fa-user-shield','#475569','Protecting the public with discipline and teamwork',W(.5,.7,.6,.1,.9,.8,.8,.4,.3)),
+                C('banker','Banker / Financial Analyst','Banker / Penganalisis Kewangan','வங்கியாளர் / நிதி ஆய்வாளர்','fa-coins','#eab308','Analysing markets and guiding financial decisions',W(.6,.95,.4,.1,.2,.7,.7,.2,.3)),
+                C('linguist','Translator / Linguist','Penterjemah / Ahli Bahasa','மொழிபெயர்ப்பாளர் / மொழியியலாளர்','fa-language','#2563eb','Bridging cultures through language mastery',W(1.0,.7,.3,.5,.2,.6,.7,.3,.5)),
+                C('coach','Sports Coach / Fitness Trainer','Jurulatih Sukan / Fitness','விளையாட்டு பயிற்சியாளர்','fa-dumbbell','#15803d','Training and motivating athletes to perform at their best',W(.6,.5,.6,.4,.95,.95,.7,.4,.4)),
+                C('creator','Content Creator / Media Producer','Pencipta Kandungan / Penerbit Media','உள்ளடக்க படைப்பாளர்','fa-video','#dc2626','Producing engaging digital content for audiences',W(.8,.5,.8,.5,.4,.8,.7,.3,.5))
+            ];
+            this._allCareers = this.careers.concat(extra);
+            return this._allCareers;
+        },
+
+        // ═══ CAREER PREDICTION ENGINE v2 ═══
+        // Match % = 40% weighted score-fit + 30% core-strength fit (the 3 domains the career needs most)
+        //         + 30% profile-shape similarity (cosine on centred vectors) − penalty for weak critical domains,
+        // then shrunk toward 50% when too few domains were assessed. Also returns strengths / gaps / confidence.
+        getCareerPredictions(domains, topN) {
             if (!domains || Object.keys(domains).length === 0) return [];
-            const normalizedDomains = {};
+            const map = {
+                'verbal':'verbal','verballinguistic':'verbal','logical':'logical','logicalmathematical':'logical',
+                'visual':'visual','visualspatial':'visual','musical':'musical','kinesthetic':'kinesthetic','bodilykinesthetic':'kinesthetic',
+                'interpersonal':'interpersonal','intrapersonal':'intrapersonal','naturalist':'naturalist','existential':'existential',
+                'malayword':'verbal','malayverbal':'verbal','malaycritical':'logical','wordskills':'verbal','verbalconcept':'verbal',
+                'criticalapp':'logical','mathnumeric':'logical','mathperception':'visual','problemsolving':'logical'
+            };
+            const acc = {};
             Object.entries(domains).forEach(([key, val]) => {
-                const norm = key.toLowerCase().replace(/[-\s_]/g, ''); // also strip _ so age-10 keys (verbal_concept, math_numeric…) really map
-                const map = {
-                    'verbal': 'verbal', 'verballinguistic': 'verbal',
-                    'logical': 'logical', 'logicalmathematical': 'logical',
-                    'visual': 'visual', 'visualspatial': 'visual',
-                    'musical': 'musical',
-                    'kinesthetic': 'kinesthetic', 'bodilykinesthetic': 'kinesthetic',
-                    'interpersonal': 'interpersonal',
-                    'intrapersonal': 'intrapersonal',
-                    'naturalist': 'naturalist',
-                    'existential': 'existential',
-                    'malayword': 'verbal', 'malayverbal': 'verbal', 'malaycritical': 'logical',
-                    'wordskills': 'verbal', 'verbalconcept': 'verbal', 'criticalapp': 'logical',
-                    'mathnumeric': 'logical', 'mathperception': 'visual', 'problemsolving': 'logical'
-                };
+                const norm = key.toLowerCase().replace(/[-\s_]/g, '');
                 const mapped = map[norm] || norm;
                 const info = this.getDomainInfo(key);
                 const mx = (info && info.max) || 10;
-                const val10 = (Number(val) / mx) * 10; // age-10 domains have different max (5, 7, 15, 20…)
-                if (!normalizedDomains[mapped] || normalizedDomains[mapped] < val10) {
-                    normalizedDomains[mapped] = val10;
-                }
+                const v = Number(val) / mx;
+                if (!isFinite(v)) return;
+                (acc[mapped] = acc[mapped] || []).push(Math.max(0, Math.min(1, v)));
             });
-            const results = this.careers.map(career => {
-                let weightedScore = 0;
-                let maxPossible = 0;
-                Object.entries(career.weights).forEach(([domain, weight]) => {
-                    const score = normalizedDomains[domain] || 5;
-                    const normalizedScore = (score / 10) * 100;
-                    weightedScore += normalizedScore * weight;
-                    maxPossible += 100 * weight;
-                });
-                const matchPercentage = maxPossible > 0 ? Math.round((weightedScore / maxPossible) * 100) : 0;
-                return { ...career, matchPercentage: Math.min(matchPercentage, 99) };
+            const prof = {};
+            Object.entries(acc).forEach(([k, a]) => { prof[k] = a.reduce((x, y) => x + y, 0) / a.length; }); // average (not max) of duplicate-mapped domains
+            const keys = Object.keys(prof);
+            if (!keys.length) return [];
+            const mean = keys.reduce((t, k) => t + prof[k], 0) / keys.length;
+
+            const results = this.getAllCareers().map(career => {
+                const allW = Object.values(career.weights).reduce((x, y) => x + y, 0);
+                const ds = keys.filter(k => career.weights[k] !== undefined);
+                if (!ds.length) return { ...career, matchPercentage: 0, strengths: [], gaps: [], coverage: 0 };
+                const wsum = ds.reduce((t, k) => t + career.weights[k], 0);
+                const coverage = wsum / allW;
+                const fit = ds.reduce((t, k) => t + career.weights[k] * prof[k], 0) / wsum;
+                const core = ds.slice().sort((x, y) => career.weights[y] - career.weights[x]).slice(0, 3);
+                const cw = core.reduce((t, k) => t + career.weights[k], 0);
+                const coreFit = core.reduce((t, k) => t + career.weights[k] * prof[k], 0) / cw;
+                const wMean = ds.reduce((t, k) => t + career.weights[k], 0) / ds.length;
+                const sMean = ds.reduce((t, k) => t + prof[k], 0) / ds.length;
+                let dot = 0, na = 0, nb = 0;
+                ds.forEach(k => { const a = prof[k] - sMean, b = career.weights[k] - wMean; dot += a * b; na += a * a; nb += b * b; });
+                const shape = (na > 1e-6 && nb > 1e-6) ? (dot / Math.sqrt(na * nb) + 1) / 2 : 0.5;
+                let penalty = 0;
+                ds.forEach(k => { if (career.weights[k] >= 0.8 && prof[k] < 0.5) penalty += (0.5 - prof[k]) * career.weights[k] * 0.25; });
+                let raw = 0.40 * fit + 0.30 * coreFit + 0.30 * shape - penalty;
+                const dev = (raw - 0.5) * 1.35 * (0.6 + 0.4 * coverage); // stretch for clarity, shrink if data is thin
+                const pct = Math.max(5, Math.min(98, Math.round((0.5 + dev) * 100)));
+                const strengths = ds.filter(k => prof[k] >= 0.6 && career.weights[k] >= 0.6)
+                    .sort((x, y) => career.weights[y] * prof[y] - career.weights[x] * prof[x]).slice(0, 3);
+                const gaps = ds.filter(k => prof[k] < 0.5 && career.weights[k] >= 0.7)
+                    .sort((x, y) => career.weights[y] * (0.5 - prof[y]) - career.weights[x] * (0.5 - prof[x])).slice(0, 2);
+                return { ...career, matchPercentage: pct, strengths, gaps, coverage, _fit: fit };
             });
-            results.sort((a, b) => b.matchPercentage - a.matchPercentage);
-            return results.slice(0, 5);
+            results.sort((x, y) => y.matchPercentage - x.matchPercentage || y._fit - x._fit);
+            const top = results.slice(0, topN || 5);
+            const dq = top.reduce((t, c) => t + c.coverage, 0) / (top.length || 1);
+            const conf = dq >= 0.9 ? (top[0].matchPercentage >= 72 ? 'high' : 'medium') : dq >= 0.6 ? 'medium' : 'low';
+            top.forEach(c => { c.confidence = conf; });
+            return top;
         },
 
         renderCareerPredictions(domains, containerId) {
@@ -5841,14 +5897,30 @@ showCloudResults(student, assessments) {
                 const d = this.getDomainInfo(key);
                 return d && d.name ? (d.name[lang] || d.name.en) : key;
             }).join(' & ');
+            const TX = {
+                strong: { en: 'Strong in', ms: 'Kuat dalam', ta: 'வலிமை' },
+                grow: { en: 'Develop', ms: 'Perlu dibangunkan', ta: 'மேம்படுத்த' },
+                conf: { en: 'Prediction confidence', ms: 'Keyakinan ramalan', ta: 'கணிப்பு நம்பகத்தன்மை' },
+                high: { en: 'High', ms: 'Tinggi', ta: 'உயர்' }, medium: { en: 'Medium', ms: 'Sederhana', ta: 'நடுத்தர' }, low: { en: 'Low (assess more domains)', ms: 'Rendah (nilai lebih banyak domain)', ta: 'குறைவு (மேலும் பகுதிகளை மதிப்பிடவும்)' }
+            };
+            const tx = (k) => (TX[k][lang] || TX[k].en);
+            const dName = (k) => { const d = this.domains[k]; return d && d.name ? (d.name[lang] || d.name.en) : k; };
+            const chips = (c) => {
+                let out = '';
+                (c.strengths || []).forEach(k => { out += '<span style="font-size:0.68rem;background:rgba(16,185,129,0.12);color:#047857;padding:2px 9px;border-radius:50px;font-weight:600;">&#10003; ' + tx('strong') + ' ' + dName(k) + '</span>'; });
+                (c.gaps || []).forEach(k => { out += '<span style="font-size:0.68rem;background:rgba(245,158,11,0.14);color:#b45309;padding:2px 9px;border-radius:50px;font-weight:600;">&#8593; ' + tx('grow') + ' ' + dName(k) + '</span>'; });
+                return out ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">' + out + '</div>' : '';
+            };
             let html = '';
             predictions.forEach((career, idx) => {
                 const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : 'other';
                 const rankLabel = idx === 0 ? this.t('career_top_match') : idx === 1 ? this.t('career_strong_fit') : idx === 2 ? this.t('career_good_fit') : this.t('career_moderate_fit');
                 const careerName = career.name[lang] || career.name.en;
                 const careerDesc = career.desc[lang] || career.desc.en;
-                html += '<div class="career-match-item"><div class="career-match-rank ' + rankClass + '">' + (idx + 1) + '</div><div class="career-match-icon" style="background:' + career.color + '15; color:' + career.color + ';"><i class="fas ' + career.icon + '"></i></div><div class="career-match-info"><div class="career-match-name">' + careerName + '</div><div class="career-match-desc">' + careerDesc + '</div></div><div class="career-match-bar-wrap"><div class="career-match-bar"><div class="career-match-bar-fill" style="width:0%" data-target-width="' + career.matchPercentage + '%"></div></div><div class="career-match-pct">' + career.matchPercentage + '%</div></div></div>';
+                html += '<div class="career-match-item"><div class="career-match-rank ' + rankClass + '">' + (idx + 1) + '</div><div class="career-match-icon" style="background:' + career.color + '15; color:' + career.color + ';"><i class="fas ' + career.icon + '"></i></div><div class="career-match-info"><div class="career-match-name">' + careerName + '</div><div class="career-match-desc">' + careerDesc + '</div>' + chips(career) + '</div><div class="career-match-bar-wrap"><div class="career-match-bar"><div class="career-match-bar-fill" style="width:0%" data-target-width="' + career.matchPercentage + '%"></div></div><div class="career-match-pct">' + career.matchPercentage + '%</div></div></div>';
             });
+            const confKey = predictions[0].confidence || 'medium';
+            html += '<div style="font-size:0.78rem;color:var(--text-muted);margin:4px 2px 10px;"><i class="fas fa-bullseye" style="color:#8b5cf6;margin-right:6px;"></i>' + tx('conf') + ': <strong>' + tx(confKey) + '</strong></div>';
             html += '<div class="career-insight-box"><p><i class="fas fa-lightbulb" style="color:#8b5cf6; margin-right:8px;"></i><strong>' + this.t('career_insight_prefix') + '</strong> ' + topDomainNames + '. ' + this.t('career_insight_suffix') + '</p></div>';
             container.innerHTML = html;
             setTimeout(() => {
@@ -6657,6 +6729,7 @@ refreshResultsView() {
                 return;
             }
             /* Auth state uses Firebase only, not localStorage */
+            this.syncFromFirebase().catch(() => {}); // ⚡ start loading students immediately
             this.showSection('adminDashboard');
             this.showToast(this.t('toast_welcome_back'), 'success');
             
@@ -6813,7 +6886,9 @@ refreshResultsView() {
             if (search) filtered = this.students.filter(s => s.name.toLowerCase().includes(search) || s.icNumber.includes(search) || s.class.toLowerCase().includes(search));
             
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);" data-i18n="empty_no_students">No students found</td></tr>';
+                tbody.innerHTML = this._syncing
+                    ? '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading students...</td></tr>'
+                    : '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);" data-i18n="empty_no_students">No students found</td></tr>';
                 return;
             }
             tbody.innerHTML = filtered.map(s => `
@@ -8450,17 +8525,27 @@ refreshResultsView() {
         // ═══════════════════════════════════════════════════════════════
         // FIREBASE CLOUD SYNC (Multi-device QR support)
         // ═══════════════════════════════════════════════════════════════
-        async syncFromFirebase() {
+        syncFromFirebase() {
+            if (!this.firebaseReady || !this.db) return Promise.resolve();
+            if (this._syncPromise) return this._syncPromise; // de-duplicate parallel calls
+            this._syncPromise = this._doSyncFromFirebase().finally(() => { this._syncPromise = null; });
+            return this._syncPromise;
+        },
+        async _doSyncFromFirebase() {
             if (!this.firebaseReady || !this.db) return;
+            this._syncing = true;
+            try { if (!this.students.length) this.renderStudentsTable(); } catch (_) {}
             try {
                 const { getDocs, collection } = window.fb;
 
                 // Load ALL students (teachers can view any class via dropdown selection)
-                const stuSnap = await getDocs(collection(this.db, 'students'));
+                // ⚡ Students + assessments fetched IN PARALLEL (was one-after-another)
+                const [stuSnap, assSnap] = await Promise.all([
+                    getDocs(collection(this.db, 'students')),
+                    getDocs(collection(this.db, 'assessments'))
+                ]);
                 const fbStudents = [];
                 stuSnap.forEach(d => fbStudents.push({...d.data(), id: d.id}));
-
-                const assSnap = await getDocs(collection(this.db, 'assessments'));
                 const fbAssessments = [];
                 assSnap.forEach(d => fbAssessments.push({...d.data(), id: d.id}));
 
@@ -8482,21 +8567,26 @@ refreshResultsView() {
                 if (fbAssessments.length === 0 && this.assessments.length > 0) {
                     for (const a of this.assessments) await this.saveAssessmentToFirebase(a);
                 }
-                // ✅ Auto-create MyKid index for all students (self-healing, one-time)
-                this.backfillStudentIndex();
-                // ✅ Copy old top-level assessments into subcollections (parents can read)
-                this.backfillAssessments();
-
+                // ⚡ RENDER FIRST — data screen-la udane theriyum
+                this._syncing = false;
                 this.updateHeroStats();
                 this.renderStudentsTable();
                 this.renderAssessmentsTable();
                 this.populateStudentSelects();
+                try { this.updateDashboard(); } catch (_) {}
+                // Heavy self-healing jobs run AFTER the UI is already painted
+                setTimeout(() => {
+                    try { this.backfillStudentIndex(); } catch (_) {}
+                    try { this.backfillAssessments(); } catch (_) {}
+                }, 2000);
 
                 // Re-check QR params after real data loaded
                 this.checkUrlParams();
             } catch(e) {
                 console.error('Firebase sync error');
                 console.warn('Cloud sync failed, using local data');
+            } finally {
+                this._syncing = false;
             }
         },        async saveStudentToFirebase(student) {
             if (!this.firebaseReady || !this.db) return;
@@ -8668,56 +8758,119 @@ refreshResultsView() {
             return [];
         },
 
-        getMissionResourceInfo(mission) {
-            if (!mission) return null;
-            const raw = String(mission.resourceUrl || mission.fileUrl || '').trim();
+        // Platform table → ORIGINAL brand logo (Font Awesome brand glyph) + brand colour
+        _platformFor(host) {
+            const T = [
+                [/(^|\.)(youtube\.com|youtu\.be|youtube-nocookie\.com)$/, 'YouTube', 'fa-youtube', '#ff0000', 'video'],
+                [/(^|\.)(facebook\.com|fb\.watch|fb\.com)$/, 'Facebook', 'fa-facebook', '#1877f2', 'video'],
+                [/(^|\.)instagram\.com$/, 'Instagram', 'fa-instagram', '#e4405f', 'video'],
+                [/(^|\.)tiktok\.com$/, 'TikTok', 'fa-tiktok', '#010101', 'video'],
+                [/(^|\.)(x\.com|twitter\.com)$/, 'X', 'fa-x-twitter', '#000000', 'video'],
+                [/(^|\.)(whatsapp\.com|wa\.me)$/, 'WhatsApp', 'fa-whatsapp', '#25d366', 'video'],
+                [/(^|\.)(t\.me|telegram\.org)$/, 'Telegram', 'fa-telegram', '#229ed9', 'video'],
+                [/(^|\.)linkedin\.com$/, 'LinkedIn', 'fa-linkedin', '#0a66c2', 'video'],
+                [/(^|\.)pinterest\.[a-z.]+$/, 'Pinterest', 'fa-pinterest', '#e60023', 'video'],
+                [/(^|\.)reddit\.com$/, 'Reddit', 'fa-reddit', '#ff4500', 'video'],
+                [/(^|\.)vimeo\.com$/, 'Vimeo', 'fa-vimeo', '#1ab7ea', 'video'],
+                [/(^|\.)(drive\.google\.com|docs\.google\.com|drive\.usercontent\.google\.com)$/, 'Google Drive', 'fa-google-drive', '#1fa463', 'cloud'],
+                [/(^|\.)dropbox\.com$/, 'Dropbox', 'fa-dropbox', '#0061ff', 'cloud'],
+                [/(^|\.)(onedrive\.live\.com|1drv\.ms|sharepoint\.com)$/, 'OneDrive', 'fa-microsoft', '#0078d4', 'cloud']
+            ];
+            for (const [re, name, icon, color, kind] of T) if (re.test(host)) return { name, icon, color, kind, brand: true };
+            return { name: 'Website', icon: 'fa-globe', color: '#7c3aed', kind: 'web', brand: false };
+        },
+
+        _parseResource(raw, customTitle) {
+            raw = String(raw || '').trim();
             if (!raw) return null;
             try {
                 const parsed = new URL(raw);
                 if (!['http:', 'https:'].includes(parsed.protocol)) return null;
                 const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-                let platform = 'WEBSITE';
-                let icon = 'fa-globe';
+                const p = this._platformFor(host);
                 let embedUrl = '';
-                let videoId = '';
-                if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be' || host === 'youtube-nocookie.com') {
-                    platform = 'YOUTUBE';
-                    icon = 'fa-youtube';
+                if (p.name === 'YouTube') {
+                    let videoId = '';
                     if (host === 'youtu.be') videoId = parsed.pathname.split('/').filter(Boolean)[0] || '';
                     else videoId = parsed.searchParams.get('v') || (parsed.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/) || [])[1] || '';
                     if (/^[a-zA-Z0-9_-]{6,20}$/.test(videoId)) embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId;
-                } else if (host === 'vimeo.com' || host === 'player.vimeo.com') {
-                    platform = 'VIMEO';
-                    icon = 'fa-vimeo';
-                    const match = parsed.pathname.match(/\/(?:video\/)?(\d+)/);
-                    if (match) embedUrl = 'https://player.vimeo.com/video/' + match[1];
-                } else if (host.includes('khanacademy.org')) {
-                    platform = 'KHAN ACADEMY';
-                    icon = 'fa-graduation-cap';
-                } else if (host.includes('google.com') || host.includes('docs.google.com')) {
-                    platform = 'GOOGLE RESOURCE';
-                    icon = 'fa-google-drive';
+                } else if (p.name === 'Vimeo') {
+                    const m = parsed.pathname.match(/\/(?:video\/)?(\d+)/);
+                    if (m) embedUrl = 'https://player.vimeo.com/video/' + m[1];
                 }
+                const def = p.kind === 'cloud' ? ('Open on ' + p.name) : p.kind === 'video' ? ('Watch on ' + p.name) : 'Explore this Learning Resource';
                 return {
-                    url: parsed.href,
-                    host,
-                    platform,
-                    icon,
-                    embedUrl,
-                    title: String(mission.resourceTitle || '').trim() || (platform === 'YOUTUBE' ? 'Watch the Learning Video' : 'Explore this Learning Resource')
+                    url: parsed.href, host, platform: p.name.toUpperCase(), platformName: p.name,
+                    icon: p.icon, fa: p.brand ? 'fab' : 'fas', color: p.color, kind: p.kind, embedUrl,
+                    title: String(customTitle || '').trim() || def
                 };
-            } catch (_) {
-                return null;
-            }
+            } catch (_) { return null; }
         },
 
-        openMissionResource(missionId) {
+        // All resource links of a mission (new `resources` array, or legacy single link)
+        getMissionResources(mission) {
+            if (!mission) return [];
+            if (Array.isArray(mission.resources) && mission.resources.length) {
+                return mission.resources.map(r => this._parseResource(r && r.url, r && r.title)).filter(Boolean);
+            }
+            const one = this._parseResource(mission.resourceUrl || mission.fileUrl, mission.resourceTitle);
+            return one ? [one] : [];
+        },
+
+        getMissionResourceInfo(mission) { return this.getMissionResources(mission)[0] || null; },
+
+        // One card PER link, each with the platform's original logo
+        renderResourceCards(mission, missionIdSafe) {
+            const list = this.getMissionResources(mission);
+            if (!list.length) return '';
+            const lbl = { en: 'Learning Resources', ta: 'கற்றல் வளங்கள்', ms: 'Sumber Pembelajaran' }[this.currentLang] || 'Learning Resources';
+            const act = { video: { en: 'Watch', ta: 'பார்க்க', ms: 'Tonton' }, cloud: { en: 'Open', ta: 'திற', ms: 'Buka' }, web: { en: 'Open', ta: 'திற', ms: 'Buka' } };
+            return `<div style="margin:0 0 14px;">
+                <div style="display:flex; align-items:center; gap:8px; color:#7c3aed; font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="fas fa-graduation-cap"></i>${lbl} (${list.length})</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                ${list.map((r, i) => `
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 14px; border:1px solid rgba(139,92,246,0.2); border-radius:16px; background:linear-gradient(135deg,rgba(139,92,246,0.07),rgba(37,99,235,0.045));">
+                        <div style="width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#fff; color:${r.color}; font-size:1.6rem; box-shadow:0 4px 14px rgba(15,23,42,0.08); flex-shrink:0;"><i class="${r.fa} ${r.icon}"></i></div>
+                        <div style="flex:1; min-width:150px;"><div style="font-weight:700; color:var(--text-primary);">${this.sanitizeHTML(r.title)}</div><div style="font-size:0.75rem; color:var(--text-muted);">${this.sanitizeHTML(r.platformName)} • ${this.sanitizeHTML(r.host)}</div></div>
+                        <button type="button" class="btn btn-sm" onclick="app.openMissionResource('${missionIdSafe}', ${i})" style="background:${r.color === '#000000' || r.color === '#010101' ? '#111827' : r.color}; color:white;"><i class="${r.fa} ${r.icon}"></i> ${(act[r.kind] || act.web)[this.currentLang] || act[r.kind].en}</button>
+                    </div>`).join('')}
+                </div>
+            </div>`;
+        },
+
+        // Admin modal rows
+        addMissionResourceRow(url = '', title = '') {
+            const box = document.getElementById('missionResourcesList');
+            if (!box) return;
+            const row = document.createElement('div');
+            row.className = 'mission-res-row';
+            row.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center;';
+            row.innerHTML = '<input type="url" class="input-premium mres-url" placeholder="https://youtube.com/... / facebook.com/... / drive.google.com/... / dropbox.com/...">' +
+                '<input type="text" class="input-premium mres-title" placeholder="Title (optional)">' +
+                '<button type="button" class="btn btn-sm btn-outline" title="Remove" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+            row.querySelector('.mres-url').value = url;
+            row.querySelector('.mres-title').value = title;
+            box.appendChild(row);
+        },
+        collectMissionResources() {
+            const out = [];
+            document.querySelectorAll('#missionResourcesList .mission-res-row').forEach(r => {
+                const url = r.querySelector('.mres-url').value.trim();
+                const title = r.querySelector('.mres-title').value.trim();
+                if (url && this._parseResource(url)) out.push({ url, title });
+            });
+            return out;
+        },
+
+        openMissionResource(missionId, idx = 0) {
             const mission = this.stemMissions.find(m => m.id === missionId);
-            const resource = this.getMissionResourceInfo(mission);
+            const resource = this.getMissionResources(mission)[idx];
             if (!resource) {
                 this.showToast('A valid learning resource link has not been added yet.', 'error');
                 return;
             }
+            // Only YouTube / Vimeo can play inside the page (CSP). Facebook, Drive, Dropbox etc. open in their own tab.
+            if (!resource.embedUrl) { window.open(resource.url, '_blank', 'noopener,noreferrer'); return; }
             const modal = document.getElementById('stemResourceModal');
             const title = document.getElementById('stemResourceModalTitle');
             const platform = document.getElementById('stemResourcePlatform');
@@ -8850,18 +9003,10 @@ refreshResultsView() {
                                     <div style="font-size:0.78rem; font-weight:700; color:#7c3aed; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;"><i class="fas fa-list-ol" style="margin-right:6px;"></i>${this.t('stem_instructions')}</div>
                                     <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.7; white-space:pre-line;">${this.sanitizeHTML(mission.instructions)}</div>
                                 </div>` : ''}
-                                ${resource ? `
-                                <div style="margin:0 0 14px; padding:14px; border:1px solid rgba(139,92,246,0.2); border-radius:16px; background:linear-gradient(135deg,rgba(139,92,246,0.07),rgba(37,99,235,0.045));">
-                                    <div style="display:flex; align-items:center; gap:8px; color:#7c3aed; font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="fas fa-graduation-cap"></i>${resourceLabel}</div>
-                                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                                        <div style="width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#fff; color:${resource.platform === 'YOUTUBE' ? '#ef4444' : '#7c3aed'}; font-size:1.35rem; box-shadow:0 4px 14px rgba(15,23,42,0.07);"><i class="${resource.platform === 'YOUTUBE' || resource.platform === 'VIMEO' ? 'fab' : 'fas'} ${resource.icon}"></i></div>
-                                        <div style="flex:1; min-width:150px;"><div style="font-weight:700; color:var(--text-primary);">${this.sanitizeHTML(resource.title)}</div><div style="font-size:0.75rem; color:var(--text-muted);">${this.sanitizeHTML(resource.platform)} • ${this.sanitizeHTML(resource.host)}</div></div>
-                                        <button class="btn btn-sm" onclick="app.openMissionResource('${missionIdSafe}')" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6); color:white;"><i class="fas fa-play-circle"></i> ${resourceAction}</button>
-                                    </div>
-                                </div>` : ''}
+                                ${this.renderResourceCards(mission, missionIdSafe)}
                                 ${filesHtml}
                                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                                    ${files.length ? `<button class="btn btn-sm" onclick="app.downloadMissionFile('${missionIdSafe}')" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6); color:white;"><i class="fas fa-file-download"></i> ${this.t('stem_download')}${files.length > 1 ? ' (' + files.length + ')' : ''}</button>` : `<span style="font-size:0.78rem; color:var(--text-muted);"><i class="fas fa-info-circle"></i> ${noFilesText}</span>`}
+                                    ${(files.length || resource) ? '' : `<span style="font-size:0.78rem; color:var(--text-muted);"><i class="fas fa-info-circle"></i> ${noFilesText}</span>`}
                                     <button class="btn btn-sm" onclick="app.submitMissionWhatsApp('${missionIdSafe}')" style="background:#25d366; color:white;"><i class="fab fa-whatsapp"></i> ${this.t('stem_submit_whatsapp')}</button>
                                 </div>
                             </div>
@@ -9153,7 +9298,7 @@ refreshResultsView() {
                                 <button type="button" onclick="app.downloadMissionFileAt('${missionIdSafe}', ${fi})" class="btn btn-sm" style="background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; width:100%;">
                                     <i class="fas fa-download"></i> ${this.sanitizeHTML(f.name || (t.stem_download || 'Download File'))}
                                 </button>`).join('')}
-                                ${resource ? `<button type="button" onclick="app.openMissionResource('${missionIdSafe}')" class="btn btn-sm" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6); color:white; width:100%;"><i class="fas fa-graduation-cap"></i> Learning Resource</button>` : ''}
+                                ${this.getMissionResources(mission).map((r, ri) => `<button type="button" onclick="app.openMissionResource('${missionIdSafe}', ${ri})" class="btn btn-sm" style="background:#fff; color:${r.color}; border:1px solid rgba(139,92,246,0.25); width:100%;"><i class="${r.fa} ${r.icon}" style="font-size:1.05rem;"></i> ${this.sanitizeHTML(r.title)}</button>`).join('')}
                                 <a href="${waLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #25d366, #128c7e); color:white; text-decoration:none; width:100%;">
                                     <i class="fab fa-whatsapp"></i> ${t.stem_submit_whatsapp || 'Submit via WhatsApp'}
                                 </a>
@@ -9173,9 +9318,8 @@ refreshResultsView() {
             document.getElementById('stemMissionTitle').value = '';
             document.getElementById('stemMissionDesc').value = '';
             document.getElementById('stemMissionInstructions').value = '';
-            document.getElementById('stemMissionFileUrl').value = '';
-            const resourceTitleInput = document.getElementById('stemMissionResourceTitle');
-            if (resourceTitleInput) resourceTitleInput.value = '';
+            const resBox = document.getElementById('missionResourcesList');
+            if (resBox) resBox.innerHTML = '';
             document.getElementById('stemMissionFile').value = '';
             document.getElementById('stemMissionFileData').value = '';
             document.getElementById('stemMissionFileName').value = '';
@@ -9196,8 +9340,9 @@ refreshResultsView() {
                     document.getElementById('stemMissionTitle').value = m.title;
                     document.getElementById('stemMissionDesc').value = m.description;
                     document.getElementById('stemMissionInstructions').value = m.instructions || '';
-                    document.getElementById('stemMissionFileUrl').value = m.resourceUrl || m.fileUrl || '';
-                    if (resourceTitleInput) resourceTitleInput.value = m.resourceTitle || '';
+                    const savedRes = (Array.isArray(m.resources) && m.resources.length) ? m.resources
+                        : ((m.resourceUrl || m.fileUrl) ? [{ url: m.resourceUrl || m.fileUrl, title: m.resourceTitle || '' }] : []);
+                    savedRes.forEach(r => this.addMissionResourceRow(r.url, r.title));
                     // ✅ FILES: load multi-file list (or legacy single file)
                     this._missionFiles = (m.files && Array.isArray(m.files)) ? [...m.files]
                         : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, url: null, size: 0 }] : []);
@@ -9207,6 +9352,7 @@ refreshResultsView() {
                     document.getElementById('stemMissionDate').value = m.date || (m.createdAt ? m.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]);
                 }
             }
+            if (!document.querySelector('#missionResourcesList .mission-res-row')) this.addMissionResourceRow();
             document.getElementById('stemMissionModal').classList.add('show');
         },
         closeStemMissionModal() {
@@ -9343,9 +9489,10 @@ refreshResultsView() {
                 title: document.getElementById('stemMissionTitle').value,
                 description: document.getElementById('stemMissionDesc').value,
                 instructions: document.getElementById('stemMissionInstructions').value,
-                fileUrl: document.getElementById('stemMissionFileUrl').value,
-                resourceUrl: document.getElementById('stemMissionFileUrl').value,
-                resourceTitle: (document.getElementById('stemMissionResourceTitle')?.value || '').trim(),
+                resources: this.collectMissionResources(),
+                fileUrl: (this.collectMissionResources()[0] || {}).url || '',
+                resourceUrl: (this.collectMissionResources()[0] || {}).url || '',
+                resourceTitle: (this.collectMissionResources()[0] || {}).title || '',
                 fileData: document.getElementById('stemMissionFileData').value || null,
                 fileName: document.getElementById('stemMissionFileName').value || null,
                 mimeType: document.getElementById('stemMissionMimeType').value || null,
