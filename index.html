@@ -2851,7 +2851,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <button class="btn btn-teal" onclick="app.openAssessmentModal()"><i class="fas fa-plus"></i> <span data-i18n="btn_new_assessment">New Assessment</span></button>
                     </div>
                     <div class="toolbar">
-                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="assessmentSearch" placeholder="Search assessments..." data-i18n-placeholder="search_placeholder_assessments" oninput="app.filterAssessments()"></div>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="assessmentSearch" placeholder="Search name / MyKid / class..." data-i18n-placeholder="search_placeholder_assessments" oninput="app.filterAssessments()"></div>
                         <div class="filter-box">
                             <i class="fas fa-filter"></i>
                             <select id="severityFilter" class="input-premium" onchange="app.filterAssessments()">
@@ -3075,7 +3075,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                     <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:24px;" data-i18n="teacher_assessments_subtitle">All assessments for selected class</p>
 
                     <div class="toolbar">
-                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="teacherAssessmentSearch" placeholder="Search assessments..." data-i18n-placeholder="search_placeholder_assessments" oninput="app.filterTeacherAssessments()"></div>
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" id="teacherAssessmentSearch" placeholder="Search name / MyKid / class..." data-i18n-placeholder="search_placeholder_assessments" oninput="app.filterTeacherAssessments()"></div>
                         <div class="filter-box">
                             <i class="fas fa-filter"></i>
                             <select id="teacherSeverityFilter" class="input-premium" onchange="app.filterTeacherAssessments()">
@@ -3294,6 +3294,36 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <div id="missionResourcesList" style="display:flex; flex-direction:column; gap:10px; margin-top:6px;"></div>
                         <button type="button" class="btn btn-sm btn-outline" style="margin-top:10px;" onclick="app.addMissionResourceRow()"><i class="fas fa-plus"></i> Add another link</button>
                         <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.6;"><i class="fas fa-lightbulb" style="color:#f59e0b;"></i> Each link is shown to students as its own card with the platform's original logo. Uploaded files below stay separate &amp; download one by one.</p>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; padding:16px; border:1px solid rgba(139,92,246,0.25); border-radius:16px; background:rgba(139,92,246,0.04);">
+                        <label style="margin-bottom:10px;"><i class="fas fa-bullseye" style="color:#8b5cf6; margin-right:6px;"></i>Who can see this mission?</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-sm btn-primary" data-maud="all" onclick="app.setMissionAudience('all')"><i class="fas fa-globe"></i> Everyone</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-maud="classes" onclick="app.setMissionAudience('classes')"><i class="fas fa-chalkboard"></i> Specific classes</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-maud="students" onclick="app.setMissionAudience('students')"><i class="fas fa-user-check"></i> Specific students</button>
+                        </div>
+                        <div id="maud-classes" style="display:none; margin-top:12px;">
+                            <div id="missionClassChecks" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                        </div>
+                        <div id="maud-students" style="display:none; margin-top:12px;">
+                            <input type="text" id="missionStudentSearch" class="input-premium" placeholder="Search student name or MyKid number..." oninput="app.searchMissionStudents()" autocomplete="off">
+                            <div id="missionStudentResults" style="display:none; max-height:190px; overflow:auto; margin-top:6px; border:1px solid var(--glass-border, rgba(148,163,184,0.3)); border-radius:12px; background:var(--card-bg);"></div>
+                            <div id="missionStudentChips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+                        </div>
+                        <label id="maudExclusiveWrap" style="display:none; margin-top:14px; font-size:0.85rem; cursor:pointer; line-height:1.5;">
+                            <input type="checkbox" id="stemMissionExclusive" style="margin-right:8px;"> Show <strong>only</strong> targeted missions to these students/classes <span style="color:var(--text-muted);">(hide the common "Everyone" missions for them)</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-hourglass-start" style="color:#8b5cf6; margin-right:6px;"></i>Visible from (optional)</label>
+                        <input type="date" id="stemMissionStart" class="input-premium">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-hourglass-end" style="color:#8b5cf6; margin-right:6px;"></i>Visible until (optional)</label>
+                        <input type="date" id="stemMissionEnd" class="input-premium">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label style="cursor:pointer; font-size:0.9rem;"><input type="checkbox" id="stemMissionHidden" style="margin-right:8px;"><i class="fas fa-eye-slash" style="color:#ef4444; margin-right:6px;"></i>Hide this mission from parents (keep it as a draft)</label>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_upload_file">Upload Files (Select multiple at once, max 10MB each)</label>
@@ -4401,6 +4431,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     const qrStudentId = urlParams.get('student');
     const qrIcNumber = urlParams.get('ic');
     this._pendingQrParams = { studentId: qrStudentId, icNumber: qrIcNumber };
+    const qrLangParam = (urlParams.get('lang') || '').toLowerCase();
 
     this.setupHistoryNavigation();
     this.setupNavScroll();
@@ -4410,7 +4441,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
     this.renderStudentsTable();
     this.renderAssessmentsTable();
     this.populateStudentSelects();
-    this.setLang('en');
+    this.setLang(['en', 'ms', 'ta'].includes(qrLangParam) ? qrLangParam : 'en'); // QR link language → parent sees results in that language
 
     // ✅ RESTORE SESSION USER (so refresh doesn't logout)
     this.currentUser = null; // Auth from Firebase only
@@ -5392,7 +5423,7 @@ _renderAdminPage(page) {
         async renderTeacherAssessmentsTable() {
             await this.VaultEnsureAssessments();
             const tbody = document.getElementById('teacherAssessmentsTableBody');
-            const search = document.getElementById('teacherAssessmentSearch')?.value.toLowerCase() || '';
+            const search = (document.getElementById('teacherAssessmentSearch')?.value || '').toLowerCase().trim();
             const severityFilter = document.getElementById('teacherSeverityFilter')?.value || 'all';
             const cls = this.currentTeacherClass;
 
@@ -5412,9 +5443,11 @@ _renderAdminPage(page) {
             let filtered = this.assessments.filter(a => classIdSet.has(this._nid(a.studentId)));
 
             if (search) {
+                const sd = search.replace(/[-\s]/g, '');
                 filtered = filtered.filter(a => {
                     const s = this.students.find(st => this._nid(st.id) === this._nid(a.studentId));
-                    return (s && s.name.toLowerCase().includes(search)) || a.date.includes(search);
+                    const ic = s ? String(s.icNumber || '').replace(/[-\s]/g, '') : '';
+                    return (s && (s.name.toLowerCase().includes(search) || (sd && ic.includes(sd)))) || String(a.date || '').includes(search);
                 });
             }
             if (severityFilter !== 'all') {
@@ -7150,13 +7183,15 @@ refreshResultsView() {
         // ═══════════════════════════════════════════════════════════════
         renderAssessmentsTable() {
             const tbody = document.getElementById('assessmentsTableBody');
-            const search = document.getElementById('assessmentSearch')?.value.toLowerCase() || '';
+            const search = (document.getElementById('assessmentSearch')?.value || '').toLowerCase().trim();
             const severityFilter = document.getElementById('severityFilter')?.value || 'all';
             let filtered = this.assessments;
             if (search) {
+                const sd = search.replace(/[-\s]/g, '');
                 filtered = filtered.filter(a => {
-                    const s = this.students.find(st => st.id === a.studentId);
-                    return (s && s.name.toLowerCase().includes(search)) || a.date.includes(search);
+                    const s = this.students.find(st => this._nid(st.id) === this._nid(a.studentId));
+                    const ic = s ? String(s.icNumber || '').replace(/[-\s]/g, '') : '';
+                    return (s && (s.name.toLowerCase().includes(search) || (s.class || '').toLowerCase().replace(/\s+/g, '').includes(search.replace(/\s+/g, '')) || (sd && ic.includes(sd)))) || String(a.date || '').includes(search);
                 });
             }
             if (severityFilter !== 'all') {
@@ -7167,7 +7202,7 @@ refreshResultsView() {
                 return;
             }
             tbody.innerHTML = filtered.map(a => {
-                const s = this.students.find(st => st.id === a.studentId);
+                const s = this.students.find(st => this._nid(st.id) === this._nid(a.studentId));
                 return `
                     <tr>
                         <td>${this.formatDate(a.date)}</td>
@@ -8082,7 +8117,7 @@ refreshResultsView() {
                 qrBox.style.display = 'none';
                 document.body.appendChild(qrBox);
 
-                const url = `${window.location.origin}${window.location.pathname}?ic=${s.icNumber}`;
+                const url = `${window.location.origin}${window.location.pathname}?ic=${s.icNumber}&lang=${this.qrLang === 'ms' ? 'ms' : 'en'}`;
                 /* QR URL logging removed for security */
 
                 new QRCode(qrBox, { 
@@ -8259,11 +8294,6 @@ refreshResultsView() {
             const btnWrap = document.createElement('div');
             btnWrap.style.cssText = 'display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:12px; margin:24px auto 0; width:100%; max-width:420px;';
             btnWrap.innerHTML = `
-                <div style="display:flex; gap:8px; width:100%; justify-content:center; align-items:center;">
-                    <span style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-language"></i></span>
-                    <button type="button" class="btn btn-sm ${lang === 'en' ? 'btn-primary' : 'btn-outline'}" data-qrlang="en" onclick="app.setQRLang('en')">EN</button>
-                    <button type="button" class="btn btn-sm ${lang === 'ms' ? 'btn-primary' : 'btn-outline'}" data-qrlang="ms" onclick="app.setQRLang('ms')">MS</button>
-                </div>
                 <button class="btn btn-primary" onclick="app.downloadIDCard()" style="flex:1 1 170px; width:auto; margin:0;"><i class="fas fa-download"></i> ${T.dl}</button>
                 <button class="btn btn-outline" onclick="document.getElementById('qrResult').innerHTML=''" style="flex:1 1 170px; width:auto; margin:0;"><i class="fas fa-times"></i> ${T.close}</button>`;
             container.appendChild(btnWrap);
@@ -8767,22 +8797,120 @@ refreshResultsView() {
 
         // One card PER link, each with the platform's original logo
         renderResourceCards(mission, missionIdSafe) {
-            const list = this.getMissionResources(mission);
-            if (!list.length) return '';
+            const all = this.getMissionResources(mission);
+            if (!all.length) return '';
             const L = this.currentLang;
+            const social = all.map((r, i) => ({ r, i })).filter(x => x.r.kind !== 'web');
+            const web = all.map((r, i) => ({ r, i })).filter(x => x.r.kind === 'web');
             const lbl = { en: 'Learning Resources', ta: 'கற்றல் வளங்கள்', ms: 'Sumber Pembelajaran' }[L] || 'Learning Resources';
+            const lblWeb = { en: 'Website Links', ta: 'இணையதள இணைப்புகள்', ms: 'Pautan Laman Web' }[L] || 'Website Links';
             const tap = { en: 'Tap to open', ta: 'திறக்கத் தட்டவும்', ms: 'Ketik untuk buka' }[L] || 'Tap to open';
-            return `<div style="margin:0 0 16px;">
-                <div style="display:flex; align-items:center; gap:8px; color:#7c3aed; font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="fas fa-graduation-cap"></i>${lbl} (${list.length})</div>
+            const head = (t, ic, n) => `<div style="display:flex; align-items:center; gap:8px; color:#7c3aed; font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="fas ${ic}"></i>${t} (${n})</div>`;
+            let out = '';
+            if (social.length) {
+                out += `<div style="margin:0 0 16px;">${head(lbl, 'fa-graduation-cap', social.length)}
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                ${list.map((r, i) => `
+                ${social.map(({ r, i }) => `
                     <div role="button" tabindex="0" onclick="app.openMissionResource('${missionIdSafe}', ${i})" onkeydown="if(event.key==='Enter')app.openMissionResource('${missionIdSafe}', ${i})" style="display:flex; align-items:center; gap:12px; padding:10px 14px; border:1px solid rgba(139,92,246,0.2); border-radius:14px; background:var(--card-bg); cursor:pointer; transition:all 0.2s;" onmouseover="this.style.borderColor='${r.color}';this.style.transform='translateX(3px)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.2)';this.style.transform='none'">
                         <span style="width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:#fff; color:${r.color}; font-size:1.45rem; box-shadow:0 3px 10px rgba(15,23,42,0.08); flex-shrink:0;"><i class="${r.fa} ${r.icon}"></i></span>
                         <span style="flex:1; min-width:0;"><span style="display:block; font-weight:700; font-size:0.9rem; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this.sanitizeHTML(r.title)}</span><span style="display:block; font-size:0.72rem; color:var(--text-muted);">${this.sanitizeHTML(r.platformName)} • ${tap}</span></span>
                         <i class="fas fa-arrow-up-right-from-square" style="color:${r.color}; font-size:0.85rem; flex-shrink:0;"></i>
                     </div>`).join('')}
-                </div>
-            </div>`;
+                </div></div>`;
+            }
+            if (web.length) {
+                // Plain website links → their OWN section, normal clickable links (no social preview card)
+                out += `<div style="margin:0 0 16px;">${head(lblWeb, 'fa-link', web.length)}
+                <div style="display:flex; flex-direction:column; gap:6px; padding:12px 14px; border:1px dashed rgba(37,99,235,0.35); border-radius:14px; background:rgba(37,99,235,0.04);">
+                ${web.map(({ r }) => `
+                    <a href="${this.sanitizeHTML(r.url)}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; gap:10px; color:#2563eb; text-decoration:none; font-weight:600; font-size:0.9rem; padding:6px 0; word-break:break-word;">
+                        <i class="fas fa-globe" style="flex-shrink:0;"></i><span style="text-decoration:underline;">${this.sanitizeHTML(r.title)}</span><i class="fas fa-arrow-up-right-from-square" style="font-size:0.75rem; opacity:0.7; flex-shrink:0;"></i>
+                    </a>`).join('')}
+                </div></div>`;
+            }
+            return out;
+        },
+
+        // ═══ Mission audience / visibility ═══
+        getMissionsForStudent(student) {
+            const today = new Date().toISOString().split('T')[0];
+            const cl = (v) => String(v || '').replace(/[-\s]/g, '').toUpperCase();
+            const cn = (v) => String(v || '').replace(/\s+/g, '').toUpperCase();
+            const base = this.stemMissions.filter(m => m.status === 'active' && !m.hidden && (!m.startDate || m.startDate <= today) && (!m.endDate || m.endDate >= today));
+            if (!student) return base.filter(m => !m.audience || m.audience === 'all');
+            const isMine = (m) => (m.audience === 'classes' && (m.targetClasses || []).some(c => cn(c) === cn(student.class)))
+                || (m.audience === 'students' && (m.targetStudents || []).some(t => (t.id && t.id === student.id) || cl(t.ic) === cl(student.icNumber)));
+            const mine = base.filter(isMine);
+            const exclusive = mine.some(m => m.exclusive);
+            return base.filter(m => mine.includes(m) || (!exclusive && (!m.audience || m.audience === 'all')));
+        },
+        setMissionAudience(a) {
+            this._missionAud = a;
+            document.querySelectorAll('#stemMissionModal [data-maud]').forEach(b => { const on = b.dataset.maud === a; b.classList.toggle('btn-primary', on); b.classList.toggle('btn-outline', !on); });
+            document.getElementById('maud-classes').style.display = a === 'classes' ? '' : 'none';
+            document.getElementById('maud-students').style.display = a === 'students' ? '' : 'none';
+            document.getElementById('maudExclusiveWrap').style.display = a === 'all' ? 'none' : '';
+        },
+        _resetMissionAudience() {
+            this._missionTargets = [];
+            const classes = [...new Set(this.students.map(s => String(s.class || '').trim()).filter(Boolean))].sort((x, y) => x.localeCompare(y, undefined, { numeric: true }));
+            document.getElementById('missionClassChecks').innerHTML = classes.length ? classes.map(c => `<label style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid rgba(139,92,246,0.3); border-radius:50px; cursor:pointer; font-size:0.85rem;"><input type="checkbox" class="mclass-chk" value="${this.sanitizeHTML(c)}"> ${this.sanitizeHTML(c)}</label>`).join('') : '<span style="color:var(--text-muted); font-size:0.85rem;">No classes found yet (add students first)</span>';
+            document.getElementById('missionStudentSearch').value = '';
+            document.getElementById('missionStudentResults').style.display = 'none';
+            document.getElementById('stemMissionExclusive').checked = false;
+            document.getElementById('stemMissionHidden').checked = false;
+            document.getElementById('stemMissionStart').value = '';
+            document.getElementById('stemMissionEnd').value = '';
+            this.renderMissionTargetChips();
+            this.setMissionAudience('all');
+        },
+        _loadMissionAudience(m) {
+            this._missionTargets = Array.isArray(m.targetStudents) ? m.targetStudents.slice() : [];
+            const set = new Set((m.targetClasses || []).map(c => String(c).replace(/\s+/g, '').toUpperCase()));
+            document.querySelectorAll('.mclass-chk').forEach(c => { c.checked = set.has(c.value.replace(/\s+/g, '').toUpperCase()); });
+            document.getElementById('stemMissionExclusive').checked = !!m.exclusive;
+            document.getElementById('stemMissionHidden').checked = !!m.hidden;
+            document.getElementById('stemMissionStart').value = m.startDate || '';
+            document.getElementById('stemMissionEnd').value = m.endDate || '';
+            this.renderMissionTargetChips();
+            this.setMissionAudience(m.audience || 'all');
+        },
+        searchMissionStudents() {
+            const q = (document.getElementById('missionStudentSearch').value || '').toLowerCase().trim();
+            const qd = q.replace(/[-\s]/g, '');
+            const box = document.getElementById('missionStudentResults');
+            if (!q) { box.style.display = 'none'; return; }
+            const taken = new Set((this._missionTargets || []).map(t => t.id));
+            const res = this.students.filter(s => !taken.has(s.id) && (String(s.name || '').toLowerCase().includes(q) || (qd && String(s.icNumber || '').replace(/[-\s]/g, '').includes(qd)))).slice(0, 8);
+            box.style.display = '';
+            box.innerHTML = res.length ? res.map(s => `<div onclick="app.addMissionTarget('${this.sanitizeHTML(s.id)}')" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid rgba(148,163,184,0.2); font-size:0.88rem;"><strong>${this.sanitizeHTML(s.name)}</strong> <span style="color:var(--text-muted);">• ${this.sanitizeHTML(s.class || '-')} • ${this.sanitizeHTML(s.icNumber || '')}</span></div>`).join('') : '<div style="padding:12px 14px; color:var(--text-muted); font-size:0.85rem;">No student found</div>';
+        },
+        addMissionTarget(id) {
+            const s = this.students.find(x => x.id === id);
+            if (!s || (this._missionTargets || []).some(t => t.id === id)) return;
+            this._missionTargets.push({ id: s.id, name: s.name, ic: s.icNumber, class: s.class || '' });
+            document.getElementById('missionStudentSearch').value = '';
+            document.getElementById('missionStudentResults').style.display = 'none';
+            this.renderMissionTargetChips();
+        },
+        removeMissionTarget(id) {
+            this._missionTargets = (this._missionTargets || []).filter(t => t.id !== id);
+            this.renderMissionTargetChips();
+        },
+        renderMissionTargetChips() {
+            const box = document.getElementById('missionStudentChips');
+            if (!box) return;
+            box.innerHTML = (this._missionTargets || []).map(t => `<span style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:50px; background:rgba(139,92,246,0.12); color:#6d28d9; font-size:0.82rem; font-weight:600;">${this.sanitizeHTML(t.name)} <span style="opacity:0.7; font-weight:500;">${this.sanitizeHTML(t.class || '')}</span><i class="fas fa-times" style="cursor:pointer;" onclick="app.removeMissionTarget('${this.sanitizeHTML(t.id)}')"></i></span>`).join('');
+        },
+        async toggleMissionVisibility(id) {
+            const m = this.stemMissions.find(x => x.id === id);
+            if (!m) return;
+            const prev = !!m.hidden;
+            m.hidden = !prev;
+            const ok = await this.saveStemMissionToFirebase(m);
+            if (!ok) { m.hidden = prev; this.showToast('Could not update. Please try again.', 'error'); return; }
+            this.renderAdminStemMissions();
+            this.showToast(m.hidden ? 'Mission hidden from parents' : 'Mission is now visible to parents', 'success');
         },
 
         // Bilingual field: MS toggle → Malay text (fallback English); EN/TA → English text (fallback Malay)
@@ -8888,7 +9016,7 @@ refreshResultsView() {
             const container = document.getElementById('stemMissionViewContainer');
             if (!container || !this.currentStemStudent) return;
             const student = this.currentStemStudent;
-            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
+            const activeMissions = this.getMissionsForStudent(student);
 
             const filesLabel = { en: 'Attached Files', ta: 'இணைக்கப்பட்ட கோப்புகள்', ms: 'Fail Dilampirkan' }[this.currentLang] || 'Attached Files';
             const allLabel = { en: 'All', ta: 'அனைத்தும்', ms: 'Semua' }[this.currentLang] || 'All';
@@ -9200,8 +9328,8 @@ refreshResultsView() {
 
         renderStemMissions() {
             const container = document.getElementById('stemMissionList');
-            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
             const student = this.currentStemStudent;
+            const activeMissions = this.getMissionsForStudent(student);
             const t = this.i18n[this.currentLang] || this.i18n.en;
 
             if (activeMissions.length === 0) {
@@ -9285,6 +9413,7 @@ refreshResultsView() {
             document.getElementById('stemMissionInstructions').value = '';
             ['stemMissionTitleMs','stemMissionDescMs','stemMissionInstructionsMs'].forEach(i => { const e = document.getElementById(i); if (e) e.value = ''; });
             this.setMissionFormLang('en');
+            this._resetMissionAudience();
             const resBox = document.getElementById('missionResourcesList');
             if (resBox) resBox.innerHTML = '';
             document.getElementById('stemMissionFile').value = '';
@@ -9313,6 +9442,7 @@ refreshResultsView() {
                     const savedRes = (Array.isArray(m.resources) && m.resources.length) ? m.resources
                         : ((m.resourceUrl || m.fileUrl) ? [{ url: m.resourceUrl || m.fileUrl, title: m.resourceTitle || '' }] : []);
                     savedRes.forEach(r => this.addMissionResourceRow(r.url, r.title, r.title_ms));
+                    this._loadMissionAudience(m);
                     // ✅ FILES: load multi-file list (or legacy single file)
                     this._missionFiles = (m.files && Array.isArray(m.files)) ? [...m.files]
                         : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, url: null, size: 0 }] : []);
@@ -9461,7 +9591,21 @@ refreshResultsView() {
                 this.showToast('Please fill Title and Description in English or Malay (or both).', 'error');
                 return;
             }
+            const aud = this._missionAud || 'all';
+            const targetClasses = aud === 'classes' ? [...document.querySelectorAll('.mclass-chk:checked')].map(c => c.value) : [];
+            const targetStudents = aud === 'students' ? (this._missionTargets || []) : [];
+            if ((aud === 'classes' && !targetClasses.length) || (aud === 'students' && !targetStudents.length)) {
+                this.showToast(aud === 'classes' ? 'Please select at least one class.' : 'Please select at least one student.', 'error');
+                return;
+            }
             const data = {
+                audience: aud,
+                targetClasses,
+                targetStudents,
+                exclusive: aud !== 'all' && !!document.getElementById('stemMissionExclusive').checked,
+                hidden: !!document.getElementById('stemMissionHidden').checked,
+                startDate: gv('stemMissionStart'),
+                endDate: gv('stemMissionEnd'),
                 title: gv('stemMissionTitle') || gv('stemMissionTitleMs'),
                 title_ms: gv('stemMissionTitleMs'),
                 description: gv('stemMissionDesc') || gv('stemMissionDescMs'),
@@ -9546,12 +9690,19 @@ refreshResultsView() {
                                     <h4 style="font-size: 1.1rem; color: var(--text-primary);">${this.sanitizeHTML(m.title || m.title_ms)}</h4>
                                     <span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:${m.status==='active'?'rgba(139,92,246,0.1)':'rgba(148,163,184,0.1)'}; color:${m.status==='active'?'#8b5cf6':'#94a3b8'}; font-weight:600;">${m.status.toUpperCase()}</span>
                                 </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                                    ${m.hidden ? '<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(239,68,68,0.12); color:#dc2626; font-weight:700;"><i class="fas fa-eye-slash"></i> HIDDEN FROM PARENTS</span>' : '<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(16,185,129,0.12); color:#059669; font-weight:700;"><i class="fas fa-eye"></i> VISIBLE</span>'}
+                                    ${m.audience === 'classes' ? `<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(37,99,235,0.1); color:#2563eb; font-weight:700;"><i class="fas fa-chalkboard"></i> ${this.sanitizeHTML((m.targetClasses || []).join(', '))}</span>` : m.audience === 'students' ? `<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(139,92,246,0.12); color:#7c3aed; font-weight:700;"><i class="fas fa-user-check"></i> ${(m.targetStudents || []).length} student(s): ${this.sanitizeHTML((m.targetStudents || []).slice(0, 3).map(t => t.name).join(', '))}${(m.targetStudents || []).length > 3 ? '…' : ''}</span>` : '<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(148,163,184,0.15); color:#64748b; font-weight:700;"><i class="fas fa-globe"></i> EVERYONE</span>'}
+                                    ${m.exclusive ? '<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(245,158,11,0.15); color:#b45309; font-weight:700;">ONLY THIS FOR THEM</span>' : ''}
+                                    ${(m.startDate || m.endDate) ? `<span style="font-size:0.7rem; padding:3px 10px; border-radius:20px; background:rgba(148,163,184,0.15); color:#64748b; font-weight:700;"><i class="fas fa-calendar"></i> ${this.sanitizeHTML(m.startDate || '…')} → ${this.sanitizeHTML(m.endDate || '…')}</span>` : ''}
+                                </div>
                                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">${this.sanitizeHTML(m.description)}</p>
                                 <div style="font-size:0.8rem; color:var(--text-muted);">
                                     <i class="fas fa-paperclip" style="margin-right:6px;"></i>${fileSource} • ${date}
                                 </div>
                             </div>
                             <div style="display:flex; gap:8px;">
+                                <button class="btn-table btn-table-view" onclick="app.toggleMissionVisibility('${m.id}')" title="${m.hidden ? 'Show to parents' : 'Hide from parents'}"><i class="fas ${m.hidden ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
                                 <button class="btn-table btn-table-edit" onclick="app.editStemMission('${m.id}')" title="${this.t('tooltip_edit')}"><i class="fas fa-edit"></i></button>
                                 <button class="btn-table btn-table-del" onclick="app.deleteStemMission('${m.id}')" title="${this.t('tooltip_delete')}"><i class="fas fa-trash"></i></button>
                             </div>
