@@ -91,6 +91,9 @@
                allow read: if true;
                allow write: if isAdmin();
              }
+             match /recycleBin/{binId} {
+                 allow read, write: if isAdmin();
+               }
              match /stats/{docId} {
                allow read: if true;
                allow write: if isAdmin();
@@ -2770,6 +2773,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 <button class="admin-nav-item" onclick="app.showAdminPage('assessments')" data-admin-nav="assessments"><i class="fas fa-clipboard-check"></i> <span data-i18n="nav_assessments">Assessments</span></button>
                 <button class="admin-nav-item" onclick="app.showAdminPage('reports')" data-admin-nav="reports"><i class="fas fa-file-alt"></i> <span data-i18n="nav_reports">Reports</span></button>
                 <button class="admin-nav-item" onclick="app.showAdminPage('stemMissions')" data-admin-nav="stemMissions"><i class="fas fa-rocket"></i> <span data-i18n="nav_stem_missions">STEM Missions</span></button>
+                <button class="admin-nav-item" onclick="app.showAdminPage('bin')" data-admin-nav="bin"><i class="fas fa-trash-alt"></i> <span>Recycle Bin</span></button>
                 
                 <div class="admin-sidebar-footer">
     <div style="display:flex; justify-content:center; gap:6px; margin-bottom:12px; padding:0 12px;">
@@ -2941,6 +2945,15 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 </div>
               
                <!-- STEM MISSIONS ADMIN -->
+                <div id="adminPage-bin" class="admin-page">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+                        <div><h1 style="font-size:1.6rem;">Recycle Bin</h1><p style="color:var(--text-secondary); font-size:0.9rem;">Deleted students, assessments and STEM missions stay here until you restore them or delete them forever.</p></div>
+                        <button class="btn btn-outline" onclick="app.loadRecycleBin()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="recycleBinList">
+                        <div class="empty-state"><i class="fas fa-trash-alt"></i><h4>Recycle Bin is empty</h4><p>Deleted items will appear here.</p></div>
+                    </div>
+                </div>
                 <div id="adminPage-stemMissions" class="admin-page">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
                         <div><h1 style="font-size:1.6rem;" data-i18n="admin_stem_title">STEM Missions</h1><p style="color:var(--text-secondary); font-size:0.9rem;" data-i18n="admin_stem_subtitle">Upload and manage STEM challenge missions</p></div>
@@ -3187,7 +3200,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
         <div class="modal" style="max-width:400px; text-align:center;">
             <div style="width:70px; height:70px; background:rgba(255,107,107,0.1); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:20px;"><i class="fas fa-exclamation-triangle" style="font-size:1.8rem; color:var(--danger);"></i></div>
             <h3 style="margin-bottom:10px;" data-i18n="modal_delete_title">Delete Record?</h3>
-            <p style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem;" data-i18n="modal_delete_desc">This action cannot be undone. The record will be permanently removed from the system.</p>
+            <p id="deleteModalDesc" style="color:var(--text-secondary); margin-bottom:24px; font-size:0.9rem;">The record will move to the Recycle Bin. You can restore it anytime from the Recycle Bin page.</p>
             <div style="display:flex; gap:10px; justify-content:center;">
                 <button class="btn btn-outline" onclick="app.closeDeleteModal()" data-i18n="btn_cancel">Cancel</button>
                 <button class="btn" style="background:var(--danger); color:white;" onclick="app.confirmDelete()"><i class="fas fa-trash"></i> <span data-i18n="btn_delete">Delete</span></button>
@@ -3242,10 +3255,18 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                 <input type="hidden" id="stemMissionFileName">
                 <input type="hidden" id="stemMissionMimeType">
                 <input type="hidden" id="stemMissionFilesJson">
+                <div style="margin-bottom:18px;">
+                    <div style="font-size:0.75rem; font-weight:800; color:var(--text-secondary); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;"><i class="fas fa-language" style="margin-right:6px; color:#8b5cf6;"></i>Mission Language</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" id="missionLangBtn-en" class="btn btn-sm btn-outline" onclick="app.switchMissionLang('en')">English <span id="missionLangStatus-en"></span></button>
+                        <button type="button" id="missionLangBtn-ms" class="btn btn-sm btn-outline" onclick="app.switchMissionLang('ms')">Bahasa Melayu <span id="missionLangStatus-ms"></span></button>
+                    </div>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.6;"><i class="fas fa-info-circle"></i> Upload in English, Bahasa Melayu, or both. Each student sees the version that matches the site language; if that one is empty, the other is used.</p>
+                </div>
                 <div class="form-grid">
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_mission_title">Mission Title *</label>
-                        <input type="text" id="stemMissionTitle" class="input-premium" required placeholder="e.g. Build a Water Rocket">
+                        <input type="text" id="stemMissionTitle" class="input-premium" placeholder="e.g. Build a Water Rocket">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label><i class="fas fa-calendar-alt" style="margin-right:6px; color:var(--malaysia-yellow);"></i>Mission Date *</label>
@@ -3254,7 +3275,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_mission_desc">Description *</label>
-                        <textarea id="stemMissionDesc" class="input-premium" required placeholder="Describe the mission objectives..." style="min-height:80px;"></textarea>
+                        <textarea id="stemMissionDesc" class="input-premium" placeholder="Describe the mission objectives..." style="min-height:80px;"></textarea>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_mission_instructions">Instructions for Students</label>
@@ -3265,6 +3286,14 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <div id="missionResourcesList" style="display:flex; flex-direction:column; gap:10px; margin-top:6px;"></div>
                         <button type="button" class="btn btn-sm btn-outline" style="margin-top:10px;" onclick="app.addMissionResourceRow()"><i class="fas fa-plus"></i> Add another link</button>
                         <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.6;"><i class="fas fa-lightbulb" style="color:#f59e0b;"></i> Each link is shown to students as its own card with the platform's original logo. Uploaded files below stay separate &amp; download one by one.</p>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label><i class="fas fa-external-link-alt" style="color:#0ea5e9; margin-right:6px;"></i>Optional Extra Link (shown separately, below the cards)</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
+                            <input type="url" id="stemOptionalLinkUrl" class="input-premium" placeholder="https://... (optional)" style="flex:2 1 260px;">
+                            <input type="text" id="stemOptionalLinkTitle" class="input-premium" placeholder="Link text, e.g. Read more" style="flex:1 1 180px;">
+                        </div>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.6;"><i class="fas fa-info-circle"></i> Students see this as a plain clickable link under the main cards, without a platform logo.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label data-i18n="form_upload_file">Upload Files (Select multiple at once, max 10MB each)</label>
@@ -4800,6 +4829,7 @@ _renderAdminPage(page) {
         localStorage.setItem(dataKey, currentDataHash);
     }
     if (page === 'settings') this.loadSettings();
+    if (page === 'bin') this.loadRecycleBin();
     if (page === 'reports') this._initReportFilters();
     if (page === 'stemMissions' && isStale) {
         this.loadStemMissionsFromFirebase().then(() => this.renderAdminStemMissions());
@@ -6897,7 +6927,7 @@ refreshResultsView() {
                     <td><code style="background:rgba(255,255,255,0.05); padding:4px 10px; border-radius:6px; font-size:0.85rem;">${this.sanitizeHTML(s.icNumber)}</code></td>
                     <td><span class="severity-badge sev-normal" style="background:rgba(0,184,148,0.1); color:var(--healing-teal); border:none;">${this.sanitizeHTML(s.class)}</span></td>
                     <td>${this.sanitizeHTML(String(s.age || '-'))}</td>
-                    <td>${this.sanitizeHTML(s.parentPhone || '-')}<br><small style="color:var(--text-muted); font-size:0.75rem;">PIN: ${s.parentPin ? '<span style="color:var(--success)">**** (secured)</span>' : '<span style="color:var(--danger)">Not set</span>'}</small></td>
+                    <td>${this.sanitizeHTML(s.parentPhone || '-')}<br><small style="display:inline-flex; align-items:center; gap:6px; margin-top:4px; font-size:0.75rem; color:var(--text-muted);">PIN: ${s.parentPin ? '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:50px; font-weight:700; background:rgba(16,185,129,0.12); color:#047857;"><i class="fas fa-check-circle"></i> Set</span>' : '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:50px; font-weight:700; background:rgba(239,68,68,0.12); color:#b91c1c;"><i class="fas fa-times-circle"></i> Not set</span>'}</small></td>
                     <td><div class="table-actions">
                         <button class="btn-table btn-table-edit" onclick="app.editStudent('${s.id}')" title="${this.t('tooltip_edit')}"><i class="fas fa-edit"></i></button>
                         <button class="btn-table btn-table-del" onclick="app.deleteStudent('${s.id}')" title="${this.t('tooltip_delete')}"><i class="fas fa-trash"></i></button>
@@ -7027,30 +7057,68 @@ refreshResultsView() {
         },
         editStudent(id) { this.openStudentModal(id); },
         deleteStudent(id) { this.deleteTarget = { type: 'student', id }; document.getElementById('deleteModal').classList.add('show'); },
-        closeDeleteModal() { document.getElementById('deleteModal').classList.remove('show'); this.deleteTarget = { type: null, id: null }; },
+        closeDeleteModal() { document.getElementById('deleteModal').classList.remove('show'); this._setDeleteModalText('bin'); this.deleteTarget = { type: null, id: null }; },
         async confirmDelete() {
             if (!this.deleteTarget.id) return;
-            if (this.deleteTarget.type === 'student') {
-                const stuToDel = this.students.find(s => s.id === this.deleteTarget.id);
-                if (stuToDel) this.deleteStudentIndexFromFirebase(stuToDel.icNumber);
-                this.students = this.students.filter(s => s.id !== this.deleteTarget.id);
-                this.assessments = this.assessments.filter(a => a.studentId !== this.deleteTarget.id);
+            const type = this.deleteTarget.type;
+            const delId = this.deleteTarget.id;
+
+            if (type === 'binItem') {
+                await this.purgeBinItem(delId);
+            } else if (type === 'student') {
+                const stuToDel = this.students.find(s => s.id === delId);
+                if (stuToDel) {
+                    // Copy to the Recycle Bin FIRST. If that fails, nothing is deleted.
+                    const relatedAss = this.assessments.filter(a => a.studentId === delId);
+                    const binned = await this.moveToBin({
+                        kind: 'student',
+                        label: stuToDel.name,
+                        sub: 'Class ' + stuToDel.class + ' • MyKid ' + stuToDel.icNumber,
+                        data: this._cleanForBin(stuToDel),
+                        assessments: this._cleanForBin(relatedAss)
+                    });
+                    if (!binned) return;
+                    this.deleteStudentIndexFromFirebase(stuToDel.icNumber);
+                }
+                this.students = this.students.filter(s => s.id !== delId);
+                this.assessments = this.assessments.filter(a => a.studentId !== delId);
                 this.saveStudents(); this.saveAssessments();
                 this.renderStudentsTable(); this.renderAssessmentsTable();
                 this.showToast(this.t('toast_student_deleted'), 'info');
-                await this.deleteStudentFromFirebase(this.deleteTarget.id);
+                await this.deleteStudentFromFirebase(delId);
                 this.updatePublicStats();
-            } else if (this.deleteTarget.type === 'assessment') {
-                this.assessments = this.assessments.filter(a => a.id !== this.deleteTarget.id);
+            } else if (type === 'assessment') {
+                const ass = this.assessments.find(a => a.id === delId);
+                if (ass) {
+                    const binned = await this.moveToBin({
+                        kind: 'assessment',
+                        label: 'Assessment • ' + (ass.studentName || ass.studentId || ass.id),
+                        sub: ass.date ? this.formatDate(ass.date) : '',
+                        data: this._cleanForBin(ass)
+                    });
+                    if (!binned) return;
+                }
+                // Firestore first (needs the local record for the subcollection path), then local list
+                await this.deleteAssessmentFromFirebase(delId);
+                this.assessments = this.assessments.filter(a => a.id !== delId);
                 this.saveAssessments();
                 this.renderAssessmentsTable();
                 this.showToast(this.t('toast_assessment_deleted'), 'info');
-                await this.deleteAssessmentFromFirebase(this.deleteTarget.id);
                 this.updatePublicStats();
-            } else if (this.deleteTarget.type === 'stemMission') {
-                this.stemMissions = this.stemMissions.filter(m => m.id !== this.deleteTarget.id);
+            } else if (type === 'stemMission') {
+                const mis = this.stemMissions.find(m => m.id === delId);
+                if (mis) {
+                    const binned = await this.moveToBin({
+                        kind: 'stemMission',
+                        label: mis.title || 'STEM Mission',
+                        sub: 'STEM Mission • ' + this.formatDate(mis.date || mis.createdAt),
+                        data: this._cleanForBin(mis)
+                    });
+                    if (!binned) return;
+                }
+                this.stemMissions = this.stemMissions.filter(m => m.id !== delId);
                 this.saveStemMissions();
-                this.deleteStemMissionFromFirebase(this.deleteTarget.id);
+                this.deleteStemMissionFromFirebase(delId);
                 this.renderAdminStemMissions();
                 this.showToast(this.t('toast_mission_deleted'), 'info');
             }
@@ -8054,8 +8122,8 @@ refreshResultsView() {
 
                 new QRCode(qrBox, { 
                     text: url, 
-                    width: 300, 
-                    height: 300, 
+                    width: 512, 
+                    height: 512, 
                     colorDark: '#0f172a', 
                     colorLight: '#ffffff', 
                     correctLevel: QRCode.CorrectLevel.H 
@@ -8097,35 +8165,100 @@ refreshResultsView() {
         },
 
         renderPremiumCard(student, container, qrCanvas, logoImg) {
-            // Create ID card canvas (portrait ratio)
+            // Keep the source pieces so the card can be re-drawn in English or Malay on download
+            this._idCardSource = { student, qrCanvas, logoImg };
+            const showCard = () => {
+                try {
+                    const lang = this.currentLang === 'ms' ? 'ms' : 'en';
+                    const c = this.buildIDCardCanvas(student, qrCanvas, logoImg, lang);
+                    container.innerHTML = '';
+                    c.style.maxWidth = '420px';
+                    c.style.width = '100%';
+                    c.style.height = 'auto';
+                    c.style.borderRadius = '32px';
+                    c.style.boxShadow = '0 30px 100px rgba(0,0,0,0.18)';
+                    c.id = 'idCardCanvas';
+                    container.appendChild(c);
+
+                    const btnWrap = document.createElement('div');
+                    btnWrap.style.cssText = 'display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:14px; margin-top:28px; width:100%; max-width:420px; margin-left:auto; margin-right:auto;';
+                    btnWrap.innerHTML = `
+                        <button class="btn btn-primary" onclick="app.downloadIDCard('en')" style="flex:1 1 170px; width:auto; margin:0;">
+                            <i class="fas fa-download"></i> Download (English)
+                        </button>
+                        <button class="btn btn-teal" onclick="app.downloadIDCard('ms')" style="flex:1 1 170px; width:auto; margin:0;">
+                            <i class="fas fa-download"></i> Muat Turun (Bahasa Melayu)
+                        </button>
+                        <button class="btn btn-outline" onclick="document.getElementById('qrResult').innerHTML=''" style="flex:1 1 170px; width:auto; margin:0;">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    `;
+                    container.appendChild(btnWrap);
+                    this.showToast('Premium ID Card generated!', 'success');
+                } catch (err) {
+                    console.error('ID card render failed');
+                    container.innerHTML = '<p style="color:var(--danger); text-align:center;">Failed to generate QR. Please try again.</p>';
+                    this.showToast(this.t('toast_qr_failed'), 'error');
+                }
+            };
+            // Wait for fonts so canvas text is measured and drawn with Poppins, not a fallback
+            if (document.fonts && document.fonts.load) {
+                Promise.all([
+                    document.fonts.load('700 24px Poppins'),
+                    document.fonts.load('500 13px Poppins'),
+                    document.fonts.load('700 13px Poppins'),
+                    document.fonts.load('700 30px "Playfair Display"')
+                ]).then(showCard, showCard);
+            } else {
+                showCard();
+            }
+        },
+
+        // Draws the ID card. lang = 'en' | 'ms'. Canvas is 2x for crisp prints.
+        buildIDCardCanvas(student, qrCanvas, logoImg, lang) {
+            const isMs = lang === 'ms';
+            const L = isMs ? {
+                tagline: 'Portal Kesejahteraan Psikometrik',
+                cardLabel: 'KAD AKSES PELAJAR',
+                scan: 'IMBAS UNTUK LIHAT KEPUTUSAN',
+                scanHint: 'Halakan kamera anda ke kod QR',
+                cls: 'Kelas',
+                mykid: 'Nombor MyKid',
+                footer: '© MANASU Lab Portal • Selamat & Sulit • SJKT TPG'
+            } : {
+                tagline: 'Psychometric Wellness Portal',
+                cardLabel: 'STUDENT ACCESS CARD',
+                scan: 'SCAN TO VIEW RESULT',
+                scanHint: 'Point your camera at the QR code',
+                cls: 'Class',
+                mykid: 'MyKid Number',
+                footer: '© MANASU Lab Portal • Secure & Confidential • SJKT TPG'
+            };
+
+            const S = 2;
             const c = document.createElement('canvas');
-            c.width = 700;
-            c.height = 1000;
+            c.width = 700 * S;
+            c.height = 1000 * S;
             const ctx = c.getContext('2d');
-            
-            // ═══════════════════════════════════════════════════════════════
-            // PREMIUM ID CARD DESIGN
-            // ═══════════════════════════════════════════════════════════════
-            
-            // 1. Elegant background with subtle pattern
+            ctx.scale(S, S);
+
+            // 1. Background
             const bgGrad = ctx.createLinearGradient(0, 0, 700, 1000);
             bgGrad.addColorStop(0, '#ffffff');
             bgGrad.addColorStop(0.4, '#f8fafc');
             bgGrad.addColorStop(1, '#f0fdf4');
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, 700, 1000);
-            
-            // Subtle dot pattern
             ctx.fillStyle = 'rgba(13,148,136,0.03)';
             for (let i = 0; i < 700; i += 24) {
                 for (let j = 0; j < 1000; j += 24) {
                     ctx.beginPath();
-                    ctx.arc(i, j, 1.5, 0, Math.PI*2);
+                    ctx.arc(i, j, 1.5, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
-            
-            // 2. Main card body with shadow
+
+            // 2. Card body
             ctx.save();
             ctx.shadowColor = 'rgba(0,0,0,0.12)';
             ctx.shadowBlur = 60;
@@ -8134,8 +8267,8 @@ refreshResultsView() {
             this.roundRect(ctx, 50, 50, 600, 900, 32);
             ctx.fill();
             ctx.restore();
-            
-            // 3. Top teal header bar
+
+            // 3. Header bar
             const headerGrad = ctx.createLinearGradient(50, 50, 650, 50);
             headerGrad.addColorStop(0, '#0d9488');
             headerGrad.addColorStop(0.5, '#14b8a6');
@@ -8143,77 +8276,65 @@ refreshResultsView() {
             ctx.fillStyle = headerGrad;
             this.roundRect(ctx, 50, 50, 600, 160, [32, 32, 0, 0]);
             ctx.fill();
-            
-            // 4. Logo placement (circular, centered in header)
-            const logoSize = 80;
-            const logoY = 130;
-            const logoX = 130;
-            
-            // White circle background for logo
+
+            // 4. Logo circle
+            const logoX = 130, logoY = 130;
+            ctx.save();
             ctx.beginPath();
-            ctx.arc(logoX, logoY, 50, 0, Math.PI*2);
+            ctx.arc(logoX, logoY, 50, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
-            ctx.fill();
             ctx.shadowColor = 'rgba(0,0,0,0.15)';
             ctx.shadowBlur = 15;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-            
-            // Draw logo if loaded
+            ctx.fill();
+            ctx.restore();
             if (logoImg) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(logoX, logoY, 46, 0, Math.PI*2);
+                ctx.arc(logoX, logoY, 46, 0, Math.PI * 2);
                 ctx.clip();
                 ctx.drawImage(logoImg, logoX - 46, logoY - 46, 92, 92);
                 ctx.restore();
             } else {
-                // Fallback brain emoji
                 ctx.fillStyle = '#0d9488';
                 ctx.font = 'bold 36px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText('🧠', logoX, logoY + 12);
             }
-            
-            // 5. MANASU Lab Title (right of logo)
+
+            // 5. Title + school badge
             ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 30px "Playfair Display", serif';
             ctx.fillText('MANASU Lab', 195, 115);
-            
             ctx.font = '500 15px Poppins, sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText('Psychometric Wellness Portal', 195, 142);
-            
-            // 6. School name badge
+            ctx.fillText(L.tagline, 195, 142);
             ctx.fillStyle = 'rgba(255,255,255,0.15)';
             this.roundRect(ctx, 195, 158, 380, 32, 16);
             ctx.fill();
-            
             ctx.font = '600 13px Poppins, sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'left';
             ctx.fillText('SJKT Telok Panglima Garang', 210, 179);
-            
-            // 7. Gold accent line
+
+            // 6. Gold accent line
             ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(80, 240);
             ctx.lineTo(620, 240);
             ctx.stroke();
-            
-            // 8. "STUDENT ACCESS CARD" label
+
+            // 7. Card label
             ctx.textAlign = 'center';
             ctx.fillStyle = '#94a3b8';
             ctx.font = '700 13px Poppins, sans-serif';
             ctx.letterSpacing = '4px';
-            ctx.fillText('STUDENT ACCESS CARD', 350, 275);
-            ctx.letterSpacing = '0';
-            
-            // 9. QR Code container (elegant circle)
+            ctx.fillText(L.cardLabel, 350, 275);
+            ctx.letterSpacing = '0px';
+
+            // 8. QR ring + code
             ctx.beginPath();
-            ctx.arc(350, 530, 195, 0, Math.PI*2);
+            ctx.arc(350, 530, 195, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
             ctx.strokeStyle = 'rgba(13,148,136,0.15)';
@@ -8221,32 +8342,23 @@ refreshResultsView() {
             ctx.setLineDash([12, 8]);
             ctx.stroke();
             ctx.setLineDash([]);
-            
-            // Inner subtle ring
             ctx.beginPath();
-            ctx.arc(350, 530, 175, 0, Math.PI*2);
+            ctx.arc(350, 530, 175, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(37,99,235,0.08)';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
-            // 10. Draw QR code (large)
-            ctx.drawImage(qrCanvas, 200, 380, 300, 300);
-            
-            // 11. Scan instruction
+            if (qrCanvas) ctx.drawImage(qrCanvas, 200, 380, 300, 300);
+
+            // 9. Scan instruction
             ctx.textAlign = 'center';
             ctx.fillStyle = '#0d9488';
             ctx.font = '700 16px Poppins, sans-serif';
-            ctx.fillText('SCAN TO VIEW RESULT', 350, 760);
-            
+            ctx.fillText(L.scan, 350, 760);
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 12px Poppins, sans-serif';
-            ctx.fillText('Point your camera at the QR code', 350, 782);
-            
-                       // ═══════════════════════════════════════════════════════════════
-            // 12. STUDENT DETAILS — Compact & Clean Layout
-            // ═══════════════════════════════════════════════════════════════
-            
-            // Glass card background (taller to fit all content)
+            ctx.fillText(L.scanHint, 350, 782);
+
+            // 10. Student details panel
             ctx.fillStyle = 'rgba(13,148,136,0.04)';
             this.roundRect(ctx, 90, 795, 520, 155, 20);
             ctx.fill();
@@ -8254,93 +8366,83 @@ refreshResultsView() {
             ctx.lineWidth = 1.5;
             this.roundRect(ctx, 90, 795, 520, 155, 20);
             ctx.stroke();
-            
-            // Avatar icon
+
             ctx.beginPath();
-            ctx.arc(140, 825, 22, 0, Math.PI*2);
+            ctx.arc(140, 825, 22, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(13,148,136,0.1)';
             ctx.fill();
             ctx.fillStyle = '#0d9488';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('👤', 140, 832);
-            
-            // Student Name (full width, no truncate)
+
+            // Name: shrink to fit the panel; ellipsis only as a last resort
+            const nameMaxW = 410;
+            let name = String(student.name || '-').trim();
+            let nameSize = 24;
             ctx.textAlign = 'left';
             ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 24px Poppins, sans-serif';
-            ctx.fillText(student.name, 180, 828);
-            
-            // Class badge (below name, compact)
+            ctx.font = `bold ${nameSize}px Poppins, sans-serif`;
+            while (ctx.measureText(name).width > nameMaxW && nameSize > 16) {
+                nameSize -= 1;
+                ctx.font = `bold ${nameSize}px Poppins, sans-serif`;
+            }
+            if (ctx.measureText(name).width > nameMaxW) {
+                while (name.length > 1 && ctx.measureText(name + '…').width > nameMaxW) name = name.slice(0, -1);
+                name = name.trimEnd() + '…';
+            }
+            ctx.fillText(name, 180, 828);
+
+            // Class pill: spaces between digit and letter removed ("6 A" -> "6A")
+            const clsClean = String(student.class || '-').trim().replace(/(\d)\s+([A-Za-z])/g, '$1$2');
+            const classText = `${L.cls} ${clsClean}`;
             ctx.font = '700 13px Poppins, sans-serif';
-            const classText = `Class ${student.class}`;
             const classWidth = ctx.measureText(classText).width + 28;
             ctx.fillStyle = '#0d9488';
             this.roundRect(ctx, 180, 845, classWidth, 28, 14);
             ctx.fill();
-            
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
-            ctx.fillText(classText, 180 + classWidth/2, 864);
-            
-            // MyKid label
+            ctx.fillText(classText, 180 + classWidth / 2, 864);
+
+            // MyKid label + number
             ctx.textAlign = 'left';
             ctx.fillStyle = '#64748b';
             ctx.font = '500 13px Poppins, sans-serif';
-            ctx.fillText('MyKid Number', 180, 895);
-            
-            // MyKid number (monospace, clear)
+            ctx.fillText(L.mykid, 180, 895);
             ctx.fillStyle = '#0f172a';
             ctx.font = '700 18px "Courier New", monospace';
-            ctx.fillText(student.icNumber, 180, 918);
-            
-            // ═══════════════════════════════════════════════════════════════
-            // 13. FOOTER — Below card, no overlap
-            // ═══════════════════════════════════════════════════════════════
+            ctx.fillText(String(student.icNumber || '-'), 180, 918);
+
+            // 11. Footer
             ctx.fillStyle = '#f8fafc';
             this.roundRect(ctx, 50, 965, 600, 36, [0, 0, 32, 32]);
             ctx.fill();
-            
             ctx.textAlign = 'center';
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 11px Poppins, sans-serif';
-            ctx.fillText('© MANASU Lab Portal • Secure & Confidential • SJKT TPG', 350, 988);
-            
-            // Display
-            container.innerHTML = '';
-            c.style.maxWidth = '420px';
-            c.style.width = '100%';
-            c.style.height = 'auto';
-            c.style.borderRadius = '32px';
-            c.style.boxShadow = '0 30px 100px rgba(0,0,0,0.18)';
-            c.id = 'idCardCanvas';
-            container.appendChild(c);
-            
-            // Buttons
-            const btnWrap = document.createElement('div');
-            btnWrap.style.cssText = 'display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:14px; margin-top:28px; width:100%; max-width:420px; margin-left:auto; margin-right:auto;';
-            btnWrap.innerHTML = `
-                <button class="btn btn-primary" onclick="app.downloadIDCard()" style="flex:1 1 170px; width:auto; margin:0;">
-                    <i class="fas fa-download"></i> Download Card
-                </button>
-                <button class="btn btn-outline" onclick="document.getElementById('qrResult').innerHTML=''" style="flex:1 1 170px; width:auto; margin:0;">
-                    <i class="fas fa-times"></i> Close
-                </button>
-            `;
-            container.appendChild(btnWrap);
-            
-            this.showToast('Premium ID Card generated!', 'success');
+            ctx.fillText(L.footer, 350, 988);
+
+            return c;
         },
 
-                downloadIDCard() {
-            const canvas = document.getElementById('idCardCanvas');
+        downloadIDCard(lang) {
+            const useLang = lang === 'ms' ? 'ms' : 'en';
+            const src = this._idCardSource;
+            let canvas = null;
+            if (src && src.student) {
+                canvas = this.buildIDCardCanvas(src.student, src.qrCanvas, src.logoImg, useLang);
+            } else {
+                canvas = document.getElementById('idCardCanvas');
+            }
             if (!canvas) {
                 this.showToast(this.t('toast_generate_card_first'), 'error');
                 return;
             }
-            const studentName = this.currentQRStudent?.name || 'Student';
+            const studentName = (src && src.student && src.student.name) || this.currentQRStudent?.name || 'Student';
+            const safeName = String(studentName).replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
             const link = document.createElement('a');
-            link.download = `MANASU_Lab_IDCard_${studentName.replace(/\s+/g, '_')}.png`;
+            link.download = `MANASU_Lab_IDCard_${useLang === 'ms' ? 'BM' : 'EN'}_${safeName}.png`;
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
@@ -8739,8 +8841,49 @@ refreshResultsView() {
             }
         },
 
+        // ===== STEM LANGUAGE VARIANTS (EN / MS) =====
+        // A mission stores { variants: { en: {...}, ms: {...} } }. Students see the variant that
+        // matches the site language toggle; if that one is empty, the other language is used.
+        localizeMission(m) {
+            if (!m || !m.variants) return m;
+            const pref = this.currentLang === 'ms' ? ['ms', 'en'] : ['en', 'ms'];
+            const v = pref.map(l => m.variants[l]).find(x => x && ((x.title || '').trim() || (x.description || '').trim()));
+            if (!v) return m;
+            return {
+                ...m,
+                title: v.title || '',
+                description: v.description || '',
+                instructions: v.instructions || '',
+                resources: Array.isArray(v.resources) ? v.resources : [],
+                optionalLink: v.optionalLink || null,
+                files: Array.isArray(v.files) ? v.files : [],
+                fileUrl: '', resourceUrl: '', resourceTitle: '',
+                fileData: null, fileName: null, mimeType: null
+            };
+        },
+
+        // Plain clickable link shown BELOW the main resource cards (no platform logo)
+        renderOptionalLink(mission) {
+            const o = mission && mission.optionalLink;
+            if (!o || !o.url) return '';
+            const r = this._parseResource(o.url);
+            if (!r) return '';
+            const label = (o.title || '').trim() || r.host;
+            const lbl = { en: 'Optional link', ta: 'விருப்ப இணைப்பு', ms: 'Pautan Pilihan' }[this.currentLang] || 'Optional link';
+            return `
+                <div style="margin:0 0 14px;">
+                    <div style="font-size:0.72rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;"><i class="fas fa-link" style="margin-right:6px;"></i>${lbl}</div>
+                    <a href="${this.sanitizeHTML(r.url)}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; border:1px dashed rgba(14,165,233,0.45); background:rgba(14,165,233,0.06); color:#0369a1; font-weight:600; font-size:0.9rem; text-decoration:none; word-break:break-word;">
+                        <i class="fas fa-external-link-alt" style="flex-shrink:0;"></i>
+                        <span style="flex:1; min-width:0;">${this.sanitizeHTML(label)}</span>
+                        <span style="font-size:0.72rem; font-weight:500; color:var(--text-muted);">${this.sanitizeHTML(r.host)}</span>
+                    </a>
+                </div>`;
+        },
+
         // ===== STEM RESOURCE + ATTACHMENT HELPERS =====
         getMissionAttachedFiles(mission) {
+            mission = this.localizeMission(mission);
             if (!mission) return [];
             const uploaded = Array.isArray(mission.files)
                 ? mission.files.filter(f => f && (f.url || f.data))
@@ -8809,6 +8952,7 @@ refreshResultsView() {
 
         // All resource links of a mission (new `resources` array, or legacy single link)
         getMissionResources(mission) {
+            mission = this.localizeMission(mission);
             if (!mission) return [];
             if (Array.isArray(mission.resources) && mission.resources.length) {
                 return mission.resources.map(r => this._parseResource(r && r.url, r && r.title)).filter(Boolean);
@@ -8923,7 +9067,7 @@ refreshResultsView() {
             const container = document.getElementById('stemMissionViewContainer');
             if (!container || !this.currentStemStudent) return;
             const student = this.currentStemStudent;
-            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
+            const activeMissions = this.stemMissions.filter(m => m.status === 'active').map(m => this.localizeMission(m));
 
             const filesLabel = { en: 'Attached Files', ta: 'இணைக்கப்பட்ட கோப்புகள்', ms: 'Fail Dilampirkan' }[this.currentLang] || 'Attached Files';
             const allLabel = { en: 'All', ta: 'அனைத்தும்', ms: 'Semua' }[this.currentLang] || 'All';
@@ -9004,6 +9148,7 @@ refreshResultsView() {
                                     <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.7; white-space:pre-line;">${this.sanitizeHTML(mission.instructions)}</div>
                                 </div>` : ''}
                                 ${this.renderResourceCards(mission, missionIdSafe)}
+                                ${this.renderOptionalLink(mission)}
                                 ${filesHtml}
                                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                                     ${(files.length || resource) ? '' : `<span style="font-size:0.78rem; color:var(--text-muted);"><i class="fas fa-info-circle"></i> ${noFilesText}</span>`}
@@ -9235,7 +9380,7 @@ refreshResultsView() {
 
         renderStemMissions() {
             const container = document.getElementById('stemMissionList');
-            const activeMissions = this.stemMissions.filter(m => m.status === 'active');
+            const activeMissions = this.stemMissions.filter(m => m.status === 'active').map(m => this.localizeMission(m));
             const student = this.currentStemStudent;
             const t = this.i18n[this.currentLang] || this.i18n.en;
 
@@ -9298,7 +9443,8 @@ refreshResultsView() {
                                 <button type="button" onclick="app.downloadMissionFileAt('${missionIdSafe}', ${fi})" class="btn btn-sm" style="background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; width:100%;">
                                     <i class="fas fa-download"></i> ${this.sanitizeHTML(f.name || (t.stem_download || 'Download File'))}
                                 </button>`).join('')}
-                                ${this.getMissionResources(mission).map((r, ri) => `<button type="button" onclick="app.openMissionResource('${missionIdSafe}', ${ri})" class="btn btn-sm" style="background:#fff; color:${r.color}; border:1px solid rgba(139,92,246,0.25); width:100%;"><i class="${r.fa} ${r.icon}" style="font-size:1.05rem;"></i> ${this.sanitizeHTML(r.title)}</button>`).join('')}
+                                ${this.getMissionResources(mission).map((r, ri) => `<button type="button" onclick="app.openMissionResource('${missionIdSafe}', ${ri})" class="btn btn-sm" style="background:#fff; color:${r.color}; border:1px solid ${r.color}55; width:100%; justify-content:flex-start;"><i class="${r.fa} ${r.icon}"></i> ${this.sanitizeHTML(r.title)}</button>`).join('')}
+                                ${this.renderOptionalLink(mission)}
                                 <a href="${waLink}" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #25d366, #128c7e); color:white; text-decoration:none; width:100%;">
                                     <i class="fab fa-whatsapp"></i> ${t.stem_submit_whatsapp || 'Submit via WhatsApp'}
                                 </a>
@@ -9312,47 +9458,97 @@ refreshResultsView() {
             container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         },
 
-        openStemMissionModal(id = null) {
-            document.getElementById('stemMissionEditId').value = '';
-            document.getElementById('stemMissionModalTitle').textContent = id ? this.t('modal_edit_mission') : this.t('modal_upload_mission');
-            document.getElementById('stemMissionTitle').value = '';
-            document.getElementById('stemMissionDesc').value = '';
-            document.getElementById('stemMissionInstructions').value = '';
+        _missionVariantsOf(m) {
+            if (!m) return {};
+            if (m.variants && (m.variants.en || m.variants.ms)) return m.variants;
+            // Old single-language mission: its content becomes the English version
+            const res = (Array.isArray(m.resources) && m.resources.length) ? m.resources
+                : ((m.resourceUrl || m.fileUrl) ? [{ url: m.resourceUrl || m.fileUrl, title: m.resourceTitle || '' }] : []);
+            const files = (m.files && Array.isArray(m.files)) ? [...m.files]
+                : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, url: null, size: 0 }] : []);
+            return { en: { title: m.title || '', description: m.description || '', instructions: m.instructions || '', resources: res, optionalLink: m.optionalLink || null, files } };
+        },
+        _missionBlankVariant() {
+            return { title: '', description: '', instructions: '', resources: [], optionalLink: null, files: [] };
+        },
+        _collectMissionVariant() {
+            const optUrl = (document.getElementById('stemOptionalLinkUrl')?.value || '').trim();
+            const optTitle = (document.getElementById('stemOptionalLinkTitle')?.value || '').trim();
+            return {
+                title: document.getElementById('stemMissionTitle').value.trim(),
+                description: document.getElementById('stemMissionDesc').value.trim(),
+                instructions: document.getElementById('stemMissionInstructions').value.trim(),
+                resources: this.collectMissionResources(),
+                optionalLink: (optUrl && this._parseResource(optUrl)) ? { url: optUrl, title: optTitle } : null,
+                files: Array.isArray(this._missionFiles) ? [...this._missionFiles] : []
+            };
+        },
+        _applyMissionVariant(v) {
+            const b = v || this._missionBlankVariant();
+            document.getElementById('stemMissionTitle').value = b.title || '';
+            document.getElementById('stemMissionDesc').value = b.description || '';
+            document.getElementById('stemMissionInstructions').value = b.instructions || '';
             const resBox = document.getElementById('missionResourcesList');
             if (resBox) resBox.innerHTML = '';
+            (b.resources || []).forEach(r => this.addMissionResourceRow(r.url, r.title));
+            if (!document.querySelector('#missionResourcesList .mission-res-row')) this.addMissionResourceRow();
+            document.getElementById('stemOptionalLinkUrl').value = (b.optionalLink && b.optionalLink.url) || '';
+            document.getElementById('stemOptionalLinkTitle').value = (b.optionalLink && b.optionalLink.title) || '';
+            this._missionFiles = Array.isArray(b.files) ? [...b.files] : [];
+            document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
+            this.renderMissionFilesList();
+            const zoneTitle = document.getElementById('missionFileTitle');
+            if (zoneTitle) zoneTitle.textContent = 'Choose a file or drag & drop';
+        },
+        switchMissionLang(lang) {
+            if (!lang || lang === this._missionLang) return;
+            this._missionDrafts = this._missionDrafts || {};
+            this._missionDrafts[this._missionLang] = this._collectMissionVariant();
+            this._missionLang = lang;
+            this._applyMissionVariant(this._missionDrafts[lang]);
+            this._refreshMissionLangTabs();
+        },
+        _refreshMissionLangTabs() {
+            ['en', 'ms'].forEach(l => {
+                const btn = document.getElementById('missionLangBtn-' + l);
+                if (btn) btn.className = 'btn btn-sm ' + (this._missionLang === l ? 'btn-teal' : 'btn-outline');
+                const st = document.getElementById('missionLangStatus-' + l);
+                if (st) {
+                    const v = this._missionLang === l ? this._collectMissionVariant() : (this._missionDrafts || {})[l];
+                    const filled = !!(v && (v.title || '').trim());
+                    st.innerHTML = filled
+                        ? '<i class="fas fa-check-circle" style="color:#10b981; margin-left:6px;"></i>'
+                        : '<i class="far fa-circle" style="margin-left:6px; opacity:0.5;"></i>';
+                }
+            });
+        },
+        _missionLangLabel(m) {
+            if (!m || !m.variants) return 'EN';
+            const langs = [];
+            if (m.variants.en && (m.variants.en.title || '').trim()) langs.push('EN');
+            if (m.variants.ms && (m.variants.ms.title || '').trim()) langs.push('MS');
+            return langs.join(' + ') || 'EN';
+        },
+
+        openStemMissionModal(id = null) {
+            const m = id ? this.stemMissions.find(x => x.id === id) : null;
+            document.getElementById('stemMissionEditId').value = m ? m.id : '';
+            document.getElementById('stemMissionModalTitle').textContent = id ? this.t('modal_edit_mission') : this.t('modal_upload_mission');
             document.getElementById('stemMissionFile').value = '';
             document.getElementById('stemMissionFileData').value = '';
             document.getElementById('stemMissionFileName').value = '';
             document.getElementById('stemMissionMimeType').value = '';
-            document.getElementById('stemMissionFilesJson').value = '';
-            this._missionFiles = [];
-            this.renderMissionFilesList();
-            const zoneTitle = document.getElementById('missionFileTitle');
-            if (zoneTitle) zoneTitle.textContent = 'Choose a file or drag & drop';
-            // ✅ Default mission date = today (fully editable)
-            document.getElementById('stemMissionDate').value = new Date().toISOString().split('T')[0];
-            
-            // If editing and PIN field is empty, retain existing hashed PIN
-            if (id) {
-                const m = this.stemMissions.find(x => x.id === id);
-                if (m) {
-                    document.getElementById('stemMissionEditId').value = m.id;
-                    document.getElementById('stemMissionTitle').value = m.title;
-                    document.getElementById('stemMissionDesc').value = m.description;
-                    document.getElementById('stemMissionInstructions').value = m.instructions || '';
-                    const savedRes = (Array.isArray(m.resources) && m.resources.length) ? m.resources
-                        : ((m.resourceUrl || m.fileUrl) ? [{ url: m.resourceUrl || m.fileUrl, title: m.resourceTitle || '' }] : []);
-                    savedRes.forEach(r => this.addMissionResourceRow(r.url, r.title));
-                    // ✅ FILES: load multi-file list (or legacy single file)
-                    this._missionFiles = (m.files && Array.isArray(m.files)) ? [...m.files]
-                        : (m.fileData ? [{ name: m.fileName || 'file', mimeType: m.mimeType || 'application/octet-stream', data: m.fileData, url: null, size: 0 }] : []);
-                    document.getElementById('stemMissionFilesJson').value = JSON.stringify(this._missionFiles);
-                    this.renderMissionFilesList();
-                    // ✅ EDITABLE DATE: load saved date (old missions fall back to createdAt date)
-                    document.getElementById('stemMissionDate').value = m.date || (m.createdAt ? m.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]);
-                }
-            }
-            if (!document.querySelector('#missionResourcesList .mission-res-row')) this.addMissionResourceRow();
+            // Per-language drafts: { en: {...}, ms: {...} }
+            const src = this._missionVariantsOf(m);
+            this._missionDrafts = {};
+            Object.keys(src).forEach(k => {
+                this._missionDrafts[k] = { ...src[k], resources: [...(src[k].resources || [])], files: [...(src[k].files || [])] };
+            });
+            this._missionLang = this._missionDrafts.en ? 'en' : (this._missionDrafts.ms ? 'ms' : 'en');
+            this._applyMissionVariant(this._missionDrafts[this._missionLang]);
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('stemMissionDate').value = m ? (m.date || (m.createdAt ? m.createdAt.split('T')[0] : today)) : today;
+            this._refreshMissionLangTabs();
             document.getElementById('stemMissionModal').classList.add('show');
         },
         closeStemMissionModal() {
@@ -9485,37 +9681,51 @@ refreshResultsView() {
                 return;
             }
             const id = document.getElementById('stemMissionEditId').value;
+            this._missionDrafts = this._missionDrafts || {};
+            this._missionDrafts[this._missionLang] = this._collectMissionVariant();
+
+            // Each language that has content needs BOTH title and description
+            const variants = {};
+            for (const l of ['en', 'ms']) {
+                const v = this._missionDrafts[l];
+                if (!v || !(v.title || v.description)) continue;
+                if (!v.title || !v.description) {
+                    this.showToast((l === 'en' ? 'English' : 'Bahasa Melayu') + ': fill both title and description, or leave that language empty.', 'error');
+                    return;
+                }
+                variants[l] = v;
+            }
+            if (!variants.en && !variants.ms) {
+                this.showToast('Add a title and description in English or Bahasa Melayu.', 'error');
+                return;
+            }
+
+            // Top-level copy = English if present, else Malay (keeps older code paths working)
+            const primary = variants.en || variants.ms;
+            const firstRes = (primary.resources || [])[0] || {};
             const data = {
-                title: document.getElementById('stemMissionTitle').value,
-                description: document.getElementById('stemMissionDesc').value,
-                instructions: document.getElementById('stemMissionInstructions').value,
-                resources: this.collectMissionResources(),
-                fileUrl: (this.collectMissionResources()[0] || {}).url || '',
-                resourceUrl: (this.collectMissionResources()[0] || {}).url || '',
-                resourceTitle: (this.collectMissionResources()[0] || {}).title || '',
-                fileData: document.getElementById('stemMissionFileData').value || null,
-                fileName: document.getElementById('stemMissionFileName').value || null,
-                mimeType: document.getElementById('stemMissionMimeType').value || null,
-                files: JSON.parse(document.getElementById('stemMissionFilesJson').value || '[]'),
+                variants,
+                title: primary.title,
+                description: primary.description,
+                instructions: primary.instructions,
+                resources: primary.resources,
+                optionalLink: primary.optionalLink,
+                fileUrl: firstRes.url || '',
+                resourceUrl: firstRes.url || '',
+                resourceTitle: firstRes.title || '',
+                fileData: null,
+                fileName: null,
+                mimeType: null,
+                files: primary.files,
                 // ✅ EDITABLE DATE — counselor-selected date is saved
                 date: document.getElementById('stemMissionDate').value || new Date().toISOString().split('T')[0],
                 status: 'active',
                 updatedAt: new Date().toISOString()
             };
 
-            // If editing and no new file uploaded, retain existing file data
             if (id) {
                 const idx = this.stemMissions.findIndex(m => m.id === id);
                 if (idx >= 0) {
-                    if (!data.fileData && this.stemMissions[idx].fileData) {
-                        data.fileData = this.stemMissions[idx].fileData;
-                        data.fileName = this.stemMissions[idx].fileName;
-                        data.mimeType = this.stemMissions[idx].mimeType;
-                    }
-                    // ✅ If no files in form but existing mission has files, retain them
-                    if ((!data.files || data.files.length === 0) && this.stemMissions[idx].files) {
-                        data.files = this.stemMissions[idx].files;
-                    }
                     data.id = id;
                     this.stemMissions[idx] = { ...this.stemMissions[idx], ...data };
                 }
@@ -9531,19 +9741,13 @@ refreshResultsView() {
 
             // ✅ CRITICAL: await cloud save BEFORE closing modal or showing success
             const cloudOk = await this.saveStemMissionToFirebase(savedMission);
-
             if (cloudOk) {
                 this.saveStemMissions();
                 this.renderAdminStemMissions();
                 this.closeStemMissionModal();
+                this._missionDrafts = {};
                 this.showToast(this.t(id ? 'toast_mission_updated' : 'toast_mission_added'), 'success');
-                // Clear hidden file fields so next upload starts fresh
-                document.getElementById('stemMissionFileData').value = '';
-                document.getElementById('stemMissionFileName').value = '';
-                document.getElementById('stemMissionMimeType').value = '';
-                document.getElementById('stemMissionFile').value = '';
             } else {
-                // Modal stays open so admin can retry
                 this.showToast('Cloud save failed! Mission kept in memory only. Try again, or add a Learning Resource link and/or upload attached files.', 'error');
             }
         },
@@ -9569,7 +9773,7 @@ refreshResultsView() {
                                 </div>
                                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">${this.sanitizeHTML(m.description)}</p>
                                 <div style="font-size:0.8rem; color:var(--text-muted);">
-                                    <i class="fas fa-paperclip" style="margin-right:6px;"></i>${fileSource} • ${date}
+                                    <i class="fas fa-language" style="margin-right:6px;"></i>${this._missionLangLabel(m)} &nbsp;•&nbsp; <i class="fas fa-paperclip" style="margin-right:6px;"></i>${fileSource} • ${date}
                                 </div>
                             </div>
                             <div style="display:flex; gap:8px;">
@@ -9586,6 +9790,173 @@ refreshResultsView() {
         editStemMission(id) {
             this.openStemMissionModal(id);
         },
+        // ═══════════════════════════════════════════════════════════════
+        // RECYCLE BIN — deleted students / assessments / STEM missions stay here until restored or deleted forever
+        // ═══════════════════════════════════════════════════════════════
+        _cleanForBin(x) { return JSON.parse(JSON.stringify(x === undefined ? null : x)); },
+
+        _setDeleteModalText(mode) {
+            const p = document.getElementById('deleteModalDesc');
+            if (!p) return;
+            p.textContent = mode === 'forever'
+                ? 'This permanently deletes the item from the Recycle Bin. It cannot be restored after this.'
+                : 'The record will move to the Recycle Bin. You can restore it anytime from the Recycle Bin page.';
+        },
+
+        // Returns true only when the bin copy is saved. Caller deletes the live record only after this.
+        async moveToBin(entry) {
+            if (!this.firebaseReady || !this.db) {
+                this.showToast('Firebase not connected. Delete cancelled, nothing was removed.', 'error');
+                return false;
+            }
+            try {
+                const { doc, setDoc } = window.fb;
+                const binId = 'BIN_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                const payload = { ...entry, binId, deletedAt: new Date().toISOString() };
+                await setDoc(doc(this.db, 'recycleBin', binId), payload);
+                this.recycleBin = [payload, ...(this.recycleBin || [])];
+                return true;
+            } catch (err) {
+                console.error('Recycle bin save failed:', err);
+                this.showToast('Could not save to Recycle Bin. Delete cancelled, please try again.', 'error');
+                return false;
+            }
+        },
+
+        async loadRecycleBin() {
+            this.recycleBin = this.recycleBin || [];
+            if (this.firebaseReady && this.db) {
+                try {
+                    const { collection, getDocs } = window.fb;
+                    const snap = await getDocs(collection(this.db, 'recycleBin'));
+                    const items = [];
+                    snap.forEach(d => items.push({ ...d.data(), binId: d.id }));
+                    items.sort((a, b) => String(b.deletedAt || '').localeCompare(String(a.deletedAt || '')));
+                    this.recycleBin = items;
+                } catch (err) {
+                    console.warn('Recycle bin load failed', err);
+                    this.showToast('Could not load Recycle Bin. Check connection and Firestore rules.', 'error');
+                }
+            }
+            this.renderRecycleBin();
+        },
+
+        renderRecycleBin() {
+            const box = document.getElementById('recycleBinList');
+            if (!box) return;
+            const items = this.recycleBin || [];
+            if (items.length === 0) {
+                box.innerHTML = '<div class="empty-state"><i class="fas fa-trash-alt"></i><h4>Recycle Bin is empty</h4><p>Deleted students, assessments and STEM missions will appear here.</p></div>';
+                return;
+            }
+            const meta = {
+                student: { icon: 'fa-user-graduate', color: '#0d9488', label: 'Student' },
+                assessment: { icon: 'fa-clipboard-check', color: '#2563eb', label: 'Assessment' },
+                stemMission: { icon: 'fa-rocket', color: '#8b5cf6', label: 'STEM Mission' }
+            };
+            box.innerHTML = `<div style="display:flex; flex-direction:column; gap:14px;">${items.map(it => {
+                const k = meta[it.kind] || { icon: 'fa-file', color: '#64748b', label: 'Item' };
+                const safeId = String(it.binId || '').replace(/[^A-Za-z0-9_-]/g, '');
+                return `
+                <div class="glass-card" style="border-left:4px solid ${k.color}; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:240px;">
+                        <div style="width:44px; height:44px; border-radius:12px; background:rgba(0,0,0,0.04); color:${k.color}; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fas ${k.icon}"></i></div>
+                        <div>
+                            <div style="font-weight:700; color:var(--text-primary);">${this.sanitizeHTML(it.label || '-')}</div>
+                            <div style="font-size:0.78rem; color:var(--text-muted);">${k.label}${it.sub ? ' • ' + this.sanitizeHTML(it.sub) : ''}</div>
+                            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;"><i class="fas fa-clock"></i> Deleted: ${it.deletedAt ? this.formatDate(it.deletedAt) : '-'}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-sm btn-teal" onclick="app.restoreBinItem('${safeId}')"><i class="fas fa-undo"></i> Restore</button>
+                        <button class="btn btn-sm" style="background:var(--danger); color:white;" onclick="app.permanentlyDeleteBinItem('${safeId}')"><i class="fas fa-trash"></i> Delete forever</button>
+                    </div>
+                </div>`;
+            }).join('')}</div>`;
+        },
+
+        async restoreBinItem(binId) {
+            const item = (this.recycleBin || []).find(b => b.binId === binId);
+            if (!item) return;
+            if (!this.firebaseReady || !this.db) {
+                this.showToast('Firebase not connected. Restore not possible right now.', 'error');
+                return;
+            }
+            try {
+                const { doc, setDoc, deleteDoc } = window.fb;
+                if (item.kind === 'student') {
+                    const s = item.data;
+                    if (this.students.some(x => x.id === s.id)) {
+                        this.showToast('A student with this record already exists. Restore cancelled.', 'error');
+                        return;
+                    }
+                    await setDoc(doc(this.db, 'students', s.id), s);
+                    this.students.push(s);
+                    this.saveStudents();
+                    await this.saveStudentIndexToFirebase(s);
+                    for (const a of (item.assessments || [])) {
+                        await this.saveAssessmentToFirebase(a);
+                        if (!this.assessments.some(x => x.id === a.id)) this.assessments.push(a);
+                    }
+                    this.saveAssessments();
+                    this.renderStudentsTable();
+                    this.renderAssessmentsTable();
+                    this.updatePublicStats();
+                } else if (item.kind === 'assessment') {
+                    const a = item.data;
+                    await this.saveAssessmentToFirebase(a);
+                    if (!this.assessments.some(x => x.id === a.id)) this.assessments.push(a);
+                    this.saveAssessments();
+                    this.renderAssessmentsTable();
+                    this.updatePublicStats();
+                } else if (item.kind === 'stemMission') {
+                    const m = item.data;
+                    const ok = await this.saveStemMissionToFirebase(m);
+                    if (!ok) {
+                        this.showToast('Mission restore failed (cloud save error). It is still in the bin.', 'error');
+                        return;
+                    }
+                    if (!this.stemMissions.some(x => x.id === m.id)) this.stemMissions.push(m);
+                    this.renderAdminStemMissions();
+                } else {
+                    this.showToast('Unknown bin item type.', 'error');
+                    return;
+                }
+                // Only remove from the bin after the restore has been written
+                await deleteDoc(doc(this.db, 'recycleBin', binId));
+                this.recycleBin = this.recycleBin.filter(b => b.binId !== binId);
+                this.renderRecycleBin();
+                this.updateHeroStats();
+                this.showToast('Restored successfully', 'success');
+            } catch (err) {
+                console.error('Restore failed:', err);
+                this.showToast('Restore failed. Please check your connection and try again.', 'error');
+            }
+        },
+
+        permanentlyDeleteBinItem(binId) {
+            this.deleteTarget = { type: 'binItem', id: binId };
+            this._setDeleteModalText('forever');
+            document.getElementById('deleteModal').classList.add('show');
+        },
+
+        async purgeBinItem(binId) {
+            if (!this.firebaseReady || !this.db) {
+                this.showToast('Firebase not connected.', 'error');
+                return;
+            }
+            try {
+                const { doc, deleteDoc } = window.fb;
+                await deleteDoc(doc(this.db, 'recycleBin', binId));
+                this.recycleBin = (this.recycleBin || []).filter(b => b.binId !== binId);
+                this.renderRecycleBin();
+                this.showToast('Deleted permanently', 'info');
+            } catch (err) {
+                console.error('Permanent delete failed:', err);
+                this.showToast('Permanent delete failed. Please try again.', 'error');
+            }
+        },
+
         deleteStemMission(id) {
             this.deleteTarget = { type: 'stemMission', id };
             document.getElementById('deleteModal').classList.add('show');
