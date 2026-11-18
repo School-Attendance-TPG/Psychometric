@@ -8687,10 +8687,14 @@ refreshResultsView() {
             if (!this.firebaseReady || !this.db || !mission) return false;
             try {
                 const { doc, setDoc } = window.fb;
-                await setDoc(doc(this.db, 'stemMissions', mission.id), mission);
+                // Firestore rejects `undefined` anywhere in a document → strip it (JSON round-trip) before saving
+                const clean = JSON.parse(JSON.stringify(mission));
+                this._lastCloudError = null;
+                await setDoc(doc(this.db, 'stemMissions', mission.id), clean);
                 return true;
             } catch (err) {
                 console.error('Mission cloud save failed:', err);
+                this._lastCloudError = err;
                 return false;
             }
         },
@@ -9678,7 +9682,7 @@ refreshResultsView() {
                 document.getElementById('stemMissionFile').value = '';
             } else {
                 // Modal stays open so admin can retry
-                this.showToast(this.tm('Cloud save failed! Mission kept in memory only. Try again, or add a Learning Resource link and/or upload attached files.', 'Simpanan awan gagal! Misi hanya disimpan dalam memori. Cuba lagi, atau tambah pautan sumber pembelajaran dan/atau muat naik fail.'), 'error');
+                this.showToast(this.tm('Cloud save failed! Mission kept in memory only. Try again, or add a Learning Resource link and/or upload attached files.', 'Simpanan awan gagal! Misi hanya disimpan dalam memori. Cuba lagi, atau tambah pautan sumber pembelajaran dan/atau muat naik fail.') + (this._lastCloudError ? ' [' + (this._lastCloudError.code || this._lastCloudError.message || 'error') + ']' : ''), 'error');
             }
         },
 
