@@ -35,13 +35,29 @@
     
     <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFfjz8ldW5g.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+    <link rel="dns-prefetch" href="https://res.cloudinary.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Catamaran:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
+    <script>
+// Heavy libraries (PDF / screenshot / QR) load in the background AFTER the page is ready — first paint is never blocked
+(function () {
+    const U = { qr: 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', h2c: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', pdf: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js' };
+    const G = { qr: 'QRCode', h2c: 'html2canvas', pdf: 'html2pdf' }, P = {};
+    window.loadLib = function (k) {
+        if (window[G[k]]) return Promise.resolve();
+        return P[k] || (P[k] = new Promise((res, rej) => { const el = document.createElement('script'); el.src = U[k]; el.async = true; el.onload = res; el.onerror = () => { delete P[k]; rej(new Error('lib ' + k)); }; document.head.appendChild(el); }));
+    };
+    const warm = () => { loadLib('qr').catch(() => {}); setTimeout(() => { loadLib('h2c').catch(() => {}); loadLib('pdf').catch(() => {}); }, 2500); };
+    window.addEventListener('load', () => (window.requestIdleCallback ? requestIdleCallback(warm, { timeout: 3000 }) : setTimeout(warm, 1200)));
+})();
+</script>
+                    
     <!-- ═══════════════════════════════════════════════════════════════
          FIREBASE CONFIG — SECURE ARCHITECTURE v4.0
 
@@ -2387,6 +2403,28 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<style id="perfBoost">
+/* ⚡ smoothness layer */
+html { -webkit-tap-highlight-color: transparent; text-size-adjust: 100%; }
+a, button, input, select, textarea, label, summary, [onclick], [role="button"] { touch-action: manipulation; }   /* no 300ms tap delay */
+button:active, .btn:active, [onclick]:active { transform: scale(0.97); transition: transform 0.06s; }              /* instant press feedback */
+.orb { filter: none !important; will-change: transform; transform: translateZ(0); }                                /* blur(80px) on 4 animated layers was the biggest GPU cost */
+.orb-1 { background: radial-gradient(circle, rgba(147,197,253,.95) 0%, rgba(147,197,253,0) 68%); }
+.orb-2 { background: radial-gradient(circle, rgba(110,231,183,.95) 0%, rgba(110,231,183,0) 68%); }
+.orb-3 { background: radial-gradient(circle, rgba(252,165,165,.95) 0%, rgba(252,165,165,0) 68%); }
+.orb-4 { background: radial-gradient(circle, rgba(196,181,253,.95) 0%, rgba(196,181,253,0) 68%); }
+.glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.glass-card { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+@keyframes fadeInUpFast { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.section.active { animation: fadeInUpFast 0.2s ease-out both; }                                                   /* page switch: 0.6s → 0.2s */
+.admin-page.active { animation-duration: 0.16s; }
+html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after { animation-play-state: paused !important; }
+@media (max-width: 900px), (pointer: coarse) {
+  .glass, .glass-card, .hero-stat { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }  /* phones: no live blur */
+  .orb { animation: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .orb { animation: none !important; } .section.active, .admin-page.active { animation: none !important; } }
+</style>
 </head>
 <body>
     <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div></div>
@@ -2472,7 +2510,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                     </div>
                     <div class="hero-logo-divider"></div>
                     <div class="hero-logo-right">
-                        <img src="school-logo.png" alt="SJKT TPG Logo" onerror="this.outerHTML='<div class=\'school-logo-placeholder\'><i class=\'fas fa-school\'></i></div>'">
+                        <img src="school-logo.png" alt="SJKT TPG Logo" width="120" height="120" fetchpriority="high" decoding="async" onerror="this.outerHTML='<div class=\'school-logo-placeholder\'><i class=\'fas fa-school\'></i></div>'">
                         <div class="logo-text">
                             <div class="logo-title">SJKT Telok<br>Panglima Garang</div>
                             <div class="logo-sub">Official Partner School</div>
@@ -2592,7 +2630,7 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
                         <h4><i class="fas fa-clipboard-list"></i> <span data-i18n="counselor_notes">Counselor Recommendations</span></h4>
                         <p id="counselorNotes">-</p>
                         <div class="counselor-signature">
-                            <img class="counselor-avatar" src="counselor.jpg" alt="Counselor" onerror="this.outerHTML='<div class=\'counselor-avatar\'>S</div>'">
+                            <img class="counselor-avatar" src="counselor.jpg" alt="Counselor" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\'counselor-avatar\'>S</div>'">
                             <div class="counselor-details">
                                 <h5>Subashini Sivalingam</h5>
                                 <span data-i18n="counselor_title">Guidance & Counseling Teacher, SJKT TPG</span>
@@ -4539,9 +4577,11 @@ body.dark-mode .qr-dropdown-empty { color: #94a3b8; }
 },
 
         setupNavScroll() {
+            let scrollTick = false;
             window.addEventListener('scroll', () => {
-                document.getElementById('topNav').classList.toggle('scrolled', window.scrollY > 50);
-            });
+                if (scrollTick) return; scrollTick = true;
+                requestAnimationFrame(() => { document.getElementById('topNav').classList.toggle('scrolled', window.scrollY > 50); scrollTick = false; });
+            }, { passive: true });
         },
 
         setupFirebase() {
@@ -6468,7 +6508,7 @@ async downloadPDF() {
             // Force layout reflow
             pageBox.offsetHeight;
 
-            const canvas = await html2canvas(pageBox, {
+            const canvas = await (await loadLib('h2c'), html2canvas)(pageBox, {
                 scale: 2.5,
                 backgroundColor: '#ffffff',
                 useCORS: true,
@@ -7846,7 +7886,7 @@ refreshResultsView() {
                 const H = Math.floor(W * 297 / 210);        // exact A4 ratio → never spills onto a 2nd page
                 const canvases = [];
                 for (const p of pages) {
-                    const raw = await html2canvas(p.pg, {
+                    const raw = await (await loadLib('h2c'), html2canvas)(p.pg, {
                         scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
                         scrollX: 0, scrollY: 0, windowWidth: 1200,
                         onclone: (doc) => { const h = doc.getElementById('pdfHost'); if (h) { h.style.left = '0'; h.style.top = '0'; } }
@@ -7866,7 +7906,7 @@ refreshResultsView() {
                     pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
                 } else {
                     // jsPDF is bundled inside html2pdf — borrow it; page 1 gets added by html2pdf itself
-                    pdf = await html2pdf().set({ margin: 0, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: [] }, image: { type: 'jpeg', quality: 0.95 } })
+                    pdf = await (await loadLib('pdf'), html2pdf()).set({ margin: 0, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: [] }, image: { type: 'jpeg', quality: 0.95 } })
                         .from(canvases[0], 'canvas').toPdf().get('pdf');
                     startAt = 1;
                 }
@@ -8101,6 +8141,7 @@ refreshResultsView() {
             this.showToast(this.t('toast_students_exported'), 'success');
         },
                         generateQR() {
+        if (typeof QRCode === 'undefined') { loadLib('qr').then(() => this.generateQR()).catch(() => this.showToast('QR library could not load. Check internet.', 'error')); return; }
             try {
                 const studentId = document.getElementById('qrStudentId').value;
                 if (!studentId) { 
@@ -10346,6 +10387,12 @@ refreshResultsView() {
     Object.assign(app.i18n.en, {"sm_content_lang": "Content language", "sm_lang_hint": "Fill <strong>English</strong>, <strong>Malay</strong> or <strong>both</strong>. If both are filled, parents see the language that matches their EN / MS toggle. If only one is filled, it is shown for every language.", "sm_date_label": "Mission Date *", "sm_date_hint": "You can change this date — it will be shown to students as the mission date.", "sm_links_label": "Resource Links (YouTube, Facebook, Instagram, TikTok, Google Drive, Dropbox, OneDrive, website...)", "sm_add_link": "Add another link", "sm_links_hint": "Social media links (YouTube, Facebook, Drive...) appear as logo cards. Normal website links appear separately as clickable links. Uploaded files below are downloaded one by one.", "sm_audience": "Who can see this mission?", "sm_everyone": "Everyone", "sm_classes": "Specific classes", "sm_students": "Specific students", "sm_search_ph": "Search student name or MyKid number...", "sm_exclusive": "Show <strong>only</strong> targeted missions to these students/classes <span style=\"color:var(--text-muted);\">(hide the common \"Everyone\" missions for them)</span>", "sm_from": "Visible from (optional)", "sm_until": "Visible until (optional)", "sm_file_hint": "PDF, DOC, PPT, ZIP, JPG, PNG &bull; Max 10MB", "sm_file_zone": "Choose a file or drag &amp; drop", "bin_title": "Recycle Bin", "bin_sub": "Deleted students, assessments and STEM missions stay here for 30 days. Click <strong>Restore</strong> to undo.", "bin_empty": "Empty Bin", "counselor_title": "Guidance &amp; Counseling Teacher, SJKT TPG"});
     Object.assign(app.i18n.ms, {"sm_content_lang": "Bahasa kandungan", "sm_lang_hint": "Isi dalam <strong>Bahasa Inggeris</strong>, <strong>Bahasa Melayu</strong> atau <strong>kedua-duanya</strong>. Jika kedua-duanya diisi, ibu bapa akan melihat bahasa yang sepadan dengan togol EN / MS mereka. Jika satu sahaja diisi, ia dipaparkan untuk semua bahasa.", "sm_date_label": "Tarikh Misi *", "sm_date_hint": "Anda boleh menukar tarikh ini — ia akan dipaparkan kepada murid sebagai tarikh misi.", "sm_links_label": "Pautan Sumber (YouTube, Facebook, Instagram, TikTok, Google Drive, Dropbox, OneDrive, laman web...)", "sm_add_link": "Tambah pautan lain", "sm_links_hint": "Pautan media sosial (YouTube, Facebook, Drive...) dipaparkan sebagai kad logo. Pautan laman web biasa dipaparkan berasingan sebagai pautan yang boleh diklik. Fail yang dimuat naik di bawah dimuat turun satu demi satu.", "sm_audience": "Siapa boleh melihat misi ini?", "sm_everyone": "Semua", "sm_classes": "Kelas tertentu", "sm_students": "Murid tertentu", "sm_search_ph": "Cari nama murid atau nombor MyKid...", "sm_exclusive": "Papar <strong>hanya</strong> misi khas kepada murid/kelas ini <span style=\"color:var(--text-muted);\">(sembunyikan misi umum \"Semua\" untuk mereka)</span>", "sm_from": "Dipaparkan dari (pilihan)", "sm_until": "Dipaparkan hingga (pilihan)", "sm_file_hint": "PDF, DOC, PPT, ZIP, JPG, PNG &bull; Maks 10MB", "sm_file_zone": "Pilih fail atau seret &amp; lepas", "bin_title": "Tong Kitar Semula", "bin_sub": "Murid, penilaian dan misi STEM yang dipadam disimpan di sini selama 30 hari. Klik <strong>Pulihkan</strong> untuk membatalkan.", "bin_empty": "Kosongkan Tong", "counselor_title": "Guru Bimbingan &amp; Kaunseling, SJKT TPG"});
     Object.assign(app.i18n.ta, {"sm_content_lang": "Content language", "sm_lang_hint": "Fill <strong>English</strong>, <strong>Malay</strong> or <strong>both</strong>. If both are filled, parents see the language that matches their EN / MS toggle. If only one is filled, it is shown for every language.", "sm_date_label": "Mission Date *", "sm_date_hint": "You can change this date — it will be shown to students as the mission date.", "sm_links_label": "Resource Links (YouTube, Facebook, Instagram, TikTok, Google Drive, Dropbox, OneDrive, website...)", "sm_add_link": "Add another link", "sm_links_hint": "Social media links (YouTube, Facebook, Drive...) appear as logo cards. Normal website links appear separately as clickable links. Uploaded files below are downloaded one by one.", "sm_audience": "Who can see this mission?", "sm_everyone": "Everyone", "sm_classes": "Specific classes", "sm_students": "Specific students", "sm_search_ph": "Search student name or MyKid number...", "sm_exclusive": "Show <strong>only</strong> targeted missions to these students/classes <span style=\"color:var(--text-muted);\">(hide the common \"Everyone\" missions for them)</span>", "sm_from": "Visible from (optional)", "sm_until": "Visible until (optional)", "sm_file_hint": "PDF, DOC, PPT, ZIP, JPG, PNG &bull; Max 10MB", "sm_file_zone": "Choose a file or drag &amp; drop", "bin_title": "Recycle Bin", "bin_sub": "Deleted students, assessments and STEM missions stay here for 30 days. Click <strong>Restore</strong> to undo.", "bin_empty": "Empty Bin", "counselor_title": "வழிகாட்டுதல் &amp; ஆலோசனை ஆசிரியர், SJKT TPG"});
+
+    document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('tab-hidden', document.hidden));
+    ['filterStudents', 'filterAssessments', 'filterQRStudents', 'filterTeacherStudents', 'filterTeacherAssessments'].forEach(n => {
+        const f = app[n]; if (typeof f !== 'function') return;
+        let t; app[n] = function (...a) { clearTimeout(t); t = setTimeout(() => f.apply(app, a), 130); };   // type fast → render once
+    });
 
     // ═══════════ ♻️ RECYCLE BIN — every delete is saved first, can be restored for 30 days ═══════════
     const binClean = (v) => String(v || '').replace(/[-\s]/g, '').toUpperCase();
