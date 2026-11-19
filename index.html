@@ -8538,7 +8538,10 @@ refreshResultsView() {
                 }
                 if (fbAssessments.length > 0) {
                     fbAssessments.forEach(a => { if (a.studentId) a.studentId = normId(a.studentId); });
-                    this.assessments = fbAssessments;
+                    // keep vault-loaded assessments (they are not in the top-level collection) — they were being wiped here
+                    const fbIdSet = new Set(fbAssessments.map(a => a.id));
+                    const keepVault = this.assessments.filter(a => a._vaultLoaded && !fbIdSet.has(a.id));
+                    this.assessments = fbAssessments.concat(keepVault);
                     this.saveAssessments();
                 }
 
@@ -9923,14 +9926,25 @@ refreshResultsView() {
 
         // 120-second cache — same class-ku marupadiyum fetch vendaam
         const cacheKey = (role === 'teacher' && this.currentTeacherClass) ? this.currentTeacherClass : 'all';
-        const cacheFresh = (Date.now() - (this.__vaultCacheTime || 0)) < 120000;
+        const cacheFresh = (Date.now() - (this.__vaultCacheTime || 0)) < 45000;
         if (!force && this.__vaultCacheKey === cacheKey && cacheFresh) return 0;
 
-        // Concurrent calls — same promise-ah share pannu (dedupe)
-        if (this.__vaultLoading) return this.__vaultLoading;
+        // Teacher: students list MUST be loaded first. Otherwise the class-scoped fetch silently turns into a
+        // "read everything" request (not allowed for teachers), returns nothing — and that empty result used to be cached.
+        if (role === 'teacher' && this.currentTeacherClass && this.students.length === 0) {
+            try { await (this._syncPromise || this.syncFromFirebase()); } catch (e) { }
+            if (this.students.length === 0) { try { await this.loadStudentsFromFirebase(); } catch (e) { } }
+        }
+
+        // Concurrent calls — share only when it is the SAME class; a different class waits its turn
+        if (this.__vaultLoading) {
+            if (this.__vaultLoadingKey === cacheKey) return this.__vaultLoading;
+            try { await this.__vaultLoading; } catch (e) { }
+        }
+        this.__vaultLoadingKey = cacheKey;
 
         this.__vaultLoading = (async () => {
-            let added = 0;
+            let added = 0, hadErr = false;
             try {
                 const { collection, getDocs } = window.fb;
 
@@ -9947,7 +9961,7 @@ refreshResultsView() {
                 if (targets && targets.length > 0) {
                     // ✅ PARALLEL vault reads
                     snaps = await Promise.all(targets.map(uid =>
-                        getDocs(collection(this.db, 'studentData', uid, 'assessments')).catch(() => null)
+                        getDocs(collection(this.db, 'studentData', uid, 'assessments')).catch(() => { hadErr = true; return null; })
                     ));
                     // ✅ FALLBACK: vault-la illatha students-ku parent path-la irundhu eduthuko
                     // (pudhusa save panna assessments vault-ku write aagala — parent path-la dhaan irukkum)
@@ -9970,7 +9984,7 @@ refreshResultsView() {
                         for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i + 10));
                         const topSnaps = await Promise.all(chunks.map(ch =>
                             getDocs(query(collection(this.db, 'assessments'), where('studentId', 'in', ch)))
-                                .catch(e => { console.warn('[VAULT] top-level assessments read failed:', e && e.code); return null; })
+                                .catch(e => { hadErr = true; console.warn('[VAULT] top-level assessments read failed:', e && e.code); return null; })
                         ));
                         snaps.push(...topSnaps.filter(Boolean));
                     }
@@ -9992,13 +10006,15 @@ refreshResultsView() {
                                 const real = this.students.find(st => normId(st.id) === normId(ad.studentId));
                                 ad.studentId = real ? real.id : normId(ad.studentId);
                             }
+                            try { Object.defineProperty(ad, '_vaultLoaded', { value: true, enumerable: false }); } catch (e) { }
                             this.assessments.push(ad);
                             existing.add(d.id); added++;
                         }
                     });
                 });
                 // targets = [] (class-la students illa) → cache set panna vendaam
-                if (!targets || targets.length > 0) {
+                // only remember a load as "done" when it really worked (no errors, and not the students-not-loaded fallback)
+                if (!hadErr && targets && targets.length > 0 || (!hadErr && role === 'admin')) {
                     this.__vaultCacheKey = cacheKey;
                     this.__vaultCacheTime = Date.now();
                 }
