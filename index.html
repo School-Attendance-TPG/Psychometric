@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0e27">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MANASU Lab">
@@ -17,7 +20,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MANASU Lab">
     <meta name="description" content="Secure psychometric wellness portal for SJKT TPG — Child psychology assessments for parents">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src https://*.firebaseio.com https://*.googleapis.com https://*.cloudinary.com; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudinary.com; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -10503,45 +10506,69 @@ refreshResultsView() {
     </script>
 
  <script>
-
 // ═══════════════════════════════════════════════════════════════
-// PWA SERVICE WORKER — Required for native install
+// ALWAYS-FRESH: no stale cache anywhere, instant updates worldwide
 // ═══════════════════════════════════════════════════════════════
+(function () {
+    const once = (k, ms) => { try { const t = +sessionStorage.getItem(k) || 0; if (Date.now() - t < ms) return false; sessionStorage.setItem(k, Date.now()); return true; } catch (e) { return true; } };
 
+    // 1) Service worker (/sw.js) = network-only, wipes every old cache; old blob workers removed
+    if ('serviceWorker' in navigator) {
+        const hadController = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => {
+            const u = ((r.active || r.waiting || r.installing) || {}).scriptURL || '';
+            if (u.indexOf('blob:') === 0) r.unregister();
+        })).catch(() => {});
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+            .then(reg => { reg.update(); setInterval(() => reg.update(), 60000); })
+            .catch(() => {});
+        navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && once('manasu_sw_reload', 20000)) location.reload(); });
+    }
+    if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {});
 
-if ('serviceWorker' in navigator) {
-    const swCode = `
-        const CACHE_NAME = 'manasu-v1';
-        const urlsToCache = ['/', '/manifest.json'];
-        
-        self.addEventListener('install', event => {
-            event.waitUntil(
-                caches.open(CACHE_NAME)
-                    .then(cache => cache.addAll(urlsToCache))
-            );
-            self.skipWaiting();
-        });
-        
-        self.addEventListener('activate', event => {
-            event.waitUntil(self.clients.claim());
-        });
-        
-        self.addEventListener('fetch', event => {
-            event.respondWith(
-                caches.match(event.request).then(response => {
-                    return response || fetch(event.request);
-                })
-            );
-        });
-    `;
-    
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    
-    navigator.serviceWorker.register(swUrl)
-        .then(reg => console.log('MANASU Lab SW registered'))
-        .catch(err => console.log('SW failed'));
-}
+    // 2) Version watcher: compares the live index file with the one this browser last saw
+    const KEY = 'manasu_build_token';
+    let busy = false;
+    async function token(r, text) {
+        const t = r.headers.get('etag') || r.headers.get('last-modified');
+        if (t) return t;
+        try { const b = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+        catch (e) { return String(text.length); }
+    }
+    function banner() {
+        if (document.getElementById('updBanner')) return;
+        const d = document.createElement('div');
+        d.id = 'updBanner';
+        d.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100000;background:#0d9488;color:#fff;padding:10px 18px;border-radius:50px;box-shadow:0 10px 30px rgba(0,0,0,.25);font:600 0.85rem Poppins,sans-serif;display:flex;gap:12px;align-items:center;';
+        d.innerHTML = '<span>New version available</span><button style="background:#fff;color:#0d9488;border:0;border-radius:50px;padding:6px 14px;font-weight:700;cursor:pointer;">Update now</button>';
+        d.querySelector('button').onclick = () => location.reload();
+        document.body.appendChild(d);
+    }
+    function applyUpdate() {
+        const el = document.activeElement;
+        const typing = el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+        const modal = document.querySelector('.modal-overlay.show, .modal.show, .modal-backdrop.show');
+        if (typing || modal) banner();               // never wipe an admin's unsaved form
+        else if (once('manasu_ver_reload', 20000)) location.reload();
+    }
+    async function check() {
+        if (busy || document.hidden || navigator.onLine === false) return;
+        busy = true;
+        try {
+            const r = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
+            if (!r.ok) return;
+            const tk = await token(r, await r.text());
+            const prev = localStorage.getItem(KEY);
+            localStorage.setItem(KEY, tk);
+            if (prev && prev !== tk) applyUpdate();
+        } catch (e) { } finally { busy = false; }
+    }
+    window.addEventListener('load', () => setTimeout(check, 1500));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    window.addEventListener('online', check);
+    window.addEventListener('pageshow', e => { if (e.persisted) check(); }); // back/forward cache
+    setInterval(check, 60000);
+})();
 </script>
 
 <!-- iOS Install Banner -->
